@@ -576,16 +576,15 @@ body {
 }
 
 .profile-avatar {
-    width: 120px;
-    height: 120px;
+    position: relative;
+    width: 140px;
+    height: 140px;
     border-radius: 50%;
     overflow: hidden;
     margin: 0 auto 20px;
-    border: 4px solid #fff;
-    background-color: #222;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    border: 5px solid #fff;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
 }
 
 .profile-avatar img {
@@ -758,23 +757,8 @@ body {
 }
 
 /* Стили для фото профиля */
-.profile-photo {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    border-radius: 50%;
-}
 
-.profile-avatar {
-    position: relative;
-    width: 120px;
-    height: 120px;
-    border-radius: 50%;
-    overflow: hidden;
-    margin: 0 auto 20px;
-    border: 4px solid #fff;
-    background-color: #222;
-}
+
 
 /* ========== КОМПАКТНЫЙ ПРОФИЛЬ - ИСПРАВЛЕННЫЙ ========== */
 .compact-profile {
@@ -993,16 +977,199 @@ body {
     transition: all 0.3s;
 }
 
-/* Исправление для аватара профиля */
-.profile-avatar {
-    position: relative;
-    width: 120px;
-    height: 120px;
-    border-radius: 50%;
-    overflow: hidden;
+/* Статистика пользователя */
+.user-stats {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 20px;
+    border-radius: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.stat-item {
+    text-align: center;
+    padding: 10px;
+    min-width: 100px;
+}
+
+.stat-value {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #4ecdc4;
+    margin-bottom: 5px;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    color: #999;
+}
+
+/* Секция информации Telegram */
+.telegram-info-section {
+    background: rgba(0, 0, 0, 0.3);
+    padding: 25px;
+    border-radius: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.telegram-info-grid .info-card {
+    background: rgba(255, 255, 255, 0.05);
+    border-left: 4px solid #0088cc; /* Telegram цвет */
+}
+
+.telegram-info-grid .info-card .icon {
+    color: #0088cc;
+}
+
+/* Карточки информации */
+.info-card {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 20px;
+    border-radius: 12px;
+    border-left: 4px solid #4ecdc4;
+    transition: all 0.3s ease;
+    height: 100%;
+}
+
+.info-card:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.info-label {
+    font-size: 0.85rem;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.info-value {
+    font-size: 1.1rem;
+    color: #fff;
+    font-weight: 500;
+    word-break: break-all;
+}
+
+.info-value.premium {
+    color: gold;
+}
+
+.info-value.online {
+    color: #00cc00;
+}
+
+.info-value.offline {
+    color: #ff6b6b;
+}
+
+/* Бейджи статусов */
+.status-badge {
+    display: inline-block;
+    padding: 8px 20px;
+    border-radius: 25px;
+    font-size: 0.85rem;
+    font-weight: bold;
     margin: 0 auto 20px;
-    border: 4px solid #fff;
-    background-color: #222;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.badge-real {
+    background: linear-gradient(135deg, #00cc00, #009900);
+    color: white;
+    box-shadow: 0 4px 15px rgba(0, 255, 0, 0.2);
+}
+
+.badge-demo {
+    background: linear-gradient(135deg, #ff9900, #cc6600);
+    color: white;
+    box-shadow: 0 4px 15px rgba(255, 153, 0, 0.2);
+}
+
+.badge-telegram {
+    background: linear-gradient(135deg, #0088cc, #006699);
+    color: white;
+    box-shadow: 0 4px 15px rgba(0, 136, 204, 0.2);
+}
+
+/* Кнопки профиля */
+.profile-actions .game-button {
+    min-width: 150px;
+    padding: 12px 25px;
+    font-size: 1rem;
+}
+
+/* Анимация загрузки фото */
+@keyframes photoFadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.profile-photo.loaded {
+    animation: photoFadeIn 0.5s ease-out;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .profile-avatar {
+        width: 120px;
+        height: 120px;
+    }
+    
+    .profile-initials {
+        font-size: 3rem;
+    }
+    
+    .user-stats {
+        padding: 15px;
+    }
+    
+    .stat-item {
+        min-width: 80px;
+    }
+    
+    .stat-value {
+        font-size: 1.5rem;
+    }
+    
+    .profile-info-grid {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    }
+}
+
+@media (max-width: 480px) {
+    .profile-avatar {
+        width: 100px;
+        height: 100px;
+    }
+    
+    .profile-initials {
+        font-size: 2.5rem;
+    }
+    
+    .user-stats > div {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .stat-item {
+        min-width: auto;
+    }
+    
+    .profile-info-grid {
+        grid-template-columns: 1fr;
+    }
 }
 
 .profile-photo {
@@ -1012,7 +1179,7 @@ body {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    z-index: 1;
+    z-index: 2;
 }
 
 .profile-initials {
@@ -1024,11 +1191,10 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 3rem;
+    font-size: 3.5rem;
     font-weight: bold;
     color: #fff;
-    background-color: #222;
-    z-index: 0;
+    z-index: 1;
 }
 
 /* Показываем фото когда оно загружено */
