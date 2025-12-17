@@ -1,4 +1,4 @@
-// src/utils/game.js - Исправленная версия
+// src/utils/game.js - Полностью переписанная версия
 const activeGames = new Map();
 const userSessions = new Map();
 
@@ -6,32 +6,30 @@ class WheelGame {
     constructor(gameId) {
         this.id = gameId;
         this.participants = [];
-        this.status = 'waiting';
-        this.countdown = 30;
+        this.status = 'waiting'; // waiting, counting, spinning, finished
+        this.countdown = null;
         this.countdownStartTime = null;
         this.winner = null;
         this.winnerIndex = null;
         this.finalAngle = null;
         this.createdAt = new Date();
-        this.maxParticipants = 8;
         this.lastActivity = new Date();
         this.spinStartedAt = null;
+        this.winnerAnnounced = false;
+        this.nextRoundTimer = null;
+        this.maxParticipants = 20; // Больше участников
     }
     
-    // В game.js убедитесь, что метод addParticipant выглядит так:
     addParticipant(user) {
         console.log(`👤 Пытаемся добавить пользователя ${user.first_name} (ID: ${user.id}) в игру ${this.id}`);
         
-        if (this.status !== 'waiting' && this.status !== 'counting') {
+        // Проверяем статус игры
+        if (this.status === 'spinning' || this.status === 'finished') {
             console.log(`❌ Игра уже в статусе: ${this.status}`);
             return { success: false, error: 'Игра уже началась' };
         }
         
-        if (this.participants.length >= this.maxParticipants) {
-            console.log(`❌ Достигнут лимит участников: ${this.participants.length}/${this.maxParticipants}`);
-            return { success: false, error: 'Достигнут лимит участников' };
-        }
-        
+        // Проверяем, не участвует ли уже
         if (this.participants.some(p => p.id === user.id)) {
             console.log(`❌ Пользователь уже участвует в игре`);
             return { success: false, error: 'Вы уже участвуете в игре' };
@@ -53,9 +51,9 @@ class WheelGame {
         
         console.log(`✅ Пользователь добавлен. Теперь участников: ${this.participants.length}`);
         
-        // Автоматически запускаем отсчет если участников > 1
-        if (this.participants.length > 1 && this.status === 'waiting') {
-            console.log(`⏳ Запускаем таймер (участников: ${this.participants.length})`);
+        // Если стало 2+ участников и игра в режиме ожидания - запускаем таймер
+        if (this.participants.length >= 2 && this.status === 'waiting') {
+            console.log(`⏳ Запускаем 30-секундный таймер (участников: ${this.participants.length})`);
             this.startCountdown();
         }
         
@@ -66,200 +64,166 @@ class WheelGame {
         if (this.status !== 'waiting') return;
         
         this.status = 'counting';
-        this.countdown = 30;
+        this.countdown = 30; // 30 секунд
         this.countdownStartTime = new Date();
         this.lastActivity = new Date();
         
         console.log(`⏳ Игра ${this.id}: запущен 30-секундный таймер`);
     }
     
-    updateCountdown() {
-        if (this.status !== 'counting') return;
-        
-        if (!this.countdownStartTime) {
-            this.countdownStartTime = new Date();
-            this.countdown = 30;
-            return;
-        }
-        
+    updateGameState() {
         const now = new Date();
-        const secondsPassed = Math.floor((now - this.countdownStartTime) / 1000);
-        this.countdown = Math.max(0, 30 - secondsPassed);
+        this.lastActivity = now;
         
-        if (this.countdown <= 0 && this.status === 'counting') {
-            this.startSpinning();
+        // Обновляем таймер если игра в режиме отсчета
+        if (this.status === 'counting' && this.countdownStartTime) {
+            const secondsPassed = Math.floor((now - this.countdownStartTime) / 1000);
+            this.countdown = Math.max(0, 30 - secondsPassed);
+            
+            // Если таймер истек - запускаем вращение
+            if (this.countdown <= 0 && this.status === 'counting') {
+                console.log(`⏰ Таймер истек, запускаем вращение колеса!`);
+                this.startSpinning();
+            }
         }
-    }
-
-    determineWinnerByAngle(finalAngle) {
-        if (!finalAngle || this.participants.length === 0) {
-            return null;
+        
+        // Если игра в состоянии вращения - проверяем не пора ли завершить
+        if (this.status === 'spinning' && this.spinStartedAt) {
+            const spinDuration = Math.floor((now - this.spinStartedAt) / 1000);
+            
+            // Вращение длится 5 секунд, затем показываем победителя
+            if (spinDuration >= 5 && !this.winnerAnnounced) {
+                console.log(`🎰 Вращение завершено, определяем победителя...`);
+                this.determineWinner();
+                this.winnerAnnounced = true;
+            }
+            
+            // Через 8 секунд после начала вращения завершаем игру
+            if (spinDuration >= 8) {
+                this.status = 'finished';
+                console.log(`🏁 Игра завершена! Победитель: ${this.winner?.first_name || 'не определен'}`);
+            }
         }
         
-        // Нормализуем угол (убираем полные обороты)
-        const normalizedAngle = finalAngle % 360;
-        
-        // Участники расположены по часовой стрелке, указатель сверху (0°)
-        const sectorAngle = 360 / this.participants.length;
-        
-        // Определяем сектор (от 0 до participants.length-1)
-        let sector = Math.floor(normalizedAngle / sectorAngle);
-        
-        // Инвертируем, так как вращение идет по часовой стрелке
-        sector = (this.participants.length - sector) % this.participants.length;
-        if (sector < 0) sector += this.participants.length;
-        
-        this.winnerIndex = sector;
-        this.winner = this.participants[sector];
-        
-        console.log(`🎯 Победитель по углу ${finalAngle}°: ${this.winner?.first_name || 'не найден'} (сектор: ${sector})`);
-        
-        return this.winner;
+        // Если игра завершена - запускаем таймер следующего раунда
+        if (this.status === 'finished') {
+            if (!this.nextRoundTimer) {
+                this.nextRoundTimer = 8; // 8 секунд до следующего раунда
+                console.log(`🔄 Следующий раунд через ${this.nextRoundTimer} секунд`);
+            } else {
+                const finishedDuration = Math.floor((now - this.spinStartedAt) / 1000) - 8;
+                this.nextRoundTimer = Math.max(0, 8 - finishedDuration);
+                
+                // Если время вышло - сбрасываем игру
+                if (this.nextRoundTimer <= 0) {
+                    this.resetForNextRound();
+                }
+            }
+        }
     }
     
-    // В game.js полностью перепишите метод startSpinning():
     startSpinning() {
         if (this.participants.length < 2) {
+            console.log(`❌ Недостаточно участников для вращения: ${this.participants.length}`);
             this.status = 'waiting';
             this.countdown = null;
             this.countdownStartTime = null;
             return;
         }
         
+        console.log(`🎰 Начинаем вращение колеса с ${this.participants.length} участниками`);
+        
         this.status = 'spinning';
         this.spinStartedAt = new Date();
         this.lastActivity = new Date();
         
-        // ОЧЕНЬ ВАЖНО: Сервер генерирует случайный угол и победителя
-        // Все клиенты получат одинаковые данные
+        // Генерируем случайный финальный угол
+        // Колесо сделает 5 полных оборотов + случайный угол
+        const spins = 5;
+        const baseAngle = spins * 360;
         
-        // Случайный выбор победителя
-        this.winnerIndex = Math.floor(Math.random() * this.participants.length);
-        this.winner = this.participants[this.winnerIndex];
+        // Случайный угол от 0 до 360 градусов
+        const randomAngle = Math.random() * 360;
         
-        // Рассчитываем финальный угол на основе победителя
-        const spins = 5; // 5 полных оборотов для красоты
-        const sectorAngle = 360 / this.participants.length;
+        this.finalAngle = baseAngle + randomAngle;
         
-        // Центр сектора победителя (относительно 0° сверху)
-        // Учитываем, что участники расположены по часовой стрелке
-        const winnerCenterAngle = (360 - (this.winnerIndex * sectorAngle)) - (sectorAngle / 2);
+        console.log(`📐 Финальный угол вращения: ${this.finalAngle}°`);
         
-        // Добавляем немного случайности (±20% сектора) для реалистичности
-        const randomOffset = (Math.random() - 0.5) * sectorAngle * 0.4;
-        
-        // Итоговый угол: полные обороты + угол до сектора победителя + случайность
-        this.finalAngle = spins * 360 + winnerCenterAngle + randomOffset;
-        
-        console.log(`🎰 Игра ${this.id}: запущено вращение!`);
-        console.log(`👥 Участников: ${this.participants.length}`);
-        console.log(`🏆 Победитель: ${this.winner.first_name} (индекс: ${this.winnerIndex})`);
-        console.log(`📐 Финальный угол: ${this.finalAngle}°`);
-        console.log(`📏 Сектор: ${sectorAngle}°, Центр сектора: ${winnerCenterAngle}°`);
-        
-        // Сохраняем время запуска для синхронизации
-        this.spinStartTime = new Date();
-        
-        // Завершаем игру через 8 секунд
-        setTimeout(() => {
-            this.finishGame();
-        }, 8000);
-    }
-
-    // Добавьте метод для синхронизации времени
-    getSpinSyncData() {
-        if (this.status !== 'spinning' || !this.spinStartTime || !this.finalAngle) {
-            return null;
-        }
-        
-        const now = new Date();
-        const elapsedMs = now - this.spinStartTime;
-        const totalSpinTime = 5000; // 5 секунд на вращение
-        
-        return {
-            startTime: this.spinStartTime.getTime(),
-            finalAngle: this.finalAngle,
-            totalSpinTime: totalSpinTime,
-            elapsedMs: elapsedMs,
-            progress: Math.min(elapsedMs / totalSpinTime, 1),
-            shouldBeSpinning: elapsedMs < totalSpinTime
-        };
-    }
-
-    // Добавьте новый метод для определения победителя после вращения
-    scheduleWinnerSelection() {
-        // Ждем 5 секунд (время вращения колеса)
-        setTimeout(() => {
-            if (this.status !== 'spinning') return;
-            
-            // Только теперь случайным образом выбираем победителя
-            this.winnerIndex = Math.floor(Math.random() * this.participants.length);
-            this.winner = this.participants[this.winnerIndex];
-            
-            // Рассчитываем финальный угол на основе победителя
-            const spins = 5; // 5 полных оборотов
-            const sectorAngle = 360 / this.participants.length;
-            
-            // Центр сектора победителя (относительно 0° сверху)
-            // Учитываем, что участники расположены по часовой стрелке
-            const winnerCenterAngle = (360 - (this.winnerIndex * sectorAngle)) - (sectorAngle / 2);
-            
-            // Добавляем немного случайности (±30% сектора)
-            const randomOffset = (Math.random() - 0.5) * sectorAngle * 0.6;
-            
-            // Итоговый угол: полные обороты + угол до сектора победителя + случайность
-            this.finalAngle = spins * 360 + winnerCenterAngle + randomOffset;
-            
-            console.log(`🏆 Определен победитель: ${this.winner.first_name} (индекс: ${this.winnerIndex})`);
-            console.log(`📐 Финальный угол: ${this.finalAngle}°`);
-            console.log(`📏 Сектор: ${sectorAngle}°, Центр сектора: ${winnerCenterAngle}°`);
-            
-            // Завершаем игру через 2 секунды после определения победителя
-            setTimeout(() => {
-                this.finishGame();
-            }, 2000);
-        }, 5000); // 5 секунд - время вращения колеса
+        // Победитель пока не определен - определится после остановки
+        this.winner = null;
+        this.winnerIndex = null;
+        this.winnerAnnounced = false;
     }
     
-    finishGame() {
-        this.status = 'finished';
+    determineWinner() {
+        if (!this.finalAngle || this.participants.length === 0) {
+            console.warn('Не могу определить победителя: нет угла или участников');
+            return;
+        }
+        
+        // Нормализуем угол (убираем полные обороты)
+        const normalizedAngle = this.finalAngle % 360;
+        
+        // Участники расположены равномерно по кругу
+        const sectorAngle = 360 / this.participants.length;
+        
+        // Определяем сектор (от 0 до participants.length-1)
+        // Учитываем что указатель вверху (0°), а вращение по часовой стрелке
+        let sector = Math.floor(normalizedAngle / sectorAngle);
+        
+        // Инвертируем индекс для правильного соответствия
+        sector = (this.participants.length - sector) % this.participants.length;
+        if (sector < 0) sector += this.participants.length;
+        
+        // Выбираем победителя
+        this.winnerIndex = sector;
+        this.winner = this.participants[sector];
+        
+        console.log(`🎯 Определен победитель: ${this.winner.first_name}`);
+        console.log(`📏 Угол: ${normalizedAngle}°, Сектор: ${sectorAngle}°, Выбран сектор: ${sector}`);
+        
+        // Увеличиваем счетчик побед пользователя
+        if (gameManager) {
+            gameManager.incrementUserWins(this.winner.id);
+        }
+    }
+    
+    resetForNextRound() {
+        console.log(`🔄 Сброс игры для следующего раунда`);
+        
+        // Оставляем участников, сбрасываем состояние игры
+        this.status = 'waiting';
+        this.countdown = null;
+        this.countdownStartTime = null;
+        this.winner = null;
+        this.winnerIndex = null;
+        this.finalAngle = null;
+        this.spinStartedAt = null;
+        this.winnerAnnounced = false;
+        this.nextRoundTimer = null;
+        
+        // Если участников меньше 2 - сбрасываем таймер
+        if (this.participants.length < 2) {
+            console.log(`👥 Недостаточно участников, ждем новых...`);
+        } else {
+            // Если есть участники - сразу запускаем новый таймер
+            console.log(`⏳ Запускаем новый 30-секундный таймер`);
+            this.startCountdown();
+        }
+        
         this.lastActivity = new Date();
-        
-        console.log(`🏁 Игра ${this.id}: завершена! Победитель: ${this.winner.first_name}`);
-        
-        // Очищаем игру через 15 секунд
-        setTimeout(() => {
-            if (activeGames.has(this.id)) {
-                activeGames.delete(this.id);
-                console.log(`🗑️ Игра ${this.id}: удалена из памяти`);
-            }
-        }, 15000);
     }
     
     getGameState() {
-        // Обновляем таймер если игра в режиме отсчета
-        if (this.status === 'counting') {
-            this.updateCountdown();
-            
-            // Автоматически запускаем вращение по истечении таймера
-            if (this.countdown <= 0 && this.status === 'counting') {
-                console.log(`⏰ Таймер истек, запускаем вращение...`);
-                this.startSpinning();
-            }
-        }
+        // Обновляем состояние игры
+        this.updateGameState();
         
         // Рассчитываем прогресс вращения
         let spinProgress = null;
-        let spinDuration = null;
-        let syncData = null;
-        
         if (this.status === 'spinning' && this.spinStartedAt) {
             const now = new Date();
-            spinDuration = Math.floor((now - this.spinStartedAt) / 1000);
-            spinProgress = Math.min(spinDuration / 5, 1); // 5 секунд на вращение
-            
-            // Генерируем данные для синхронизации
-            syncData = this.getSpinSyncData();
+            const spinDuration = Math.floor((now - this.spinStartedAt) / 1000);
+            spinProgress = Math.min(spinDuration / 5, 1);
         }
         
         return {
@@ -272,9 +236,7 @@ class WheelGame {
             finalAngle: this.finalAngle,
             spinStartedAt: this.spinStartedAt,
             spinProgress: spinProgress,
-            spinDuration: spinDuration,
-            spinSyncData: syncData, // Добавляем данные синхронизации
-            maxParticipants: this.maxParticipants,
+            nextRoundTimer: this.nextRoundTimer,
             lastActivity: this.lastActivity,
             canJoin: this.status === 'waiting' || this.status === 'counting'
         };
@@ -290,10 +252,6 @@ const gameManager = {
         return game;
     },
     
-    getAllGames() {
-        return Array.from(activeGames.values());
-    },
-    
     getGame(gameId) {
         return activeGames.get(gameId);
     },
@@ -301,15 +259,17 @@ const gameManager = {
     getActiveGame() {
         // Ищем активную игру
         for (const [id, game] of activeGames) {
-            if (game.status === 'waiting' || game.status === 'counting') {
-                // Проверяем не устарела ли игра
-                const now = new Date();
-                const timeSinceLastActivity = (now - game.lastActivity) / 1000;
-                
-                if (timeSinceLastActivity < 300) { // 5 минут
-                    return game;
-                }
+            const now = new Date();
+            const timeSinceLastActivity = (now - game.lastActivity) / 1000;
+            
+            // Удаляем старые неактивные игры
+            if (timeSinceLastActivity > 300) { // 5 минут
+                console.log(`🗑️ Удаляем старую игру ${id}`);
+                activeGames.delete(id);
+                continue;
             }
+            
+            return game;
         }
         
         // Если нет активных игр, создаем новую
@@ -319,19 +279,13 @@ const gameManager = {
     cleanupOldGames() {
         const now = new Date();
         const fiveMinutesAgo = new Date(now - 5 * 60 * 1000);
-        const tenMinutesAgo = new Date(now - 10 * 60 * 1000);
         
         let cleaned = 0;
         for (const [id, game] of activeGames) {
-            // Удаляем завершенные игры старше 10 минут
-            if (game.status === 'finished' && game.lastActivity < tenMinutesAgo) {
+            if (game.lastActivity < fiveMinutesAgo) {
                 activeGames.delete(id);
                 cleaned++;
-            }
-            // Удаляем неактивные игры старше 5 минут
-            else if (game.lastActivity < fiveMinutesAgo) {
-                activeGames.delete(id);
-                cleaned++;
+                console.log(`🧹 Удалена старая игра ${id}`);
             }
         }
         
@@ -380,18 +334,19 @@ const gameManager = {
         if (user) {
             user.gamesWon = (user.gamesWon || 0) + 1;
             user.lastSeen = new Date();
+            console.log(`🏆 Пользователь ${userId} одержал победу! Всего побед: ${user.gamesWon}`);
         }
     }
 };
 
-// Очистка старых игр каждые 2 минуты
+// Очистка старых игр каждую минуту
 setInterval(() => {
     gameManager.cleanupOldGames();
-}, 2 * 60 * 1000);
+}, 60 * 1000);
 
-// Логирование каждые 30 секунд для отладки
+// Логирование каждые 30 секунд
 setInterval(() => {
-    console.log(`📊 Статистика: ${activeGames.size} активных игр, ${userSessions.size} пользователей в сессии`);
+    console.log(`📊 Статистика: ${activeGames.size} активных игр, ${userSessions.size} пользователей`);
 }, 30000);
 
 module.exports = {
