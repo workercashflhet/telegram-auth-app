@@ -1,57 +1,58 @@
 const crypto = require('crypto');
 
 /**
- * Валидация данных Telegram Web App
- * @param {string} initData - Строка initData от Telegram Web App
- * @returns {Object|null} Данные пользователя или null если невалидны
+ * Реальная валидация данных Telegram Web App
  */
 function validateTelegramData(initData) {
   try {
-    // Парсим query string
+    if (!initData || !process.env.BOT_TOKEN) {
+      console.log('Нет initData или BOT_TOKEN');
+      return null;
+    }
+
+    // Парсим данные
     const params = new URLSearchParams(initData);
-    
-    // Извлекаем хэш и удаляем его из параметров для проверки
     const hash = params.get('hash');
+    
+    if (!hash) {
+      console.log('Нет hash в initData');
+      return null;
+    }
+
+    // Удаляем hash из параметров для проверки
     params.delete('hash');
     
-    // Сортируем параметры по ключу
-    const sortedParams = Array.from(params.entries())
+    // Сортируем параметры
+    const dataCheckString = Array.from(params.entries())
       .sort(([a], [b]) => a.localeCompare(b))
       .map(([key, value]) => `${key}=${value}`)
       .join('\n');
-    
-    // Секретный ключ для HMAC
-    const botToken = process.env.BOT_TOKEN;
-    if (!botToken) {
-      console.error('BOT_TOKEN не установлен в переменных окружения');
-      return null;
-    }
-    
+
+    // Секретный ключ
     const secretKey = crypto.createHmac('sha256', 'WebAppData')
-      .update(botToken)
+      .update(process.env.BOT_TOKEN)
       .digest();
-    
-    // Вычисляем HMAC
-    const computedHash = crypto.createHmac('sha256', secretKey)
-      .update(sortedParams)
+
+    // Проверяем подпись
+    const calculatedHash = crypto.createHmac('sha256', secretKey)
+      .update(dataCheckString)
       .digest('hex');
-    
-    // Сравниваем хэши
-    if (computedHash !== hash) {
-      console.error('Хэши не совпадают');
+
+    if (calculatedHash !== hash) {
+      console.log('Неверная подпись Telegram');
       return null;
     }
-    
+
     // Извлекаем данные пользователя
     const userStr = params.get('user');
     if (!userStr) {
-      console.error('Данные пользователя не найдены');
+      console.log('Нет данных пользователя');
       return null;
     }
-    
+
     const userData = JSON.parse(userStr);
     
-    // Возвращаем все доступные данные
+    // Формируем полные данные
     return {
       id: userData.id,
       first_name: userData.first_name,
@@ -64,17 +65,46 @@ function validateTelegramData(initData) {
       auth_date: new Date(parseInt(params.get('auth_date')) * 1000),
       query_id: params.get('query_id'),
       chat_type: params.get('chat_type') || null,
-      chat_instance: params.get('chat_instance') || null,
-      start_param: params.get('start_param') || null,
-      can_send_after: params.get('can_send_after') || null
+      chat_instance: params.get('chat_instance') || null
     };
-    
+
   } catch (error) {
-    console.error('Ошибка при валидации данных Telegram:', error);
+    console.error('Ошибка валидации Telegram:', error);
     return null;
   }
 }
 
+/**
+ * Генерация демо-данных (только если нет реальной авторизации)
+ */
+function generateDemoData() {
+  const userId = Math.floor(Math.random() * 1000000000);
+  const firstNames = ['Алексей', 'Мария', 'Дмитрий', 'Анна', 'Сергей', 'Екатерина'];
+  const lastNames = ['Иванов', 'Петрова', 'Сидоров', 'Смирнова', 'Кузнецов', 'Попова'];
+  const username = ['alexey_tg', 'maria_tg', 'dmitry_tg', 'anna_tg', 'sergey_tg', 'ekaterina_tg'];
+  
+  const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
+  const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
+  const user = username[Math.floor(Math.random() * username.length)];
+  
+  return {
+    id: userId,
+    first_name: firstName,
+    last_name: lastName,
+    username: user,
+    language_code: Math.random() > 0.5 ? 'ru' : 'en',
+    is_premium: Math.random() > 0.7,
+    allows_write_to_pm: true,
+    photo_url: `https://api.dicebear.com/7.x/avataaars/svg?seed=${userId}&backgroundColor=000000`,
+    auth_date: new Date(),
+    query_id: `query_${Date.now()}`,
+    chat_type: 'private',
+    chat_instance: `chat_${userId}`,
+    is_demo: true // Флаг демо-данных
+  };
+}
+
 module.exports = {
-  validateTelegramData
+  validateTelegramData,
+  generateDemoData
 };

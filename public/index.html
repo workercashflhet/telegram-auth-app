@@ -18,6 +18,11 @@
             <div id="statusMessage" class="status-message">
                 <span id="statusText"></span>
             </div>
+
+            <!-- Индикатор авторизации на главной вкладке -->
+            <div id="authIndicator" style="display: none; text-align: center; margin: 10px 0; padding: 10px; background: rgba(0,255,0,0.1); border-radius: 10px;">
+                <span style="color: #4ecdc4;">✅ Авторизован как: <span id="currentUserName">Имя</span></span>
+            </div>
             
             <!-- Таймер игры -->
             <div class="game-timer-container">
@@ -142,6 +147,7 @@
                 // Проверяем авторизацию
                 if (tg.initData) {
                     autoLogin();
+                    updateAuthIndicator();
                 }
                 
                 return true;
@@ -149,6 +155,19 @@
             return false;
         }
         
+        // Функция для обновления индикатора авторизации
+        function updateAuthIndicator() {
+            const authIndicator = document.getElementById('authIndicator');
+            const currentUserName = document.getElementById('currentUserName');
+            
+            if (window.currentUser) {
+                authIndicator.style.display = 'block';
+                currentUserName.textContent = window.currentUser.first_name || 'Пользователь';
+            } else {
+                authIndicator.style.display = 'none';
+            }
+        }
+
         // Автоматический вход
         async function autoLogin() {
             try {
@@ -160,65 +179,57 @@
                 
                 const data = await response.json();
                 
-                if (data.success) {
-                    currentUser = data.user;
+                // После успешной авторизации в функции autoLogin или login:
+                if (data.success && data.user) {
+                    // КРИТИЧЕСКИ ВАЖНО: устанавливаем глобальную переменную
+                    window.currentUser = data.user;
                     
-                    if (data.source === 'telegram') {
-                        dataBadge.className = 'status-badge badge-real';
-                        badgeText.textContent = 'REAL TELEGRAM DATA';
-                    } else {
-                        dataBadge.className = 'status-badge badge-demo';
-                        badgeText.textContent = 'ДЕМО РЕЖИМ';
+                    // Уведомляем объект игры об изменении
+                    if (window.fortuneWheel) {
+                        window.fortuneWheel.updateButtons();
+                        // Также обновляем список участников, если пользователь уже в игре
+                        window.fortuneWheel.loadGameState();
                     }
                     
+                    // Показываем статус
+                    showStatus(`✅ Добро пожаловать, ${data.user.first_name}!`, 'success');
+                    
+                    // Обновляем вкладку профиля
                     updateProfileTab();
-                    showStatus('✅ Авторизация успешна', 'success');
-                    
-                    // Добавляем демо-участников для примера
-                    if (window.fortuneWheel && window.fortuneWheel.participants.length === 0) {
-                        setTimeout(() => {
-                            addDemoParticipants();
-                        }, 1000);
-                    }
+                    // Глобальная функция для принудительного обновления состояния
+                    window.syncAppState = function() {
+                        console.log('Принудительная синхронизация состояния...');
+                        
+                        // Обновляем кнопки игры
+                        if (window.fortuneWheel) {
+                            window.fortuneWheel.updateButtons();
+                            window.fortuneWheel.loadGameState();
+                        }
+                        
+                        // Обновляем профиль
+                        if (window.currentUser) {
+                            updateProfileTab();
+                        }
+                        
+                        return 'Состояние синхронизировано';
+                    };
                 }
             } catch (error) {
                 console.error('Auto login error:', error);
             }
         }
         
-        // Добавить демо-участников
-        function addDemoParticipants() {
-            if (!window.fortuneWheel || window.fortuneWheel.participants.length > 0) return;
+        function addRealParticipant(user) {
+            if (!window.fortuneWheel || !user) return;
             
-            const demoParticipants = [
-                {
-                    id: 1001,
-                    first_name: 'Алексей',
-                    last_name: 'Иванов',
-                    username: 'alexey',
-                    photo_url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=alexey&backgroundColor=000000'
-                },
-                {
-                    id: 1002,
-                    first_name: 'Мария',
-                    last_name: 'Петрова',
-                    username: 'maria',
-                    photo_url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=maria&backgroundColor=000000'
-                },
-                {
-                    id: 1003,
-                    first_name: 'Дмитрий',
-                    username: 'dmitry',
-                    photo_url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=dmitry&backgroundColor=000000'
-                }
-            ];
+            // Проверяем, не участвует ли уже
+            const isAlreadyParticipating = window.fortuneWheel.participants.some(p => p.id === user.id);
+            if (isAlreadyParticipating) return;
             
-            demoParticipants.forEach(participant => {
-                window.fortuneWheel.addParticipant(participant);
-            });
-            
-            showStatus('Демо-участники добавлены', 'info');
+            // Добавляем пользователя в игру
+            window.fortuneWheel.addParticipant(user);
         }
+
         
         // Показать статус
         function showStatus(message, type = 'info') {
@@ -315,6 +326,12 @@
                     document.getElementById(tabId).classList.add('active');
                 });
             });
+        }
+
+        function addDemoParticipants() {
+            // Не добавляем демо-участников автоматически
+            // Пользователи должны присоединяться самостоятельно через API
+            console.log('Демо-режим: пользователи могут присоединяться самостоятельно');
         }
         
         // Выйти

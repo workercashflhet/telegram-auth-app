@@ -14,7 +14,7 @@ class WheelGame {
         this.lastActivity = new Date();
     }
     
-    // Добавить реального пользователя
+   // game.js - исправить метод addParticipant
     addParticipant(user) {
         if (this.status !== 'waiting') {
             return { success: false, error: 'Игра уже началась' };
@@ -27,6 +27,11 @@ class WheelGame {
         // Проверяем, не участвует ли уже
         if (this.participants.some(p => p.id === user.id)) {
             return { success: false, error: 'Вы уже участвуете в игре' };
+        }
+        
+        // Убеждаемся, что пользователь зарегистрирован
+        if (!gameManager.getUser(user.id)) {
+            gameManager.registerUser(user);
         }
         
         // Сохраняем полные данные пользователя
@@ -46,8 +51,6 @@ class WheelGame {
         // Автоматически запускаем отсчет если участников > 1
         if (this.participants.length > 1 && this.status === 'waiting') {
             this.status = 'counting';
-            
-            // Запускаем таймер
             this.startCountdown();
         }
         
@@ -139,6 +142,11 @@ const gameManager = {
         const game = new WheelGame(gameId);
         activeGames.set(gameId, game);
         return game;
+    },
+
+    // Получить все игры (новый метод)
+    getAllGames() {
+        return Array.from(activeGames.values());
     },
     
     // Получить игру

@@ -81,7 +81,13 @@ router.get('/api/game/state', (req, res) => {
 // Присоединиться к игре
 router.post('/api/game/join', (req, res) => {
     try {
-        const { userId } = req.body;
+        const { userId, userData } = req.body;
+        
+        // Для демо-режима: если userData предоставлен, регистрируем пользователя
+        if (userData && !userId) {
+            const registeredUser = gameManager.registerUser(userData);
+            userId = registeredUser.id;
+        }
         
         if (!userId) {
             return res.status(400).json({
@@ -91,7 +97,12 @@ router.post('/api/game/join', (req, res) => {
         }
         
         // Получаем пользователя
-        const user = gameManager.getUser(userId);
+        let user = gameManager.getUser(userId);
+        
+        // Если пользователь не найден, но есть userData, регистрируем
+        if (!user && userData) {
+            user = gameManager.registerUser(userData);
+        }
         
         if (!user) {
             return res.status(401).json({
