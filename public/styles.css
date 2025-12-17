@@ -1026,25 +1026,413 @@ body {
         inset 0 1px 0 rgba(255, 255, 255, 0.1); е 
 }
 
-/* Градиентная прозрачность */
+/* ========== ГРАДИЕНТНАЯ ПРОЗРАЧНОСТЬ ДЛЯ КОЛЕСА ========== */
+
+/* Основные стили с градиентной прозрачностью */
 .wheel-container.gradient-transparent {
+    /* Градиентный фон с разной прозрачностью */
     background: linear-gradient(
         135deg,
-        rgba(17, 17, 17, 0.8) 0%,
-        rgba(17, 17, 17, 0.6) 50%,
-        rgba(17, 17, 17, 0.4) 100%
+        rgba(30, 30, 30, 0.85) 0%,
+        rgba(25, 25, 25, 0.75) 25%,
+        rgba(20, 20, 20, 0.65) 50%,
+        rgba(25, 25, 25, 0.75) 75%,
+        rgba(30, 30, 30, 0.85) 100%
     ) !important;
-    backdrop-filter: blur(15px);
+    
+    /* Эффект стекла */
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    
+    /* Градиентная граница */
+    border: 1px solid transparent;
+    background-clip: padding-box;
+    position: relative;
+    border-radius: 25px;
+    padding: 35px;
+    margin: 25px auto;
+    box-shadow: 
+        0 15px 50px rgba(0, 0, 0, 0.4),
+        0 0 0 1px rgba(255, 255, 255, 0.05),
+        inset 0 0 60px rgba(0, 0, 0, 0.3);
+    
+    /* Анимация градиента */
+    background-size: 200% 200%;
+    animation: gradientShift 10s ease infinite;
 }
 
-/* Стеклянный эффект */
-.wheel-container.glass-effect {
-    background: rgba(17, 17, 17, 0.3) !important;
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+/* Псевдоэлемент для градиентной рамки */
+.wheel-container.gradient-transparent::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(
+        135deg,
+        #4ecdc4 0%,
+        #45b7d1 25%,
+        #96ceb4 50%,
+        #ff6b6b 75%,
+        #a29bfe 100%
+    );
+    border-radius: 27px; /* На 2px больше основного радиуса */
+    z-index: -1;
+    opacity: 0.5;
+    animation: borderGlow 8s ease infinite;
+}
+
+/* Второй псевдоэлемент для внутреннего свечения */
+.wheel-container.gradient-transparent::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(
+        ellipse at center,
+        rgba(78, 205, 196, 0.1) 0%,
+        rgba(78, 205, 196, 0.05) 30%,
+        transparent 70%
+    );
+    border-radius: 25px;
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* Анимация движения градиента */
+@keyframes gradientShift {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+/* Анимация свечения рамки */
+@keyframes borderGlow {
+    0%, 100% {
+        opacity: 0.4;
+        filter: blur(5px);
+    }
+    50% {
+        opacity: 0.7;
+        filter: blur(8px);
+    }
+}
+
+/* Контейнер колеса внутри прозрачной панели */
+.wheel-container.gradient-transparent .wheel-wrapper {
+    position: relative;
+    width: 320px;
+    height: 320px;
+    margin: 0 auto 35px;
+    background: rgba(0, 0, 0, 0.6);
+    border-radius: 50%;
+    padding: 15px;
+    border: 2px solid rgba(255, 255, 255, 0.15);
     box-shadow: 
-        0 8px 32px rgba(0, 0, 0, 0.4),
-        inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+        inset 0 0 40px rgba(0, 0, 0, 0.8),
+        0 10px 30px rgba(0, 0, 0, 0.5);
+    z-index: 1;
+}
+
+/* Само колесо */
+.wheel-container.gradient-transparent #fortuneWheel {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: conic-gradient(
+        from 0deg,
+        var(--wheel-colors, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4, #ffeaa7, #fab1a0, #a29bfe, #fd79a8)
+    );
+    position: relative;
+    transition: transform 5s cubic-bezier(0.17, 0.67, 0.83, 0.67);
+    box-shadow: 
+        inset 0 0 50px rgba(0, 0, 0, 0.9),
+        0 0 40px rgba(78, 205, 196, 0.3);
+}
+
+/* Центр колеса */
+.wheel-container.gradient-transparent .wheel-center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 70px;
+    height: 70px;
+    background: radial-gradient(
+        circle at center,
+        rgba(0, 0, 0, 0.9) 0%,
+        rgba(0, 0, 0, 0.7) 100%
+    );
+    border-radius: 50%;
+    border: 4px solid rgba(255, 255, 255, 0.9);
+    z-index: 10;
+    box-shadow: 
+        0 0 30px rgba(78, 205, 196, 0.6),
+        inset 0 0 20px rgba(255, 255, 255, 0.2);
+}
+
+/* Указатель */
+.wheel-container.gradient-transparent .wheel-pointer {
+    position: absolute;
+    top: -30px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 50px;
+    height: 50px;
+    font-size: 3rem;
+    color: #ff6b6b;
+    text-shadow: 
+        0 0 20px rgba(255, 107, 107, 0.9),
+        0 0 40px rgba(255, 107, 107, 0.6);
+    z-index: 20;
+    filter: drop-shadow(0 8px 15px rgba(0, 0, 0, 0.7));
+    animation: pointerPulse 2s ease-in-out infinite;
+}
+
+@keyframes pointerPulse {
+    0%, 100% {
+        transform: translateX(-50%) scale(1);
+        text-shadow: 0 0 20px rgba(255, 107, 107, 0.9);
+    }
+    50% {
+        transform: translateX(-50%) scale(1.1);
+        text-shadow: 0 0 30px rgba(255, 107, 107, 1.2);
+    }
+}
+
+/* Участники на колесе */
+.wheel-container.gradient-transparent .wheel-participant {
+    position: absolute;
+    width: 65px;
+    height: 65px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 3px solid rgba(255, 255, 255, 0.95);
+    background: rgba(40, 40, 40, 0.9);
+    box-shadow: 
+        0 0 20px rgba(0, 0, 0, 0.7),
+        inset 0 0 15px rgba(255, 255, 255, 0.15);
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    z-index: 5;
+}
+
+.wheel-container.gradient-transparent .wheel-participant:hover {
+    border-color: #4ecdc4;
+    box-shadow: 
+        0 0 35px rgba(78, 205, 196, 0.8),
+        0 0 60px rgba(78, 205, 196, 0.4),
+        inset 0 0 20px rgba(255, 255, 255, 0.25);
+    transform: scale(1.2);
+    z-index: 100;
+}
+
+/* Кнопки управления внутри прозрачной панели */
+.wheel-container.gradient-transparent .game-controls {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    justify-content: center;
+    margin-top: 30px;
+    padding: 25px;
+    background: linear-gradient(
+        135deg,
+        rgba(0, 0, 0, 0.5) 0%,
+        rgba(30, 30, 30, 0.4) 50%,
+        rgba(0, 0, 0, 0.5) 100%
+    );
+    backdrop-filter: blur(15px);
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    position: relative;
+    z-index: 1;
+}
+
+.wheel-container.gradient-transparent .game-controls::before {
+    content: '';
+    position: absolute;
+    top: -1px;
+    left: -1px;
+    right: -1px;
+    bottom: -1px;
+    background: linear-gradient(135deg, 
+        rgba(78, 205, 196, 0.3), 
+        rgba(255, 107, 107, 0.3), 
+        rgba(78, 205, 196, 0.3)
+    );
+    border-radius: 21px;
+    z-index: -1;
+    opacity: 0.6;
+}
+
+/* Кнопка участия */
+.wheel-container.gradient-transparent .game-button {
+    background: linear-gradient(
+        135deg,
+        rgba(255, 255, 255, 0.95) 0%,
+        rgba(240, 240, 240, 0.9) 100%
+    );
+    color: #000;
+    border: none;
+    padding: 18px 35px;
+    border-radius: 50px;
+    font-size: 1.2rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-width: 280px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 
+        0 5px 20px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+.wheel-container.gradient-transparent .game-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+        135deg,
+        rgba(78, 205, 196, 0.3),
+        rgba(255, 107, 107, 0.3)
+    );
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.wheel-container.gradient-transparent .game-button:hover:not(:disabled) {
+    background: linear-gradient(
+        135deg,
+        rgba(78, 205, 196, 0.95) 0%,
+        rgba(69, 183, 209, 0.9) 100%
+    );
+    color: #000;
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 
+        0 10px 30px rgba(78, 205, 196, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+.wheel-container.gradient-transparent .game-button:hover:not(:disabled)::before {
+    opacity: 0.3;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .wheel-container.gradient-transparent {
+        padding: 25px 20px;
+        margin: 15px;
+        backdrop-filter: blur(15px);
+    }
+    
+    .wheel-container.gradient-transparent .wheel-wrapper {
+        width: 280px;
+        height: 280px;
+        padding: 12px;
+    }
+    
+    .wheel-container.gradient-transparent .wheel-participant {
+        width: 55px;
+        height: 55px;
+    }
+    
+    .wheel-container.gradient-transparent .game-button {
+        min-width: 240px;
+        padding: 16px 30px;
+        font-size: 1.1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .wheel-container.gradient-transparent {
+        padding: 20px 15px;
+        border-radius: 20px;
+    }
+    
+    .wheel-container.gradient-transparent .wheel-wrapper {
+        width: 250px;
+        height: 250px;
+    }
+    
+    .wheel-container.gradient-transparent .wheel-participant {
+        width: 50px;
+        height: 50px;
+    }
+    
+    .wheel-container.gradient-transparent .game-button {
+        min-width: 200px;
+        padding: 14px 25px;
+        font-size: 1rem;
+    }
+    
+    .wheel-container.gradient-transparent::before {
+        border-radius: 22px; /* Соответствует уменьшенному радиусу */
+    }
+}
+
+/* Для больших экранов */
+@media (min-width: 1200px) {
+    .wheel-container.gradient-transparent {
+        max-width: 700px;
+        margin: 30px auto;
+    }
+    
+    .wheel-container.gradient-transparent .wheel-wrapper {
+        width: 350px;
+        height: 350px;
+    }
+    
+    .wheel-container.gradient-transparent .wheel-participant {
+        width: 70px;
+        height: 70px;
+    }
+}
+
+/* Темная тема оптимизация */
+@media (prefers-color-scheme: dark) {
+    .wheel-container.gradient-transparent {
+        background: linear-gradient(
+            135deg,
+            rgba(40, 40, 40, 0.9) 0%,
+            rgba(35, 35, 35, 0.8) 25%,
+            rgba(30, 30, 30, 0.7) 50%,
+            rgba(35, 35, 35, 0.8) 75%,
+            rgba(40, 40, 40, 0.9) 100%
+        ) !important;
+    }
+}
+
+/* Эффект при активной игре */
+.wheel-container.gradient-transparent.spinning {
+    animation: intenseGlow 2s ease-in-out infinite;
+}
+
+@keyframes intenseGlow {
+    0%, 100% {
+        box-shadow: 
+            0 15px 50px rgba(0, 0, 0, 0.4),
+            0 0 0 1px rgba(255, 255, 255, 0.05),
+            inset 0 0 60px rgba(0, 0, 0, 0.3);
+    }
+    50% {
+        box-shadow: 
+            0 20px 60px rgba(78, 205, 196, 0.3),
+            0 0 0 1px rgba(78, 205, 196, 0.2),
+            inset 0 0 80px rgba(78, 205, 196, 0.1);
+    }
 }
 
 .wheel-title {
