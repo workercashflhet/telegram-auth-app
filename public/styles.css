@@ -776,6 +776,373 @@ body {
     background-color: #222;
 }
 
+/* ========== КОМПАКТНЫЙ ПРОФИЛЬ ========== */
+.compact-profile {
+    position: fixed;
+    top: 15px;
+    left: 15px;
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 50px;
+    padding: 8px 15px 8px 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    border: 2px solid #4ecdc4;
+    transition: all 0.3s ease;
+    max-width: 250px;
+}
+
+.compact-profile:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 25px rgba(0, 0, 0, 0.2);
+}
+
+.compact-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    overflow: hidden;
+    margin-right: 10px;
+    border: 2px solid #4ecdc4;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    flex-shrink: 0;
+}
+
+.compact-photo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.compact-initials {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    font-size: 16px;
+}
+
+.compact-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.compact-name {
+    font-weight: bold;
+    color: #000;
+    font-size: 14px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.compact-status {
+    font-size: 12px;
+    color: #666;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.compact-toggle {
+    background: none;
+    border: none;
+    color: #4ecdc4;
+    cursor: pointer;
+    padding: 5px;
+    margin-left: 5px;
+    transition: transform 0.3s;
+}
+
+.compact-toggle:hover {
+    transform: rotate(180deg);
+}
+
+/* Адаптивность для мобильных */
+@media (max-width: 600px) {
+    .compact-profile {
+        top: 10px;
+        left: 10px;
+        padding: 6px 12px 6px 6px;
+        max-width: 200px;
+    }
+    
+    .compact-avatar {
+        width: 35px;
+        height: 35px;
+    }
+    
+    .compact-name {
+        font-size: 13px;
+    }
+    
+    .compact-status {
+        font-size: 11px;
+    }
+}
+
+/* ========== PUSH-УВЕДОМЛЕНИЕ ПОБЕДИТЕЛЯ ========== */
+.winner-push {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 3000;
+    width: 350px;
+    max-width: 90vw;
+    display: none;
+    animation: slideInRight 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    transform: translateX(0);
+}
+
+.winner-push.show {
+    display: block;
+    animation: slideInRight 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.winner-push.hide {
+    animation: slideOutRight 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    transform: translateX(150%);
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(150%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOutRight {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(150%);
+        opacity: 0;
+    }
+}
+
+.winner-push-content {
+    background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+    border: 3px solid #000;
+}
+
+.winner-push-header {
+    background: rgba(0, 0, 0, 0.8);
+    padding: 15px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.winner-push-icon {
+    font-size: 1.5rem;
+    animation: bounce 2s infinite;
+}
+
+@keyframes bounce {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-5px);
+    }
+}
+
+.winner-push-title {
+    color: #fff;
+    font-weight: bold;
+    font-size: 1.1rem;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.winner-push-close {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s;
+}
+
+.winner-push-close:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: rotate(90deg);
+}
+
+.winner-push-body {
+    padding: 25px 20px;
+    display: flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.95);
+}
+
+.winner-push-avatar {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    overflow: hidden;
+    margin-right: 20px;
+    border: 3px solid #000;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    flex-shrink: 0;
+}
+
+.winner-push-photo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.winner-push-initials {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: white;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.winner-push-details {
+    flex: 1;
+}
+
+.winner-push-name {
+    font-size: 1.4rem;
+    font-weight: bold;
+    color: #000;
+    margin-bottom: 8px;
+}
+
+.winner-push-stats {
+    margin-bottom: 12px;
+}
+
+.winner-push-trophy {
+    color: #ff6b6b;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.winner-push-timer {
+    color: #000;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-weight: bold;
+}
+
+.winner-push-footer {
+    padding: 15px 20px;
+    background: rgba(0, 0, 0, 0.9);
+    text-align: center;
+}
+
+.winner-push-button {
+    background: linear-gradient(to right, #ff6b6b, #ff8e8e);
+    color: white;
+    border: none;
+    padding: 12px 25px;
+    border-radius: 50px;
+    font-weight: bold;
+    cursor: pointer;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: all 0.3s;
+    box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
+}
+
+.winner-push-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 107, 107, 0.6);
+    background: linear-gradient(to right, #ff8e8e, #ff6b6b);
+}
+
+/* Анимация для push-уведомления */
+@keyframes pulsePush {
+    0% {
+        box-shadow: 0 0 0 0 rgba(78, 205, 196, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 15px rgba(78, 205, 196, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(78, 205, 196, 0);
+    }
+}
+
+.winner-push.show {
+    animation: slideInRight 0.5s ease, pulsePush 2s infinite 0.5s;
+}
+
+/* Адаптивность для push-уведомления */
+@media (max-width: 600px) {
+    .winner-push {
+        top: 80px;
+        right: 10px;
+        width: calc(100vw - 20px);
+    }
+    
+    .winner-push-body {
+        padding: 20px 15px;
+    }
+    
+    .winner-push-avatar {
+        width: 60px;
+        height: 60px;
+        margin-right: 15px;
+    }
+    
+    .winner-push-name {
+        font-size: 1.2rem;
+    }
+}
+
+/* Обновите стили существующего winner-section (делаем его менее заметным) */
+.winner-section {
+    display: none; /* Скрываем старую табличку */
+}
+
+/* Анимация для аватара в push */
+@keyframes avatarGlow {
+    0%, 100% {
+        box-shadow: 0 0 20px rgba(255, 215, 0, 0.7);
+    }
+    50% {
+        box-shadow: 0 0 40px rgba(255, 215, 0, 1);
+    }
+}
+
+.winner-push-avatar {
+    animation: avatarGlow 2s infinite;
+}
+
 /* Добавьте в styles.css */
 .winner-avatar {
     width: 120px;
