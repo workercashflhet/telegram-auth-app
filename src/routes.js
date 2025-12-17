@@ -182,6 +182,65 @@ router.post('/api/game/join', (req, res) => {
     }
 });
 
+// Установить победителя игры
+router.post('/api/game/set-winner', (req, res) => {
+    try {
+        const { gameId, winnerId, winnerIndex } = req.body;
+        
+        console.log(`🏆 Установка победителя для игры ${gameId}: ID=${winnerId}, индекс=${winnerIndex}`);
+        
+        const game = gameManager.getGame(gameId);
+        
+        if (!game) {
+            return res.status(404).json({
+                success: false,
+                error: 'Игра не найдена'
+            });
+        }
+        
+        if (game.status !== 'spinning') {
+            return res.status(400).json({
+                success: false,
+                error: 'Игра не в состоянии вращения'
+            });
+        }
+        
+        // Находим победителя
+        const winner = game.participants.find(p => p.id === winnerId);
+        
+        if (!winner) {
+            return res.status(404).json({
+                success: false,
+                error: 'Победитель не найден среди участников'
+            });
+        }
+        
+        // Устанавливаем победителя
+        game.winner = winner;
+        game.winnerIndex = winnerIndex !== undefined ? winnerIndex : game.participants.findIndex(p => p.id === winnerId);
+        
+        // Завершаем игру
+        game.status = 'finished';
+        
+        // Увеличиваем счетчик побед пользователя
+        gameManager.incrementUserWins(winnerId);
+        
+        res.json({
+            success: true,
+            message: `Победитель установлен: ${winner.first_name}`,
+            winner: winner,
+            game: game.getGameState()
+        });
+        
+    } catch (error) {
+        console.error('Set winner error:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Ошибка сервера'
+        });
+    }
+});
+
 // Также добавьте новый эндпоинт для отладки:
 router.post('/api/debug/join-test', (req, res) => {
     try {

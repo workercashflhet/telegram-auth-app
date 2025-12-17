@@ -116,10 +116,35 @@ class FortuneWheel {
             }
         }
     }
+
+    // Уведомить сервер о победителе
+    async notifyServerAboutWinner(winner) {
+        try {
+            // Отправляем информацию о победителе на сервер
+            const response = await fetch('/api/game/set-winner', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    gameId: this.currentGameId,
+                    winnerId: winner.id,
+                    winnerIndex: this.participants.findIndex(p => p.id === winner.id)
+                })
+            });
+            
+            const result = await response.json();
+            if (result.success) {
+                console.log('✅ Сервер уведомлен о победителе');
+            }
+        } catch (error) {
+            console.error('❌ Ошибка отправки победителя на сервер:', error);
+        }
+    }
     
     startSynchronizedSpin() {
-        if (!this.finalAngle || this.participants.length < 2) {
-            console.warn('Недостаточно данных для запуска вращения');
+        if (this.participants.length < 2) {
+            console.warn('Недостаточно участников для запуска вращения');
             return;
         }
         
@@ -127,7 +152,7 @@ class FortuneWheel {
         this.updateButtons();
         this.hideWinner();
         
-        console.log(`🌀 Запускаем синхронизированное вращение: ${this.finalAngle}°`);
+        console.log(`🌀 Запускаем синхронизированное вращение`);
         console.log(`👥 Участников: ${this.participants.length}`);
         
         // Сбрасываем анимацию
@@ -137,6 +162,19 @@ class FortuneWheel {
         // Принудительный пересчет стилей для сброса анимации
         void this.wheelElement.offsetWidth;
         
+        // Генерируем случайный финальный угол
+        const spins = 5; // 5 полных оборотов
+        const sectorAngle = 360 / this.participants.length;
+        
+        // Случайный выбор победителя (еще неизвестен фронтенду)
+        const winnerIndex = Math.floor(Math.random() * this.participants.length);
+        const winnerCenterAngle = (360 - (winnerIndex * sectorAngle)) - (sectorAngle / 2);
+        const randomOffset = (Math.random() - 0.5) * sectorAngle * 0.6;
+        
+        this.finalAngle = spins * 360 + winnerCenterAngle + randomOffset;
+        
+        console.log(`🎰 Вращение: конечный угол ${this.finalAngle}°, будет указывать на участника #${winnerIndex}`);
+        
         // Запуск плавного вращения
         setTimeout(() => {
             this.wheelElement.style.transition = 'transform 5s cubic-bezier(0.2, 0.8, 0.3, 1)';
@@ -145,21 +183,26 @@ class FortuneWheel {
             // Визуальная обратная связь
             this.wheelElement.classList.add('spinning');
             
-            // Показываем победителя через 5.5 секунд
+            // Определяем победителя по углу через 5 секунд
             setTimeout(() => {
                 this.wheelElement.classList.remove('spinning');
                 
-                if (this.winner) {
-                    console.log(`🎉 Показываем победителя: ${this.winner.first_name}`);
-                    this.showWinner(this.winner);
+                // Определяем победителя на основе финального угла
+                const winner = this.determineWinnerFromAngle(this.finalAngle);
+                
+                if (winner) {
+                    console.log(`🎉 Победитель определен: ${winner.first_name}!`);
+                    this.showWinner(winner);
+                    
+                    // Обновляем состояние на сервере через API
+                    this.notifyServerAboutWinner(winner);
                     
                     // Автоматически перезапускаем через 8 секунд
                     setTimeout(() => {
                         this.resetForNextRound();
                     }, 8000);
                 } else {
-                    console.warn('Победитель не определен, но вращение завершено');
-                    this.determineWinnerFromAngle(this.finalAngle);
+                    console.warn('Не удалось определить победителя');
                 }
             }, 5500);
         }, 50);

@@ -90,6 +90,32 @@ class WheelGame {
             this.startSpinning();
         }
     }
+
+    determineWinnerByAngle(finalAngle) {
+        if (!finalAngle || this.participants.length === 0) {
+            return null;
+        }
+        
+        // Нормализуем угол (убираем полные обороты)
+        const normalizedAngle = finalAngle % 360;
+        
+        // Участники расположены по часовой стрелке, указатель сверху (0°)
+        const sectorAngle = 360 / this.participants.length;
+        
+        // Определяем сектор (от 0 до participants.length-1)
+        let sector = Math.floor(normalizedAngle / sectorAngle);
+        
+        // Инвертируем, так как вращение идет по часовой стрелке
+        sector = (this.participants.length - sector) % this.participants.length;
+        if (sector < 0) sector += this.participants.length;
+        
+        this.winnerIndex = sector;
+        this.winner = this.participants[sector];
+        
+        console.log(`🎯 Победитель по углу ${finalAngle}°: ${this.winner?.first_name || 'не найден'} (сектор: ${sector})`);
+        
+        return this.winner;
+    }
     
     startSpinning() {
         if (this.participants.length < 2) {
@@ -103,39 +129,52 @@ class WheelGame {
         this.spinStartedAt = new Date();
         this.lastActivity = new Date();
         
-        // Выбираем случайного победителя
-        this.winnerIndex = Math.floor(Math.random() * this.participants.length);
-        this.winner = this.participants[this.winnerIndex];
-        
-        // Рассчитываем конечный угол (совместим с frontend логикой)
-        const spins = 5; // 5 полных оборотов
-        const sectorAngle = 360 / this.participants.length;
-        
-        // Формула для frontend: участники расположены по часовой стрелке
-        // Указатель сверху (0°), нужно чтобы он указывал на центр сектора победителя
-        
-        // Центр сектора победителя (относительно 0° сверху)
-        const winnerCenterAngle = (360 - (this.winnerIndex * sectorAngle)) - (sectorAngle / 2);
-        
-        // Добавляем немного случайности (±30% сектора)
-        const randomOffset = (Math.random() - 0.5) * sectorAngle * 0.6;
-        
-        // Итоговый угол: полные обороты + угол до сектора победителя + случайность
-        this.finalAngle = spins * 360 + winnerCenterAngle + randomOffset;
-        
-        // Нормализуем угол
-        this.finalAngle = this.finalAngle % 3600; // Не более 10 оборотов
+        // ВАЖНО: НЕ выбираем победителя заранее!
+        // Победитель будет определен после остановки колеса
+        this.winnerIndex = null;
+        this.winner = null;
+        this.finalAngle = null;
         
         console.log(`🎰 Игра ${this.id}: запущено вращение!`);
         console.log(`👥 Участников: ${this.participants.length}`);
-        console.log(`🏆 Победитель: ${this.winner.first_name} (индекс: ${this.winnerIndex})`);
-        console.log(`📐 Финальный угол: ${this.finalAngle}°`);
-        console.log(`📏 Сектор: ${sectorAngle}°, Центр сектора: ${winnerCenterAngle}°`);
         
-        // Завершаем игру через 8 секунд
+        // Запускаем асинхронное определение победителя
+        this.scheduleWinnerSelection();
+    }
+
+    // Добавьте новый метод для определения победителя после вращения
+    scheduleWinnerSelection() {
+        // Ждем 5 секунд (время вращения колеса)
         setTimeout(() => {
-            this.finishGame();
-        }, 8000);
+            if (this.status !== 'spinning') return;
+            
+            // Только теперь случайным образом выбираем победителя
+            this.winnerIndex = Math.floor(Math.random() * this.participants.length);
+            this.winner = this.participants[this.winnerIndex];
+            
+            // Рассчитываем финальный угол на основе победителя
+            const spins = 5; // 5 полных оборотов
+            const sectorAngle = 360 / this.participants.length;
+            
+            // Центр сектора победителя (относительно 0° сверху)
+            // Учитываем, что участники расположены по часовой стрелке
+            const winnerCenterAngle = (360 - (this.winnerIndex * sectorAngle)) - (sectorAngle / 2);
+            
+            // Добавляем немного случайности (±30% сектора)
+            const randomOffset = (Math.random() - 0.5) * sectorAngle * 0.6;
+            
+            // Итоговый угол: полные обороты + угол до сектора победителя + случайность
+            this.finalAngle = spins * 360 + winnerCenterAngle + randomOffset;
+            
+            console.log(`🏆 Определен победитель: ${this.winner.first_name} (индекс: ${this.winnerIndex})`);
+            console.log(`📐 Финальный угол: ${this.finalAngle}°`);
+            console.log(`📏 Сектор: ${sectorAngle}°, Центр сектора: ${winnerCenterAngle}°`);
+            
+            // Завершаем игру через 2 секунды после определения победителя
+            setTimeout(() => {
+                this.finishGame();
+            }, 2000);
+        }, 5000); // 5 секунд - время вращения колеса
     }
     
     finishGame() {
@@ -157,6 +196,28 @@ class WheelGame {
         // Обновляем таймер если игра в режиме отсчета
         if (this.status === 'counting') {
             this.updateCountdown();
+        }
+        
+        // Если игра в состоянии вращения, проверяем не пора ли определить победителя
+        if (this.status === 'spinning' && !this.winner) {
+            const now = new Date();
+            const spinDuration = Math.floor((now - this.spinStartedAt) / 1000);
+            
+            // Если прошло 5 секунд вращения, определяем победителя
+            if (spinDuration >= 5 && !this.winner) {
+                const randomIndex = Math.floor(Math.random() * this.participants.length);
+                this.winnerIndex = randomIndex;
+                this.winner = this.participants[randomIndex];
+                
+                // Рассчитываем угол для победителя
+                const spins = 5;
+                const sectorAngle = 360 / this.participants.length;
+                const winnerCenterAngle = (360 - (this.winnerIndex * sectorAngle)) - (sectorAngle / 2);
+                const randomOffset = (Math.random() - 0.5) * sectorAngle * 0.6;
+                this.finalAngle = spins * 360 + winnerCenterAngle + randomOffset;
+                
+                console.log(`🎰 Автоматически определен победитель: ${this.winner.first_name}`);
+            }
         }
         
         // Рассчитываем прогресс вращения
