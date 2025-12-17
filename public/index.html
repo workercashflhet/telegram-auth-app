@@ -7,6 +7,67 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="stylesheet" href="/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+     <style>
+        /* Временные стили для красивого заголовка */
+        .stacks-title {
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            font-size: 3.5rem;
+            background: linear-gradient(45deg, #4ecdc4, #ff6b6b, #45b7d1, #96ceb4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 30px rgba(78, 205, 196, 0.3);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin: 10px 0 30px 0;
+            position: relative;
+            display: inline-block;
+        }
+        
+        .stacks-title::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 10%;
+            width: 80%;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, #4ecdc4, #ff6b6b, transparent);
+            border-radius: 2px;
+        }
+        
+        .stacks-subtitle {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1.2rem;
+            color: #888;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            margin-bottom: 40px;
+            font-weight: 500;
+        }
+        
+        @media (max-width: 768px) {
+            .stacks-title {
+                font-size: 2.8rem;
+            }
+            
+            .stacks-subtitle {
+                font-size: 1rem;
+                letter-spacing: 2px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .stacks-title {
+                font-size: 2.2rem;
+            }
+            
+            .stacks-subtitle {
+                font-size: 0.9rem;
+                letter-spacing: 1px;
+            }
+        }
+    </style>
 </head>
 <body>
     <!-- Компактный профиль в левом верхнем углу -->
@@ -73,7 +134,20 @@
     <div class="app-container">
         <!-- Вкладка Главная -->
         <div id="homeTab" class="tab-content active">
-            <h1 class="page-title">🎰 КОЛЕСО ФОРТУНЫ</h1>
+            <!-- КРАСИВЫЙ ЗАГОЛОВОК STACKS С ДЕКОРАЦИЯМИ -->
+            <div class="title-container">
+                <h1 class="stacks-title">STACKS</h1>
+                
+                <div class="title-decoration">
+                    <div class="decoration-line"></div>
+                    <div class="decoration-dot"></div>
+                    <div class="decoration-dot"></div>
+                    <div class="decoration-dot"></div>
+                    <div class="decoration-line"></div>
+                </div>
+                
+                <div class="stacks-subtitle">WHEEL OF FORTUNE</div>
+            </div>
             
             <!-- Статус -->
             <div id="statusMessage" class="status-message">
