@@ -1,4 +1,4 @@
-/* public/styles.css - ЧЕРНО-БЕЛЫЙ МИНИМАЛИЗМ */
+/* public/styles.css - ОДНА КНОПКА ВХОДА */
 * {
     margin: 0;
     padding: 0;
@@ -10,230 +10,231 @@ body {
     background-color: #000000;
     color: #ffffff;
     min-height: 100vh;
-    line-height: 1.6;
-}
-
-/* Контейнеры */
-.app-container {
-    max-width: 900px;
-    margin: 0 auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
     padding: 20px;
 }
 
-/* Заголовки */
-.app-header {
+/* Основной контейнер */
+.app-container {
+    width: 100%;
+    max-width: 500px;
     text-align: center;
-    padding: 40px 20px;
-    border-bottom: 1px solid #333;
-    margin-bottom: 40px;
+}
+
+/* Экран входа */
+.login-screen {
+    background-color: #ffffff;
+    color: #000000;
+    border-radius: 20px;
+    padding: 50px 40px;
+    box-shadow: 0 10px 40px rgba(255, 255, 255, 0.1);
+    transition: transform 0.5s ease;
 }
 
 .app-title {
     font-size: 2.5rem;
     font-weight: 300;
-    letter-spacing: 2px;
+    letter-spacing: 3px;
     margin-bottom: 10px;
-    color: #ffffff;
+    color: #000000;
 }
 
 .app-subtitle {
     font-size: 1rem;
-    color: #aaa;
+    color: #666;
+    margin-bottom: 40px;
     font-weight: 300;
-    letter-spacing: 1px;
 }
 
-/* Карточки */
-.card {
-    background-color: #ffffff;
-    color: #000000;
-    border-radius: 12px;
-    padding: 30px;
-    margin-bottom: 25px;
-    box-shadow: 0 4px 20px rgba(255, 255, 255, 0.05);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 25px rgba(255, 255, 255, 0.1);
-}
-
-.card-title {
-    font-size: 1.3rem;
-    font-weight: 500;
-    margin-bottom: 20px;
-    color: #000000;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-/* Кнопки */
-.btn-group {
-    display: flex;
-    gap: 15px;
-    flex-wrap: wrap;
-    margin-top: 20px;
-}
-
-.btn {
+/* Кнопка входа */
+.login-button {
     background-color: #000000;
     color: #ffffff;
-    border: 2px solid #ffffff;
-    padding: 14px 28px;
-    border-radius: 8px;
-    font-size: 1rem;
+    border: 2px solid #000000;
+    padding: 20px 50px;
+    font-size: 1.2rem;
     font-weight: 500;
+    border-radius: 50px;
     cursor: pointer;
     transition: all 0.3s ease;
-    display: inline-flex;
+    width: 100%;
+    max-width: 300px;
+    margin: 0 auto;
+    display: flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
-    min-width: 180px;
+    gap: 15px;
 }
 
-.btn:hover {
+.login-button:hover {
     background-color: #ffffff;
     color: #000000;
-    transform: translateY(-2px);
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
 }
 
-.btn:active {
-    transform: translateY(0);
+.login-button:active {
+    transform: translateY(-1px);
 }
 
-.btn-primary {
-    background-color: #ffffff;
-    color: #000000;
-    border-color: #ffffff;
+.login-button .icon {
+    font-size: 1.5rem;
 }
 
-.btn-primary:hover {
-    background-color: #000000;
-    color: #ffffff;
-}
-
-.btn-icon {
-    font-size: 1.2rem;
-}
-
-/* Статусы */
-.status {
-    padding: 20px;
+/* Статус */
+.status-message {
+    margin-top: 25px;
+    padding: 15px;
     border-radius: 10px;
-    margin: 20px 0;
-    border-left: 4px solid;
+    font-size: 0.9rem;
     display: none;
 }
 
-.status.visible {
+.status-message.visible {
     display: block;
+    animation: fadeIn 0.3s ease;
 }
 
 .status-success {
-    background-color: rgba(255, 255, 255, 0.1);
-    border-left-color: #ffffff;
+    background-color: rgba(0, 255, 0, 0.1);
+    color: #00cc00;
+    border: 1px solid rgba(0, 255, 0, 0.2);
 }
 
 .status-error {
     background-color: rgba(255, 0, 0, 0.1);
-    border-left-color: #ff0000;
+    color: #ff3333;
+    border: 1px solid rgba(255, 0, 0, 0.2);
 }
 
-.status-info {
-    background-color: rgba(255, 255, 255, 0.05);
-    border-left-color: #aaa;
+.status-loading {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #999;
+    border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-/* Информация о пользователе */
-.user-info-grid {
+/* Экран профиля */
+.profile-screen {
+    display: none;
+    background-color: #ffffff;
+    color: #000000;
+    border-radius: 20px;
+    padding: 40px;
+    box-shadow: 0 10px 40px rgba(255, 255, 255, 0.1);
+    animation: fadeIn 0.5s ease;
+}
+
+.profile-header {
+    margin-bottom: 30px;
+}
+
+.profile-photo-container {
+    width: 150px;
+    height: 150px;
+    margin: 0 auto 25px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 4px solid #000000;
+    background-color: #f0f0f0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.profile-photo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.profile-initials {
+    font-size: 3.5rem;
+    font-weight: 300;
+    color: #000000;
+}
+
+.user-name {
+    font-size: 1.8rem;
+    font-weight: 400;
+    margin-bottom: 5px;
+}
+
+.user-username {
+    font-size: 1.1rem;
+    color: #666;
+    margin-bottom: 20px;
+}
+
+/* Информация профиля */
+.profile-info {
+    text-align: left;
+}
+
+.info-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    grid-template-columns: repeat(2, 1fr);
     gap: 15px;
-    margin-top: 20px;
+    margin-bottom: 30px;
 }
 
 .info-item {
-    background-color: #f5f5f5;
+    background-color: #f8f8f8;
     padding: 15px;
-    border-radius: 8px;
-    border: 1px solid #eee;
+    border-radius: 10px;
+    border-left: 3px solid #000000;
 }
 
 .info-label {
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     color: #666;
     text-transform: uppercase;
     letter-spacing: 1px;
     margin-bottom: 5px;
-    font-weight: 500;
 }
 
 .info-value {
-    font-size: 1.1rem;
+    font-size: 1rem;
     color: #000000;
-    font-weight: 400;
-    word-break: break-word;
+    font-weight: 500;
 }
 
-/* Данные Telegram */
-.telegram-data {
-    background-color: #111;
-    color: #fff;
-    border-radius: 8px;
-    padding: 20px;
-    margin-top: 20px;
-    font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
-    font-size: 0.85rem;
-    line-height: 1.5;
-    overflow-x: auto;
-    max-height: 300px;
-    overflow-y: auto;
-    display: none;
-}
-
-.telegram-data.visible {
+/* Кнопка выхода */
+.logout-button {
+    background-color: transparent;
+    color: #000000;
+    border: 2px solid #000000;
+    padding: 15px 40px;
+    font-size: 1rem;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: 100%;
+    max-width: 250px;
+    margin: 0 auto;
     display: block;
 }
 
-.telegram-data pre {
-    margin: 0;
-    white-space: pre-wrap;
-    word-wrap: break-word;
+.logout-button:hover {
+    background-color: #000000;
+    color: #ffffff;
 }
 
 /* Футер */
 .app-footer {
-    text-align: center;
-    margin-top: 50px;
-    padding: 30px 20px;
-    border-top: 1px solid #333;
-    color: #aaa;
+    margin-top: 40px;
+    color: #666;
     font-size: 0.9rem;
-}
-
-.footer-text {
-    margin-bottom: 10px;
-}
-
-.vercel-badge {
-    display: inline-block;
-    background-color: #000;
-    color: #fff;
-    padding: 5px 15px;
-    border-radius: 20px;
-    border: 1px solid #333;
-    font-size: 0.8rem;
-    margin-top: 10px;
+    padding-top: 20px;
+    border-top: 1px solid #333;
 }
 
 /* Анимации */
 @keyframes fadeIn {
     from {
         opacity: 0;
-        transform: translateY(10px);
+        transform: translateY(20px);
     }
     to {
         opacity: 1;
@@ -241,39 +242,49 @@ body {
     }
 }
 
-.fade-in {
-    animation: fadeIn 0.5s ease forwards;
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
 }
 
-/* Иконки */
-.icon {
-    font-size: 1.2rem;
+.pulse {
+    animation: pulse 2s infinite;
 }
 
 /* Адаптивность */
-@media (max-width: 768px) {
+@media (max-width: 600px) {
     .app-container {
-        padding: 15px;
+        padding: 10px;
+    }
+    
+    .login-screen {
+        padding: 40px 25px;
+    }
+    
+    .profile-screen {
+        padding: 30px 20px;
     }
     
     .app-title {
         font-size: 2rem;
     }
     
-    .card {
-        padding: 20px;
+    .login-button {
+        padding: 18px 40px;
+        font-size: 1.1rem;
     }
     
-    .btn {
-        width: 100%;
-        min-width: auto;
+    .profile-photo-container {
+        width: 120px;
+        height: 120px;
     }
     
-    .btn-group {
-        flex-direction: column;
+    .profile-initials {
+        font-size: 2.8rem;
     }
     
-    .user-info-grid {
+    .info-grid {
         grid-template-columns: 1fr;
     }
 }
