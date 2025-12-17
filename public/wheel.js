@@ -327,6 +327,8 @@ class FortuneWheel {
         
         console.log(`🎯 Фронтенд: определяем победителя по углу ${normalizedAngle}°`);
         console.log(`📏 Сектор: ${sectorAngle}°, Участников: ${this.participants.length}`);
+
+        this.debugAngleToSector(finalAngle);
         
         // КОРРЕКТНЫЙ РАСЧЕТ ДЛЯ ФРОНТЕНДА:
         // Участники на колесе расположены против часовой стрелки
@@ -459,68 +461,137 @@ class FortuneWheel {
         
         if (!participantsContainer) return;
         
-        // Очищаем если количество изменилось
-        if (participantsContainer.children.length !== this.participants.length) {
-            participantsContainer.innerHTML = '';
-            
-            if (this.participants.length === 0) {
-                this.wheelElement.style.background = '#222';
-                return;
-            }
-            
-            // Создаем конический градиент
-            const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7', '#fab1a0', '#a29bfe', '#fd79a8'];
-            const sectorAngle = 360 / this.participants.length;
-            
-            let gradientParts = [];
-            for (let i = 0; i < this.participants.length; i++) {
-                const startAngle = i * sectorAngle;
-                const endAngle = (i + 1) * sectorAngle;
-                const color = colors[i % colors.length];
-                gradientParts.push(`${color} ${startAngle}deg ${endAngle}deg`);
-            }
-            
-            this.wheelElement.style.background = `conic-gradient(${gradientParts.join(', ')})`;
-            
-            // Добавляем аватары участников на колесо
-            this.participants.forEach((participant, index) => {
-                const centerAngle = (index * sectorAngle) + (sectorAngle / 2);
-                const radius = 110;
-                const angleRad = (centerAngle - 90) * (Math.PI / 180);
-                
-                const participantElement = document.createElement('div');
-                participantElement.className = 'wheel-participant';
-                participantElement.setAttribute('data-index', index);
-                
-                participantElement.style.position = 'absolute';
-                participantElement.style.width = '50px';
-                participantElement.style.height = '50px';
-                participantElement.style.top = '50%';
-                participantElement.style.left = '50%';
-                participantElement.style.marginLeft = '-25px';
-                participantElement.style.marginTop = '-25px';
-                participantElement.style.transform = `
-                    translate(${Math.cos(angleRad) * radius}px, ${Math.sin(angleRad) * radius}px)
-                `;
-                
-                // Аватар или инициалы
-                if (participant.photo_url) {
-                    const img = document.createElement('img');
-                    img.src = participant.photo_url;
-                    img.alt = participant.first_name;
-                    img.style.width = '100%';
-                    img.style.height = '100%';
-                    img.style.objectFit = 'cover';
-                    img.style.borderRadius = '50%';
-                    participantElement.appendChild(img);
-                } else {
-                    const initials = this.getInitials(participant.first_name, participant.last_name);
-                    participantElement.innerHTML = `<div class="initials">${initials}</div>`;
-                }
-                
-                participantsContainer.appendChild(participantElement);
-            });
+        // Всегда очищаем и перерисовываем
+        participantsContainer.innerHTML = '';
+        
+        if (this.participants.length === 0) {
+            this.wheelElement.style.background = '#222';
+            return;
         }
+        
+        const totalParticipants = this.participants.length;
+        const sectorAngle = 360 / totalParticipants;
+        const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7', '#fab1a0', '#a29bfe', '#fd79a8'];
+        
+        console.log(`🎨 Рисуем колесо: ${totalParticipants} участников, сектор: ${sectorAngle}°`);
+        
+        // Создаем конический градиент
+        let gradientParts = [];
+        for (let i = 0; i < totalParticipants; i++) {
+            const startAngle = i * sectorAngle;
+            const endAngle = (i + 1) * sectorAngle;
+            const color = colors[i % colors.length];
+            gradientParts.push(`${color} ${startAngle}deg ${endAngle}deg`);
+            
+            console.log(`Сектор ${i}: ${startAngle}°-${endAngle}° (${this.participants[i].first_name})`);
+        }
+        
+        this.wheelElement.style.background = `conic-gradient(${gradientParts.join(', ')})`;
+        
+        // Добавляем метки участников
+        this.participants.forEach((participant, index) => {
+            // Центр сектора
+            const centerAngle = (index * sectorAngle) + (sectorAngle / 2);
+            
+            // Переводим в радианы для расчета позиции
+            const angleRad = (centerAngle - 90) * (Math.PI / 180); // -90° потому что 0° справа
+            
+            // Радиус от центра
+            const radius = 110;
+            
+            // Создаем элемент участника
+            const participantElement = document.createElement('div');
+            participantElement.className = 'wheel-participant';
+            participantElement.setAttribute('data-index', index);
+            participantElement.title = `${participant.first_name} (сектор ${index})`;
+            
+            // Позиционирование
+            participantElement.style.position = 'absolute';
+            participantElement.style.width = '50px';
+            participantElement.style.height = '50px';
+            participantElement.style.top = '50%';
+            participantElement.style.left = '50%';
+            participantElement.style.marginLeft = '-25px';
+            participantElement.style.marginTop = '-25px';
+            
+            // Расчет позиции по кругу
+            const x = Math.cos(angleRad) * radius;
+            const y = Math.sin(angleRad) * radius;
+            
+            participantElement.style.transform = `translate(${x}px, ${y}px)`;
+            
+            // Аватар или инициалы
+            if (participant.photo_url) {
+                const img = document.createElement('img');
+                img.src = participant.photo_url;
+                img.alt = participant.first_name;
+                img.style.width = '100%';
+                img.style.height = '100%';
+                img.style.objectFit = 'cover';
+                img.style.borderRadius = '50%';
+                participantElement.appendChild(img);
+            } else {
+                const initials = this.getInitials(participant.first_name, participant.last_name);
+                participantElement.innerHTML = `<div class="initials" style="
+                    width: 100%;
+                    height: 100%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 16px;
+                    font-weight: bold;
+                    color: white;
+                    background: rgba(0,0,0,0.7);
+                    border-radius: 50%;
+                ">${initials}</div>`;
+            }
+            
+            // Добавляем номер сектора для отладки
+            const debugLabel = document.createElement('div');
+            debugLabel.textContent = index;
+            debugLabel.style.position = 'absolute';
+            debugLabel.style.top = '-20px';
+            debugLabel.style.left = '50%';
+            debugLabel.style.transform = 'translateX(-50%)';
+            debugLabel.style.color = 'white';
+            debugLabel.style.fontSize = '12px';
+            debugLabel.style.fontWeight = 'bold';
+            debugLabel.style.background = 'rgba(0,0,0,0.5)';
+            debugLabel.style.padding = '2px 5px';
+            debugLabel.style.borderRadius = '3px';
+            participantElement.appendChild(debugLabel);
+            
+            participantsContainer.appendChild(participantElement);
+        });
+    }
+
+    // Метод для проверки соответствия угла и сектора
+    debugAngleToSector(finalAngle) {
+        if (!finalAngle || this.participants.length === 0) return;
+        
+        const normalizedAngle = finalAngle % 360;
+        const totalParticipants = this.participants.length;
+        const sectorAngle = 360 / totalParticipants;
+        
+        console.log('=== ПРОВЕРКА УГЛА ===');
+        console.log(`Финальный угол: ${finalAngle}°`);
+        console.log(`Нормализованный: ${normalizedAngle}°`);
+        console.log(`Участников: ${totalParticipants}`);
+        console.log(`Сектор: ${sectorAngle}°`);
+        
+        // Показываем все сектора
+        for (let i = 0; i < totalParticipants; i++) {
+            const startAngle = i * sectorAngle;
+            const endAngle = (i + 1) * sectorAngle;
+            const isInSector = normalizedAngle >= startAngle && normalizedAngle < endAngle;
+            console.log(`Сектор ${i}: ${startAngle}°-${endAngle}° ${isInSector ? '← ПОПАДАНИЕ!' : ''}`);
+        }
+        
+        // Расчет сектора
+        const calculatedSector = Math.floor(normalizedAngle / sectorAngle);
+        console.log(`Расчетный сектор: ${calculatedSector}`);
+        console.log(`Победитель: ${this.participants[calculatedSector]?.first_name || 'не найден'}`);
+        console.log('====================');
     }
     
     renderParticipants() {
@@ -616,6 +687,17 @@ class FortuneWheel {
         const winnerName = document.getElementById('winnerName');
         const winnerSection = document.getElementById('winnerSection');
         const nextRoundTimer = document.getElementById('nextRoundTimer');
+
+        // Показываем отладочную информацию
+        const winnerDebug = document.getElementById('winnerDebug');
+        const winnerSector = document.getElementById('winnerSector');
+        const winnerAngle = document.getElementById('winnerAngle');
+        
+        if (winnerDebug && winnerSector && winnerAngle) {
+            winnerDebug.style.display = 'block';
+            winnerSector.textContent = this.winnerIndex !== undefined ? this.winnerIndex : '?';
+            winnerAngle.textContent = this.finalAngle ? Math.round(this.finalAngle % 360) : '?';
+        }
         
         // Проверяем элементы
         if (!winnerAvatar || !winnerName || !winnerSection) {
