@@ -204,7 +204,10 @@
             
             if (data.success && data.user) {
                 // Устанавливаем глобальную переменную
-                window.currentUser = data.user;
+                window.currentUser = data.user; // Это критически важно!
+                currentUser = data.user; // И локальную тоже
+                
+                console.log('✅ Пользователь установлен:', window.currentUser.first_name);
                 
                 // Обновляем индикатор авторизации
                 updateAuthIndicator();
@@ -262,12 +265,15 @@
     
     // Обновить вкладку профиля
     function updateProfileTab() {
-        if (!currentUser) {
+        // Используем window.currentUser вместо currentUser
+        const user = window.currentUser || currentUser;
+        
+        if (!user) {
             console.log('❌ Не могу обновить профиль: пользователь не установлен');
             return;
         }
         
-        console.log('🔄 Обновление вкладки профиля...');
+        console.log('🔄 Обновление вкладки профиля для пользователя:', user.first_name);
         
         // Обновляем аватар
         const profileAvatar = document.getElementById('profileAvatar');
@@ -283,15 +289,15 @@
         }
         
         // Аватар
-        if (currentUser.photo_url) {
+        if (user.photo_url) {
             if (profilePhoto) {
-                profilePhoto.src = currentUser.photo_url;
+                profilePhoto.src = user.photo_url;
                 profilePhoto.style.display = 'block';
                 if (profileInitials) profileInitials.style.display = 'none';
             }
         } else {
             if (profileInitials) {
-                const initials = getInitials(currentUser.first_name, currentUser.last_name);
+                const initials = getInitials(user.first_name, user.last_name);
                 profileInitials.textContent = initials;
                 profileInitials.style.display = 'block';
                 if (profilePhoto) profilePhoto.style.display = 'none';
@@ -299,24 +305,24 @@
         }
         
         // Имя и username
-        userName.textContent = `${currentUser.first_name || ''} ${currentUser.last_name || ''}`.trim();
+        userName.textContent = `${user.first_name || ''} ${user.last_name || ''}`.trim();
         if (userUsername) {
-            userUsername.textContent = currentUser.username ? `@${currentUser.username}` : 'Без username';
+            userUsername.textContent = user.username ? `@${user.username}` : 'Без username';
         }
         
         // Информация
         profileInfo.innerHTML = '';
         
         const infoCards = [
-            { label: 'ID пользователя', value: currentUser.id, icon: '🆔' },
-            { label: 'Имя', value: currentUser.first_name || '—', icon: '👤' },
-            { label: 'Фамилия', value: currentUser.last_name || '—', icon: '👥' },
-            { label: 'Username', value: currentUser.username ? '@' + currentUser.username : '—', icon: '📛' },
-            { label: 'Язык', value: currentUser.language_code?.toUpperCase() || 'RU', icon: '🌐' },
-            { label: 'Premium статус', value: currentUser.is_premium ? '✅ Активен' : '❌ Не активен', icon: '⭐' },
-            { label: 'Доступ к ЛС', value: currentUser.allows_write_to_pm ? '✅ Разрешен' : '❌ Запрещен', icon: '💬' },
+            { label: 'ID пользователя', value: user.id, icon: '🆔' },
+            { label: 'Имя', value: user.first_name || '—', icon: '👤' },
+            { label: 'Фамилия', value: user.last_name || '—', icon: '👥' },
+            { label: 'Username', value: user.username ? '@' + currentUser.username : '—', icon: '📛' },
+            { label: 'Язык', value: user.language_code?.toUpperCase() || 'RU', icon: '🌐' },
+            { label: 'Premium статус', value: user.is_premium ? '✅ Активен' : '❌ Не активен', icon: '⭐' },
+            { label: 'Доступ к ЛС', value: user.allows_write_to_pm ? '✅ Разрешен' : '❌ Запрещен', icon: '💬' },
             { label: 'Дата авторизации', value: new Date().toLocaleDateString('ru-RU'), icon: '📅' },
-            { label: 'Тип данных', value: currentUser.is_demo ? 'Демо режим' : 'Реальные данные', icon: '🔐' },
+            { label: 'Тип данных', value: user.is_demo ? 'Демо режим' : 'Реальные данные', icon: '🔐' },
             { label: 'Статус', value: 'Онлайн', icon: '💚' }
         ];
         
