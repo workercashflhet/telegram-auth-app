@@ -180,10 +180,7 @@
                 </div>
             </div>
 
-            <!-- Индикатор авторизации на главной вкладке -->
-            <div id="authIndicator" style="visibility: hidden; text-align: center; margin: 10px 0; padding: 10px; background: rgba(0,255,0,0.1); border-radius: 10px;">
-                <span style="color: #4ecdc4;">✅ Авторизован как: <span id="currentUserName">Имя</span></span>
-            </div>
+            
                       
             <!-- Список участников -->
             <div class="participants-list">
@@ -195,7 +192,7 @@
             </div>
 
             <!-- Статус -->
-            <div id="statusMessage" class="status-message">
+            <div id="statusMessage" class="status-message" style="visibility: hidden; height: 0; overflow: hidden; padding: 0; margin: 0;">
                 <span id="statusText"></span>
             </div>
             
@@ -212,6 +209,11 @@
                         🆕 НОВЫЙ РАУНД! Нажмите "Участвовать"
                     </div>
                 </div>
+            </div>
+
+            <!-- Индикатор авторизации на главной вкладке -->
+            <div id="authIndicator" style="visibility: hidden; text-align: center; margin: 10px 0; padding: 10px; background: rgba(0,255,0,0.1); border-radius: 10px;">
+                <span style="color: #4ecdc4;">✅ Авторизован как: <span id="currentUserName">Имя</span></span>
             </div>
         </div> <!-- Закрываем homeTab -->
         
