@@ -629,6 +629,455 @@ body {
         0 0 40px rgba(255, 215, 0, 0.2);
 }
 
+/* ========== STARFIELD BACKGROUND ANIMATION ========== */
+
+.starfield {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    background: #000000;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+/* Размеры и типы звезд */
+.star {
+    position: absolute;
+    background-color: #fff;
+    border-radius: 50%;
+}
+
+/* Маленькие звезды (основной фон) */
+.star.small {
+    width: 1px;
+    height: 1px;
+    opacity: 0.7;
+    animation: twinkleSmall 3s infinite ease-in-out;
+}
+
+.star.medium {
+    width: 2px;
+    height: 2px;
+    opacity: 0.9;
+    animation: twinkleMedium 4s infinite ease-in-out;
+}
+
+.star.large {
+    width: 3px;
+    height: 3px;
+    opacity: 1;
+    animation: twinkleLarge 5s infinite ease-in-out;
+}
+
+/* Цветные звезды (разные оттенки) */
+.star.blue {
+    background-color: #4ecdc4;
+    box-shadow: 0 0 10px #4ecdc4, 0 0 20px #4ecdc4;
+}
+
+.star.pink {
+    background-color: #ff6b6b;
+    box-shadow: 0 0 10px #ff6b6b, 0 0 20px #ff6b6b;
+}
+
+.star.purple {
+    background-color: #a29bfe;
+    box-shadow: 0 0 10px #a29bfe, 0 0 20px #a29bfe;
+}
+
+.star.gold {
+    background-color: #ffd700;
+    box-shadow: 0 0 10px #ffd700, 0 0 20px #ffd700;
+}
+
+.star.cyan {
+    background-color: #45b7d1;
+    box-shadow: 0 0 10px #45b7d1, 0 0 20px #45b7d1;
+}
+
+/* Анимации мерцания */
+@keyframes twinkleSmall {
+    0%, 100% {
+        opacity: 0.3;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 1;
+        transform: scale(1.2);
+    }
+}
+
+@keyframes twinkleMedium {
+    0%, 100% {
+        opacity: 0.4;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 1;
+        transform: scale(1.3);
+    }
+}
+
+@keyframes twinkleLarge {
+    0%, 100% {
+        opacity: 0.5;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 1;
+        transform: scale(1.4);
+    }
+}
+
+/* Анимации движения */
+@keyframes moveStar {
+    0% {
+        transform: translate(0, 0) rotate(0deg);
+    }
+    100% {
+        transform: translate(var(--move-x, 100px), var(--move-y, 100px)) rotate(360deg);
+    }
+}
+
+/* Летающие звезды (кометы) */
+.shooting-star {
+    position: absolute;
+    width: 100px;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #fff, transparent);
+    transform-origin: left center;
+    opacity: 0;
+}
+
+/* Туманности и скопления */
+.nebula {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(40px);
+    opacity: 0.1;
+    mix-blend-mode: screen;
+}
+
+.nebula.blue {
+    background: radial-gradient(circle, #4ecdc4, transparent);
+}
+
+.nebula.purple {
+    background: radial-gradient(circle, #a29bfe, transparent);
+}
+
+.nebula.pink {
+    background: radial-gradient(circle, #ff6b6b, transparent);
+}
+
+/* Галактическая спираль */
+.galaxy-spiral {
+    position: absolute;
+    width: 600px;
+    height: 600px;
+    border-radius: 50%;
+    background: radial-gradient(circle, transparent 60%, rgba(78, 205, 196, 0.05) 100%);
+    animation: rotateGalaxy 120s linear infinite;
+}
+
+@keyframes rotateGalaxy {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* Параллакс эффект для слоев */
+.starfield-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+/* Слой 1 - далекие звезды (медленное движение) */
+.layer-1 {
+    z-index: 1;
+}
+
+/* Слой 2 - средние звезды (средняя скорость) */
+.layer-2 {
+    z-index: 2;
+}
+
+/* Слой 3 - близкие звезды (быстрое движение) */
+.layer-3 {
+    z-index: 3;
+}
+
+/* Анимация движения звездного поля */
+@keyframes starfieldMove {
+    0% {
+        transform: translate(0, 0);
+    }
+    100% {
+        transform: translate(var(--tx, 100px), var(--ty, 50px));
+    }
+}
+
+/* Затемнение сверху и снизу для глубины */
+.starfield::before,
+.starfield::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: 200px;
+    z-index: 4;
+    pointer-events: none;
+}
+
+.starfield::before {
+    top: 0;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent);
+}
+
+.starfield::after {
+    bottom: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+}
+
+/* Эффект мерцания для всего поля */
+@keyframes globalTwinkle {
+    0%, 100% {
+        opacity: 0.9;
+    }
+    50% {
+        opacity: 1;
+    }
+}
+
+.starfield {
+    animation: globalTwinkle 10s infinite ease-in-out;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .galaxy-spiral {
+        width: 400px;
+        height: 400px;
+    }
+    
+    .star.small {
+        width: 1px;
+        height: 1px;
+    }
+    
+    .star.medium {
+        width: 1.5px;
+        height: 1.5px;
+    }
+    
+    .star.large {
+        width: 2px;
+        height: 2px;
+    }
+}
+
+@media (max-width: 480px) {
+    .galaxy-spiral {
+        width: 300px;
+        height: 300px;
+    }
+    
+    /* Меньше звезд на мобильных для производительности */
+    .starfield .star:nth-child(n+150) {
+        display: none;
+    }
+}
+
+/* Режим экономии заряда батареи */
+@media (prefers-reduced-motion: reduce) {
+    .star,
+    .shooting-star,
+    .galaxy-spiral,
+    .nebula {
+        animation: none !important;
+    }
+}
+
+/* Темный режим оптимизация */
+@media (prefers-color-scheme: dark) {
+    .starfield {
+        background: #000011; /* Темно-синий вместо чистого черного */
+    }
+    
+    .star {
+        background-color: #e0e0e0;
+    }
+    
+    .nebula {
+        opacity: 0.15;
+    }
+}
+
+/* ========== ДОПОЛНИТЕЛЬНЫЕ ЭФФЕКТЫ ДЛЯ ЗВЕЗДНОГО ПОЛЯ ========== */
+
+/* Эффект сверхновой */
+.supernova {
+    position: absolute;
+    border-radius: 50%;
+    background: radial-gradient(circle, #fff 0%, #ff6b6b 30%, transparent 70%);
+    animation: supernovaExplosion 2s ease-out forwards;
+    pointer-events: none;
+    z-index: 10;
+}
+
+@keyframes supernovaExplosion {
+    0% {
+        width: 0;
+        height: 0;
+        opacity: 1;
+        filter: blur(0);
+    }
+    100% {
+        width: 300px;
+        height: 300px;
+        opacity: 0;
+        filter: blur(20px);
+    }
+}
+
+/* Аура планет */
+.planet-aura {
+    position: absolute;
+    border-radius: 50%;
+    border: 1px solid rgba(78, 205, 196, 0.3);
+    animation: pulseAura 4s ease-in-out infinite;
+}
+
+@keyframes pulseAura {
+    0%, 100% {
+        transform: scale(1);
+        opacity: 0.5;
+    }
+    50% {
+        transform: scale(1.2);
+        opacity: 0.8;
+    }
+}
+
+/* Луч света от звезды */
+.star-beam {
+    position: absolute;
+    width: 1px;
+    height: 100px;
+    background: linear-gradient(to bottom, 
+        transparent 0%,
+        rgba(255, 255, 255, 0.8) 50%,
+        transparent 100%
+    );
+    transform-origin: center top;
+    animation: beamRotate 20s linear infinite;
+}
+
+@keyframes beamRotate {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* Эффект гравитационного линзирования (опционально) */
+.gravity-lens {
+    position: absolute;
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    background: radial-gradient(
+        ellipse at center,
+        transparent 0%,
+        rgba(255, 255, 255, 0.05) 30%,
+        transparent 70%
+    );
+    filter: blur(10px);
+    mix-blend-mode: screen;
+    animation: lensWarp 15s ease-in-out infinite;
+}
+
+@keyframes lensWarp {
+    0%, 100% {
+        transform: scale(1) rotate(0deg);
+        opacity: 0.3;
+    }
+    50% {
+        transform: scale(1.2) rotate(180deg);
+        opacity: 0.5;
+    }
+}
+
+/* Контейнер для дополнительных эффектов */
+.effects-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* Эффект глубины при скролле (параллакс) */
+.parallax-container {
+    perspective: 1000px;
+    height: 100vh;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+.parallax-layer {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+}
+
+.parallax-layer-1 {
+    transform: translateZ(-1000px) scale(2);
+}
+
+.parallax-layer-2 {
+    transform: translateZ(-500px) scale(1.5);
+}
+
+.parallax-layer-3 {
+    transform: translateZ(0) scale(1);
+}
+
+/* Адаптация для тем с высоким контрастом */
+@media (prefers-contrast: high) {
+    .star {
+        background-color: #ffffff !important;
+        box-shadow: none !important;
+    }
+    
+    .starfield::before,
+    .starfield::after {
+        opacity: 0.5;
+    }
+}
+
+/* Печать - скрываем звездное поле */
+@media print {
+    .starfield {
+        display: none !important;
+    }
+}
+
 /* Индикатор авторизации */
 #authIndicator {
     animation: slideDown 0.5s ease;

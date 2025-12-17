@@ -75,6 +75,7 @@
     </style>
 </head>
 <body>
+    <div id="starfield" class="starfield"></div>
     <!-- Компактный профиль в левом верхнем углу -->
     <div id="compactProfile" class="compact-profile" role="region" aria-label="Профиль пользователя">
         <div id="compactAvatar" class="compact-avatar" aria-hidden="true">
@@ -1386,6 +1387,377 @@ document.addEventListener('DOMContentLoaded', () => {
     
     console.log('✅ Приложение полностью инициализировано');
 });
+
+// ===================== ЗВЕЗДНОЕ ПОЛЕ =====================
+
+class Starfield {
+    constructor() {
+        this.container = document.getElementById('starfield');
+        this.stars = [];
+        this.shootingStars = [];
+        this.nebulas = [];
+        this.galaxy = null;
+        this.animationId = null;
+        this.lastTime = 0;
+        
+        this.init();
+    }
+    
+    init() {
+        if (!this.container) {
+            console.error('Starfield container not found');
+            return;
+        }
+        
+        // Создаем слои для параллакса эффекта
+        this.createLayers();
+        
+        // Создаем звезды
+        this.createStars();
+        
+        // Создаем туманности
+        this.createNebulas();
+        
+        // Создаем галактическую спираль
+        this.createGalaxy();
+        
+        // Запускаем анимацию
+        this.startAnimation();
+        
+        // Запускаем создание падающих звезд
+        this.startShootingStars();
+        
+        // Обработчик изменения размера окна
+        window.addEventListener('resize', () => this.handleResize());
+        
+        console.log('⭐ Starfield initialized with', this.stars.length, 'stars');
+    }
+    
+    createLayers() {
+        // Создаем 3 слоя для параллакса эффекта
+        for (let i = 1; i <= 3; i++) {
+            const layer = document.createElement('div');
+            layer.className = `starfield-layer layer-${i}`;
+            layer.dataset.speed = i * 0.2; // Скорость движения слоя
+            this.container.appendChild(layer);
+        }
+    }
+    
+    createStars() {
+        const layers = this.container.querySelectorAll('.starfield-layer');
+        const starCount = window.innerWidth < 480 ? 200 : 400; // Меньше звезд на мобильных
+        
+        const starColors = ['', 'blue', 'pink', 'purple', 'gold', 'cyan'];
+        const starSizes = ['small', 'medium', 'large'];
+        
+        layers.forEach((layer, layerIndex) => {
+            const starsPerLayer = Math.floor(starCount / layers.length);
+            
+            for (let i = 0; i < starsPerLayer; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                
+                // Случайный размер
+                const size = starSizes[Math.floor(Math.random() * starSizes.length)];
+                star.classList.add(size);
+                
+                // Случайный цвет (30% цветных звезд)
+                if (Math.random() > 0.7) {
+                    const color = starColors[Math.floor(Math.random() * starColors.length)];
+                    if (color) star.classList.add(color);
+                }
+                
+                // Случайная позиция
+                const x = Math.random() * 100;
+                const y = Math.random() * 100;
+                
+                star.style.left = `${x}%`;
+                star.style.top = `${y}%`;
+                
+                // Случайная анимация мерцания
+                const delay = Math.random() * 5;
+                const duration = 2 + Math.random() * 3;
+                
+                star.style.animationDelay = `${delay}s`;
+                star.style.animationDuration = `${duration}s`;
+                
+                // Движение для параллакса
+                const moveX = (Math.random() - 0.5) * 200 * (layerIndex + 1);
+                const moveY = (Math.random() - 0.5) * 100 * (layerIndex + 1);
+                
+                star.style.setProperty('--move-x', `${moveX}px`);
+                star.style.setProperty('--move-y', `${moveY}px`);
+                star.style.animation = `moveStar ${20 + layerIndex * 10}s linear infinite alternate, twinkle${size.charAt(0).toUpperCase() + size.slice(1)} ${duration}s ease-in-out ${delay}s infinite`;
+                
+                layer.appendChild(star);
+                this.stars.push({
+                    element: star,
+                    layer: layerIndex,
+                    x, y,
+                    moveX, moveY
+                });
+            }
+        });
+    }
+    
+    createNebulas() {
+        // Создаем 3-5 туманностей
+        const nebulaCount = 3 + Math.floor(Math.random() * 3);
+        const nebulaColors = ['blue', 'purple', 'pink'];
+        
+        for (let i = 0; i < nebulaCount; i++) {
+            const nebula = document.createElement('div');
+            nebula.className = 'nebula';
+            
+            const color = nebulaColors[Math.floor(Math.random() * nebulaColors.length)];
+            nebula.classList.add(color);
+            
+            // Случайная позиция и размер
+            const x = Math.random() * 100;
+            const y = Math.random() * 100;
+            const size = 200 + Math.random() * 300;
+            
+            nebula.style.left = `${x}%`;
+            nebula.style.top = `${y}%`;
+            nebula.style.width = `${size}px`;
+            nebula.style.height = `${size}px`;
+            
+            // Анимация движения
+            const duration = 40 + Math.random() * 40;
+            nebula.style.animation = `moveStar ${duration}s linear infinite alternate`;
+            nebula.style.setProperty('--move-x', `${(Math.random() - 0.5) * 400}px`);
+            nebula.style.setProperty('--move-y', `${(Math.random() - 0.5) * 200}px`);
+            
+            this.container.appendChild(nebula);
+            this.nebulas.push(nebula);
+        }
+    }
+    
+    createGalaxy() {
+        const galaxy = document.createElement('div');
+        galaxy.className = 'galaxy-spiral';
+        
+        // Центр галактики
+        galaxy.style.left = '50%';
+        galaxy.style.top = '50%';
+        galaxy.style.transform = 'translate(-50%, -50%)';
+        
+        this.container.appendChild(galaxy);
+        this.galaxy = galaxy;
+    }
+    
+    startShootingStars() {
+        // Создаем падающие звезды каждые 3-8 секунд
+        setInterval(() => {
+            if (Math.random() > 0.3) { // 70% шанс создать падающую звезду
+                this.createShootingStar();
+            }
+        }, 3000);
+    }
+    
+    createShootingStar() {
+        const shootingStar = document.createElement('div');
+        shootingStar.className = 'shooting-star';
+        
+        // Начальная позиция (случайно с края экрана)
+        const startX = Math.random() * 100;
+        const startY = Math.random() * 30; // Только верхняя треть экрана
+        
+        shootingStar.style.left = `${startX}%`;
+        shootingStar.style.top = `${startY}%`;
+        
+        // Случайный угол
+        const angle = (Math.random() * 30 + 15) * (Math.PI / 180); // 15-45 градусов
+        const length = 100 + Math.random() * 200;
+        
+        // Цвет (чаще белый, иногда цветной)
+        if (Math.random() > 0.8) {
+            const colors = ['#4ecdc4', '#ff6b6b', '#a29bfe'];
+            shootingStar.style.background = `linear-gradient(90deg, transparent, ${colors[Math.floor(Math.random() * colors.length)]}, transparent)`;
+        }
+        
+        // Анимация полета
+        const animation = shootingStar.animate([
+            {
+                transform: `rotate(${angle}rad) scaleX(0)`,
+                opacity: 0
+            },
+            {
+                transform: `rotate(${angle}rad) scaleX(1)`,
+                opacity: 1,
+                offset: 0.1
+            },
+            {
+                transform: `rotate(${angle}rad) scaleX(1) translateX(${length}px)`,
+                opacity: 1,
+                offset: 0.8
+            },
+            {
+                transform: `rotate(${angle}rad) scaleX(0) translateX(${length}px)`,
+                opacity: 0
+            }
+        ], {
+            duration: 1500 + Math.random() * 1000,
+            easing: 'cubic-bezier(0.4, 0, 0.2, 1)'
+        });
+        
+        animation.onfinish = () => {
+            shootingStar.remove();
+            this.shootingStars = this.shootingStars.filter(s => s !== shootingStar);
+        };
+        
+        this.container.appendChild(shootingStar);
+        this.shootingStars.push(shootingStar);
+    }
+    
+    startAnimation() {
+        const animate = (time) => {
+            if (!this.lastTime) this.lastTime = time;
+            const delta = time - this.lastTime;
+            this.lastTime = time;
+            
+            // Параллакс движение звезд
+            this.stars.forEach(star => {
+                const speed = parseFloat(star.element.parentElement.dataset.speed) || 0.2;
+                const moveX = parseFloat(star.element.style.getPropertyValue('--move-x')) || 0;
+                const moveY = parseFloat(star.element.style.getPropertyValue('--move-y')) || 0;
+                
+                // Медленное дрейфующее движение
+                const driftX = Math.sin(time / 10000 + star.x) * 50 * speed;
+                const driftY = Math.cos(time / 8000 + star.y) * 30 * speed;
+                
+                star.element.style.transform = `translate(${driftX}px, ${driftY}px)`;
+            });
+            
+            // Движение туманностей
+            this.nebulas.forEach(nebula => {
+                const driftX = Math.sin(time / 20000) * 100;
+                const driftY = Math.cos(time / 25000) * 50;
+                nebula.style.transform = `translate(${driftX}px, ${driftY}px)`;
+            });
+            
+            this.animationId = requestAnimationFrame(animate);
+        };
+        
+        this.animationId = requestAnimationFrame(animate);
+    }
+    
+    handleResize() {
+        // При изменении размера окна можно пересчитать позиции
+        // или просто оставить как есть - звезды адаптируются
+        console.log('⭐ Starfield resized');
+    }
+    
+    destroy() {
+        if (this.animationId) {
+            cancelAnimationFrame(this.animationId);
+        }
+        if (this.container) {
+            this.container.innerHTML = '';
+        }
+        this.stars = [];
+        this.shootingStars = [];
+        this.nebulas = [];
+        console.log('⭐ Starfield destroyed');
+    }
+}
+
+// ===================== ИНИЦИАЛИЗАЦИЯ =====================
+
+let starfieldInstance = null;
+
+// Функция инициализации звездного поля
+function initStarfield() {
+    if (starfieldInstance) {
+        starfieldInstance.destroy();
+    }
+    
+    starfieldInstance = new Starfield();
+    return starfieldInstance;
+}
+
+// Функция для переключения интенсивности звезд
+function setStarfieldIntensity(intensity = 'medium') {
+    const intensities = {
+        low: 100,
+        medium: 400,
+        high: 800,
+        ultra: 1500
+    };
+    
+    if (starfieldInstance) {
+        starfieldInstance.destroy();
+        
+        // Пересоздаем с новой интенсивностью
+        setTimeout(() => {
+            starfieldInstance = new Starfield();
+            // Здесь можно добавить логику для изменения количества звезд
+            console.log(`⭐ Starfield intensity set to: ${intensity}`);
+        }, 100);
+    }
+}
+
+// Функция для создания праздничного режима
+function enableHolidayMode() {
+    if (!starfieldInstance) return;
+    
+    // Добавляем больше цветных звезд
+    const allStars = document.querySelectorAll('.star');
+    allStars.forEach(star => {
+        if (Math.random() > 0.5) {
+            const colors = ['blue', 'pink', 'purple', 'gold', 'cyan'];
+            const color = colors[Math.floor(Math.random() * colors.length)];
+            
+            // Удаляем старые цветные классы
+            colors.forEach(c => star.classList.remove(c));
+            
+            // Добавляем новый цвет
+            star.classList.add(color);
+            
+            // Увеличиваем свечение
+            star.style.boxShadow = `0 0 15px var(--${color}-rgb, currentColor), 0 0 30px var(--${color}-rgb, currentColor)`;
+        }
+    });
+    
+    // Увеличиваем частоту падающих звезд
+    clearInterval(starfieldInstance.shootingStarInterval);
+    starfieldInstance.shootingStarInterval = setInterval(() => {
+        if (Math.random() > 0.2) {
+            starfieldInstance.createShootingStar();
+        }
+    }, 1500);
+    
+    console.log('⭐ Holiday mode enabled!');
+}
+
+// Инициализация при загрузке
+document.addEventListener('DOMContentLoaded', () => {
+    // Инициализируем звездное поле
+    initStarfield();
+    
+    // Добавляем глобальные переменные для отладки
+    window.starfield = starfieldInstance;
+    window.setStarfieldIntensity = setStarfieldIntensity;
+    window.enableHolidayMode = enableHolidayMode;
+    
+    // Опционально: включить праздничный режим по определенному событию
+    // Например, при победе в игре
+    window.addEventListener('gameWon', () => {
+        enableHolidayMode();
+        setTimeout(() => {
+            // Возвращаем нормальный режим через 10 секунд
+            initStarfield();
+        }, 10000);
+    });
+    
+    console.log('⭐ Starfield ready!');
+});
+
+// Обработчик для режима экономии заряда батареи
+if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    console.log('⭐ Reduced motion detected, simplifying starfield...');
+    // Можно уменьшить количество звезд или отключить анимации
+}
 </script>
 </body>
 </html>
