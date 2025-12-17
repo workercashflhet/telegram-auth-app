@@ -1,6 +1,6 @@
-// src/utils/game.js - Логика игры для реальных пользователей
+// src/utils/game.js - Исправленная версия
 const activeGames = new Map();
-const userSessions = new Map(); // Хранилище сессий пользователей
+const userSessions = new Map();
 
 class WheelGame {
     constructor(gameId) {
@@ -8,36 +8,36 @@ class WheelGame {
         this.participants = [];
         this.status = 'waiting';
         this.countdown = 30;
-        this.winner = null; // Победитель выбирается на сервере
-        this.winnerIndex = null; // Индекс победителя для анимации
-        this.finalAngle = null; // Угол вращения для всех клиентов
+        this.countdownStartTime = null;
+        this.winner = null;
+        this.winnerIndex = null;
+        this.finalAngle = null;
         this.createdAt = new Date();
         this.maxParticipants = 8;
         this.lastActivity = new Date();
-        this.spinStartedAt = null; // Когда началось вращение
+        this.spinStartedAt = null;
     }
     
-   // game.js - исправить метод addParticipant
+    // В game.js убедитесь, что метод addParticipant выглядит так:
     addParticipant(user) {
-        if (this.status !== 'waiting') {
+        console.log(`👤 Пытаемся добавить пользователя ${user.first_name} (ID: ${user.id}) в игру ${this.id}`);
+        
+        if (this.status !== 'waiting' && this.status !== 'counting') {
+            console.log(`❌ Игра уже в статусе: ${this.status}`);
             return { success: false, error: 'Игра уже началась' };
         }
         
         if (this.participants.length >= this.maxParticipants) {
+            console.log(`❌ Достигнут лимит участников: ${this.participants.length}/${this.maxParticipants}`);
             return { success: false, error: 'Достигнут лимит участников' };
         }
         
-        // Проверяем, не участвует ли уже
         if (this.participants.some(p => p.id === user.id)) {
+            console.log(`❌ Пользователь уже участвует в игре`);
             return { success: false, error: 'Вы уже участвуете в игре' };
         }
         
-        // Убеждаемся, что пользователь зарегистрирован
-        if (!gameManager.getUser(user.id)) {
-            gameManager.registerUser(user);
-        }
-        
-        // Сохраняем полные данные пользователя
+        // Добавляем пользователя
         this.participants.push({
             id: user.id,
             first_name: user.first_name,
@@ -51,44 +51,51 @@ class WheelGame {
         
         this.lastActivity = new Date();
         
+        console.log(`✅ Пользователь добавлен. Теперь участников: ${this.participants.length}`);
+        
         // Автоматически запускаем отсчет если участников > 1
         if (this.participants.length > 1 && this.status === 'waiting') {
-            this.status = 'counting';
+            console.log(`⏳ Запускаем таймер (участников: ${this.participants.length})`);
             this.startCountdown();
         }
         
         return { success: true, participant: user };
     }
     
-    // Запустить отсчет
     startCountdown() {
-        if (this.status !== 'counting') return;
+        if (this.status !== 'waiting') return;
         
-        // Сбрасываем таймер
+        this.status = 'counting';
         this.countdown = 30;
+        this.countdownStartTime = new Date();
+        this.lastActivity = new Date();
         
-        // В реальном приложении здесь был бы интервал
-        // Для демо просто сохраняем время старта
+        console.log(`⏳ Игра ${this.id}: запущен 30-секундный таймер`);
     }
     
-    // game.js - исправить метод updateCountdown
     updateCountdown() {
         if (this.status !== 'counting') return;
         
+        if (!this.countdownStartTime) {
+            this.countdownStartTime = new Date();
+            this.countdown = 30;
+            return;
+        }
+        
         const now = new Date();
-        const secondsPassed = Math.floor((now - this.lastActivity) / 1000);
+        const secondsPassed = Math.floor((now - this.countdownStartTime) / 1000);
         this.countdown = Math.max(0, 30 - secondsPassed);
         
         if (this.countdown <= 0 && this.status === 'counting') {
             this.startSpinning();
         }
     }
-
-    // Запустить вращение (сервер определяет победителя)
+    
     startSpinning() {
         if (this.participants.length < 2) {
             this.status = 'waiting';
             this.countdown = null;
+            this.countdownStartTime = null;
             return;
         }
         
@@ -96,33 +103,69 @@ class WheelGame {
         this.spinStartedAt = new Date();
         this.lastActivity = new Date();
         
-        // ВАЖНО: Сервер выбирает победителя
+        // Выбираем случайного победителя
         this.winnerIndex = Math.floor(Math.random() * this.participants.length);
         this.winner = this.participants[this.winnerIndex];
         
-        // Рассчитываем конечный угол для всех клиентов
-        const spins = 5;
+        // Рассчитываем конечный угол (совместим с frontend логикой)
+        const spins = 5; // 5 полных оборотов
         const sectorAngle = 360 / this.participants.length;
-        const extraAngle = Math.random() * sectorAngle; // Немного случайности
         
-        // Формула для расчета финального угла
-        this.finalAngle = spins * 360 + (this.winnerIndex * sectorAngle) + extraAngle;
+        // Формула для frontend: участники расположены по часовой стрелке
+        // Указатель сверху (0°), нужно чтобы он указывал на центр сектора победителя
+        
+        // Центр сектора победителя (относительно 0° сверху)
+        const winnerCenterAngle = (360 - (this.winnerIndex * sectorAngle)) - (sectorAngle / 2);
+        
+        // Добавляем немного случайности (±30% сектора)
+        const randomOffset = (Math.random() - 0.5) * sectorAngle * 0.6;
+        
+        // Итоговый угол: полные обороты + угол до сектора победителя + случайность
+        this.finalAngle = spins * 360 + winnerCenterAngle + randomOffset;
+        
+        // Нормализуем угол
+        this.finalAngle = this.finalAngle % 3600; // Не более 10 оборотов
         
         console.log(`🎰 Игра ${this.id}: запущено вращение!`);
+        console.log(`👥 Участников: ${this.participants.length}`);
         console.log(`🏆 Победитель: ${this.winner.first_name} (индекс: ${this.winnerIndex})`);
         console.log(`📐 Финальный угол: ${this.finalAngle}°`);
+        console.log(`📏 Сектор: ${sectorAngle}°, Центр сектора: ${winnerCenterAngle}°`);
         
-        // Через 5 секунд завершаем игру
+        // Завершаем игру через 8 секунд
         setTimeout(() => {
             this.finishGame();
-        }, 5000);
+        }, 8000);
     }
-
-    // Убираем метод startGame или переименовываем его
+    
+    finishGame() {
+        this.status = 'finished';
+        this.lastActivity = new Date();
+        
+        console.log(`🏁 Игра ${this.id}: завершена! Победитель: ${this.winner.first_name}`);
+        
+        // Очищаем игру через 15 секунд
+        setTimeout(() => {
+            if (activeGames.has(this.id)) {
+                activeGames.delete(this.id);
+                console.log(`🗑️ Игра ${this.id}: удалена из памяти`);
+            }
+        }, 15000);
+    }
+    
     getGameState() {
         // Обновляем таймер если игра в режиме отсчета
         if (this.status === 'counting') {
             this.updateCountdown();
+        }
+        
+        // Рассчитываем прогресс вращения
+        let spinProgress = null;
+        let spinDuration = null;
+        if (this.status === 'spinning' && this.spinStartedAt) {
+            const now = new Date();
+            spinDuration = Math.floor((now - this.spinStartedAt) / 1000);
+            spinProgress = Math.min(spinDuration / 5, 1); // 5 секунд на вращение
         }
         
         return {
@@ -134,101 +177,43 @@ class WheelGame {
             winnerIndex: this.winnerIndex,
             finalAngle: this.finalAngle,
             spinStartedAt: this.spinStartedAt,
+            spinProgress: spinProgress,
+            spinDuration: spinDuration,
             maxParticipants: this.maxParticipants,
-            lastActivity: this.lastActivity
-        };
-    }
-    
-    // Запустить игру (автоматически при завершении таймера)
-    startGame() {
-        if (this.status !== 'counting' || this.participants.length < 2) {
-            // Если недостаточно игроков, сбрасываем состояние
-            this.status = 'waiting';
-            this.countdown = null;
-            return { success: false, error: 'Недостаточно участников' };
-        }
-        
-        this.status = 'spinning';
-        this.lastActivity = new Date();
-        
-        // Выбираем случайного победителя
-        const winnerIndex = Math.floor(Math.random() * this.participants.length);
-        this.winner = this.participants[winnerIndex];
-        
-        // Через 5 секунд завершаем игру
-        setTimeout(() => {
-            this.finishGame();
-        }, 5000);
-        
-        return { success: true, winner: this.winner };
-    }
-    
-    // Обработчик API для запуска игры (теперь не используется, но оставим для совместимости)
-    spinWheel() {
-        return this.startGame();
-    }
-    
-    // ... остальные методы без изменений ...
-
-    
-    // Завершить игру
-    finishGame() {
-        this.status = 'finished';
-        this.lastActivity = new Date();
-        
-        // Очищаем игру через 10 секунд
-        setTimeout(() => {
-            if (activeGames.has(this.id)) {
-                activeGames.delete(this.id);
-            }
-        }, 10000);
-    }
-    
-    // Получить состояние игры
-    getGameState() {
-        // Обновляем таймер если игра в режиме отсчета
-        if (this.status === 'counting') {
-            this.updateCountdown();
-        }
-        
-        return {
-            id: this.id,
-            participants: this.participants,
-            status: this.status,
-            countdown: this.countdown,
-            winner: this.winner,
-            maxParticipants: this.maxParticipants,
-            lastActivity: this.lastActivity
+            lastActivity: this.lastActivity,
+            canJoin: this.status === 'waiting' || this.status === 'counting'
         };
     }
 }
 
-// Менеджер игр
 const gameManager = {
-    // Создать новую игру
     createGame() {
         const gameId = 'game_' + Date.now();
         const game = new WheelGame(gameId);
         activeGames.set(gameId, game);
+        console.log(`🆕 Создана новая игра: ${gameId}`);
         return game;
     },
-
-    // Получить все игры (новый метод)
+    
     getAllGames() {
         return Array.from(activeGames.values());
     },
     
-    // Получить игру
     getGame(gameId) {
         return activeGames.get(gameId);
     },
     
-    // Получить активную игру (или создать новую)
     getActiveGame() {
         // Ищем активную игру
         for (const [id, game] of activeGames) {
             if (game.status === 'waiting' || game.status === 'counting') {
-                return game;
+                // Проверяем не устарела ли игра
+                const now = new Date();
+                const timeSinceLastActivity = (now - game.lastActivity) / 1000;
+                
+                if (timeSinceLastActivity < 300) { // 5 минут
+                    return game;
+                }
             }
         }
         
@@ -236,42 +221,83 @@ const gameManager = {
         return this.createGame();
     },
     
-    // Очистить старые игры
     cleanupOldGames() {
         const now = new Date();
-        const oneHourAgo = new Date(now - 60 * 60 * 1000);
+        const fiveMinutesAgo = new Date(now - 5 * 60 * 1000);
+        const tenMinutesAgo = new Date(now - 10 * 60 * 1000);
         
+        let cleaned = 0;
         for (const [id, game] of activeGames) {
-            if (game.lastActivity < oneHourAgo) {
+            // Удаляем завершенные игры старше 10 минут
+            if (game.status === 'finished' && game.lastActivity < tenMinutesAgo) {
                 activeGames.delete(id);
+                cleaned++;
             }
+            // Удаляем неактивные игры старше 5 минут
+            else if (game.lastActivity < fiveMinutesAgo) {
+                activeGames.delete(id);
+                cleaned++;
+            }
+        }
+        
+        if (cleaned > 0) {
+            console.log(`🧹 Очищено ${cleaned} старых игр`);
         }
     },
     
-    // Регистрация пользователя
     registerUser(userData) {
         if (!userData || !userData.id) return null;
         
-        userSessions.set(userData.id, {
-            ...userData,
-            lastSeen: new Date(),
-            gamesPlayed: 0,
-            gamesWon: 0
-        });
+        const existingUser = userSessions.get(userData.id);
+        const now = new Date();
         
-        return userData;
+        const userRecord = {
+            ...userData,
+            lastSeen: now,
+            firstSeen: existingUser?.firstSeen || now,
+            gamesPlayed: existingUser?.gamesPlayed || 0,
+            gamesWon: existingUser?.gamesWon || 0,
+            totalGames: existingUser?.totalGames || 0
+        };
+        
+        userSessions.set(userData.id, userRecord);
+        
+        console.log(`👤 Зарегистрирован/обновлен пользователь: ${userData.first_name} (ID: ${userData.id})`);
+        
+        return userRecord;
     },
     
-    // Получить пользователя
     getUser(userId) {
         return userSessions.get(userId);
+    },
+    
+    incrementUserGames(userId) {
+        const user = userSessions.get(userId);
+        if (user) {
+            user.gamesPlayed = (user.gamesPlayed || 0) + 1;
+            user.totalGames = (user.totalGames || 0) + 1;
+            user.lastSeen = new Date();
+        }
+    },
+    
+    incrementUserWins(userId) {
+        const user = userSessions.get(userId);
+        if (user) {
+            user.gamesWon = (user.gamesWon || 0) + 1;
+            user.lastSeen = new Date();
+        }
     }
 };
 
-// Очистка старых игр каждые 5 минут
+// Очистка старых игр каждые 2 минуты
 setInterval(() => {
     gameManager.cleanupOldGames();
-}, 5 * 60 * 1000);
+}, 2 * 60 * 1000);
+
+// Логирование каждые 30 секунд для отладки
+setInterval(() => {
+    console.log(`📊 Статистика: ${activeGames.size} активных игр, ${userSessions.size} пользователей в сессии`);
+}, 30000);
 
 module.exports = {
     WheelGame,

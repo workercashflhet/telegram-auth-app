@@ -137,262 +137,295 @@
     <!-- Скрипты -->
     <script src="/wheel.js"></script>
     <script>
-        // Глобальные переменные
-        let tg = null;
-        let currentUser = null;
-        let isTelegramApp = false;
+    // Глобальные переменные
+    let tg = null;
+    let currentUser = null;
+    let isTelegramApp = false;
+    
+    // Элементы DOM
+    const statusMessage = document.getElementById('statusMessage');
+    const statusText = document.getElementById('statusText');
+    const dataBadge = document.getElementById('dataBadge');
+    const badgeText = document.getElementById('badgeText');
+    
+    // Инициализация Telegram
+    function initTelegram() {
+        if (window.Telegram && window.Telegram.WebApp) {
+            tg = window.Telegram.WebApp;
+            tg.expand();
+            tg.ready();
+            tg.setHeaderColor('#000000');
+            tg.setBackgroundColor('#000000');
+            isTelegramApp = true;
+            
+            console.log('✅ Telegram Web App инициализирован');
+            
+            // Проверяем авторизацию
+            if (tg.initData) {
+                console.log('📱 Найдены данные Telegram, пытаемся авторизоваться...');
+                autoLogin();
+            } else {
+                console.log('⚠️ Нет данных Telegram, требуется открыть через бота');
+                showStatus('⚠️ Откройте через Telegram бота для реальной авторизации', 'error');
+            }
+            
+            return true;
+        }
+        return false;
+    }
+    
+    // Функция для обновления индикатора авторизации
+    function updateAuthIndicator() {
+        const authIndicator = document.getElementById('authIndicator');
+        const currentUserName = document.getElementById('currentUserName');
         
-        // Элементы DOM
-        const statusMessage = document.getElementById('statusMessage');
-        const statusText = document.getElementById('statusText');
-        const dataBadge = document.getElementById('dataBadge');
-        const badgeText = document.getElementById('badgeText');
-        
-        // Инициализация Telegram
-        function initTelegram() {
-            if (window.Telegram && window.Telegram.WebApp) {
-                tg = window.Telegram.WebApp;
-                tg.expand();
-                tg.ready();
-                tg.setHeaderColor('#000000');
-                tg.setBackgroundColor('#000000');
-                isTelegramApp = true;
+        if (window.currentUser) {
+            authIndicator.style.display = 'block';
+            currentUserName.textContent = window.currentUser.first_name || 'Пользователь';
+            console.log(`👤 Пользователь авторизован: ${window.currentUser.first_name}`);
+        } else {
+            authIndicator.style.display = 'none';
+            console.log('👤 Пользователь не авторизован');
+        }
+    }
+    
+    // Автоматический вход
+    async function autoLogin() {
+        try {
+            showStatus('⏳ Проверка авторизации...', 'info');
+            
+            const response = await fetch('/api/auth', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ initData: tg.initData })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success && data.user) {
+                // Устанавливаем глобальную переменную
+                window.currentUser = data.user;
                 
-                // Проверяем авторизацию
-                if (tg.initData) {
-                    autoLogin();
-                    updateAuthIndicator();
+                // Обновляем индикатор авторизации
+                updateAuthIndicator();
+                
+                // Обновляем колесо если оно инициализировано
+                if (window.fortuneWheel) {
+                    window.fortuneWheel.updateButtons();
+                    window.fortuneWheel.loadGameState();
                 }
                 
-                return true;
-            }
-            return false;
-        }
-        
-        // Функция для обновления индикатора авторизации
-        function updateAuthIndicator() {
-            const authIndicator = document.getElementById('authIndicator');
-            const currentUserName = document.getElementById('currentUserName');
-            
-            if (window.currentUser) {
-                authIndicator.style.display = 'block';
-                currentUserName.textContent = window.currentUser.first_name || 'Пользователь';
-            } else {
-                authIndicator.style.display = 'none';
-            }
-        }
-
-        // Автоматический вход
-        async function autoLogin() {
-            try {
-                const response = await fetch('/api/auth', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ initData: tg.initData })
-                });
+                // Обновляем профиль
+                updateProfileTab();
                 
-                const data = await response.json();
-                
-                // После успешной авторизации в функции autoLogin или login:
-                if (data.success && data.user) {
-                    // КРИТИЧЕСКИ ВАЖНО: устанавливаем глобальную переменную
-                    window.currentUser = data.user;
-                    
-                    // Уведомляем объект игры об изменении
-                    if (window.fortuneWheel) {
-                        window.fortuneWheel.updateButtons();
-                        // Также обновляем список участников, если пользователь уже в игре
-                        window.fortuneWheel.loadGameState();
-                    }
-                    
-                    // Показываем статус
-                    showStatus(`✅ Добро пожаловать, ${data.user.first_name}!`, 'success');
-                    
-                    // Обновляем вкладку профиля
-                    updateProfileTab();
-                    // Глобальная функция для принудительного обновления состояния
-                    window.syncAppState = function() {
-                        console.log('Принудительная синхронизация состояния...');
-                        
-                        // Обновляем кнопки игры
-                        if (window.fortuneWheel) {
-                            window.fortuneWheel.updateButtons();
-                            window.fortuneWheel.loadGameState();
-                        }
-                        
-                        // Обновляем профиль
-                        if (window.currentUser) {
-                            updateProfileTab();
-                        }
-                        
-                        return 'Состояние синхронизировано';
-                    };
+                // Обновляем бейдж
+                if (dataBadge) {
+                    dataBadge.className = 'status-badge badge-real';
+                    badgeText.textContent = 'РЕАЛЬНЫЙ РЕЖИМ';
                 }
-            } catch (error) {
-                console.error('Auto login error:', error);
-            }
-        }
-        
-        function addRealParticipant(user) {
-            if (!window.fortuneWheel || !user) return;
-            
-            // Проверяем, не участвует ли уже
-            const isAlreadyParticipating = window.fortuneWheel.participants.some(p => p.id === user.id);
-            if (isAlreadyParticipating) return;
-            
-            // Добавляем пользователя в игру
-            window.fortuneWheel.addParticipant(user);
-        }
-
-        
-        // В index.html в функции showStatus добавить:
-        function showStatus(message, type = 'info') {
-            statusText.textContent = message;
-            statusMessage.className = `status-message status-${type} visible`;
-            
-            // Автоскрытие
-            if (type !== 'error') {
-                setTimeout(() => {
-                    statusMessage.classList.remove('visible');
-                }, 3000);
-            }
-            
-            // Обновляем глобальную функцию
-            window.showStatus = showStatus;
-        }
-
-        // Добавить индикатор загрузки колеса
-        function showWheelLoading(show) {
-            const wheel = document.getElementById('fortuneWheel');
-            const joinButton = document.getElementById('joinButton');
-            
-            if (show) {
-                wheel.style.opacity = '0.7';
-                if (joinButton) joinButton.disabled = true;
+                
+                showStatus(`✅ Добро пожаловать, ${data.user.first_name}!`, 'success');
+                
+                // Триггерим событие изменения пользователя
+                window.dispatchEvent(new CustomEvent('userChanged'));
+                
+                console.log(`✅ Авторизация успешна: ${data.user.first_name} (ID: ${data.user.id})`);
             } else {
-                wheel.style.opacity = '1';
-                if (joinButton) joinButton.disabled = false;
+                showStatus('❌ Ошибка авторизации: ' + (data.error || 'Неизвестная ошибка'), 'error');
+                console.error('Ошибка авторизации:', data.error);
             }
+        } catch (error) {
+            console.error('Auto login error:', error);
+            showStatus('❌ Ошибка соединения с сервером', 'error');
+        }
+    }
+    
+    // Показать статус
+    function showStatus(message, type = 'info') {
+        if (!statusText || !statusMessage) return;
+        
+        statusText.textContent = message;
+        statusMessage.className = `status-message status-${type} visible`;
+        
+        console.log(`📢 Статус (${type}): ${message}`);
+        
+        // Автоскрытие
+        if (type !== 'error') {
+            setTimeout(() => {
+                statusMessage.classList.remove('visible');
+            }, 3000);
         }
         
-        // Обновить вкладку профиля
-        function updateProfileTab() {
-            if (!currentUser) return;
-            
-            // Обновляем аватар
-            const profileAvatar = document.getElementById('profileAvatar');
-            const profileInitials = document.getElementById('profileInitials');
-            const profilePhoto = document.getElementById('profilePhoto');
-            const userName = document.getElementById('userName');
-            const userUsername = document.getElementById('userUsername');
-            const profileInfo = document.getElementById('profileInfo');
-            
-            if (currentUser.photo_url) {
+        // Глобальная функция
+        window.showStatus = showStatus;
+    }
+    
+    // Обновить вкладку профиля
+    function updateProfileTab() {
+        if (!currentUser) {
+            console.log('❌ Не могу обновить профиль: пользователь не установлен');
+            return;
+        }
+        
+        console.log('🔄 Обновление вкладки профиля...');
+        
+        // Обновляем аватар
+        const profileAvatar = document.getElementById('profileAvatar');
+        const profileInitials = document.getElementById('profileInitials');
+        const profilePhoto = document.getElementById('profilePhoto');
+        const userName = document.getElementById('userName');
+        const userUsername = document.getElementById('userUsername');
+        const profileInfo = document.getElementById('profileInfo');
+        
+        if (!profileAvatar || !userName || !profileInfo) {
+            console.log('❌ Не найдены элементы профиля');
+            return;
+        }
+        
+        // Аватар
+        if (currentUser.photo_url) {
+            if (profilePhoto) {
                 profilePhoto.src = currentUser.photo_url;
                 profilePhoto.style.display = 'block';
-                profileInitials.style.display = 'none';
-            } else {
+                if (profileInitials) profileInitials.style.display = 'none';
+            }
+        } else {
+            if (profileInitials) {
                 const initials = getInitials(currentUser.first_name, currentUser.last_name);
                 profileInitials.textContent = initials;
                 profileInitials.style.display = 'block';
-                profilePhoto.style.display = 'none';
+                if (profilePhoto) profilePhoto.style.display = 'none';
             }
-            
-            userName.textContent = `${currentUser.first_name || ''} ${currentUser.last_name || ''}`.trim();
+        }
+        
+        // Имя и username
+        userName.textContent = `${currentUser.first_name || ''} ${currentUser.last_name || ''}`.trim();
+        if (userUsername) {
             userUsername.textContent = currentUser.username ? `@${currentUser.username}` : 'Без username';
-            
-            // Заполняем информацию
-            profileInfo.innerHTML = '';
-            
-            const infoCards = [
-                { label: 'ID пользователя', value: currentUser.id, icon: '🆔' },
-                { label: 'Имя', value: currentUser.first_name || '—', icon: '👤' },
-                { label: 'Фамилия', value: currentUser.last_name || '—', icon: '👥' },
-                { label: 'Username', value: currentUser.username ? '@' + currentUser.username : '—', icon: '📛' },
-                { label: 'Язык', value: currentUser.language_code?.toUpperCase() || 'RU', icon: '🌐' },
-                { label: 'Premium статус', value: currentUser.is_premium ? '✅ Активен' : '❌ Не активен', icon: '⭐' },
-                { label: 'Доступ к ЛС', value: currentUser.allows_write_to_pm ? '✅ Разрешен' : '❌ Запрещен', icon: '💬' },
-                { label: 'Дата регистрации', value: new Date().toLocaleDateString('ru-RU'), icon: '📅' },
-                { label: 'Участие в играх', value: '0 побед', icon: '🏆' },
-                { label: 'Статус', value: 'Онлайн', icon: '💚' }
-            ];
-            
-            infoCards.forEach(card => {
-                const cardElement = document.createElement('div');
-                cardElement.className = 'info-card';
-                cardElement.innerHTML = `
-                    <div class="info-label">
-                        <span class="icon">${card.icon}</span>
-                        ${card.label}
-                    </div>
-                    <div class="info-value">${card.value}</div>
-                `;
-                profileInfo.appendChild(cardElement);
+        }
+        
+        // Информация
+        profileInfo.innerHTML = '';
+        
+        const infoCards = [
+            { label: 'ID пользователя', value: currentUser.id, icon: '🆔' },
+            { label: 'Имя', value: currentUser.first_name || '—', icon: '👤' },
+            { label: 'Фамилия', value: currentUser.last_name || '—', icon: '👥' },
+            { label: 'Username', value: currentUser.username ? '@' + currentUser.username : '—', icon: '📛' },
+            { label: 'Язык', value: currentUser.language_code?.toUpperCase() || 'RU', icon: '🌐' },
+            { label: 'Premium статус', value: currentUser.is_premium ? '✅ Активен' : '❌ Не активен', icon: '⭐' },
+            { label: 'Доступ к ЛС', value: currentUser.allows_write_to_pm ? '✅ Разрешен' : '❌ Запрещен', icon: '💬' },
+            { label: 'Дата авторизации', value: new Date().toLocaleDateString('ru-RU'), icon: '📅' },
+            { label: 'Тип данных', value: currentUser.is_demo ? 'Демо режим' : 'Реальные данные', icon: '🔐' },
+            { label: 'Статус', value: 'Онлайн', icon: '💚' }
+        ];
+        
+        infoCards.forEach(card => {
+            const cardElement = document.createElement('div');
+            cardElement.className = 'info-card';
+            cardElement.innerHTML = `
+                <div class="info-label">
+                    <span class="icon">${card.icon}</span>
+                    ${card.label}
+                </div>
+                <div class="info-value">${card.value}</div>
+            `;
+            profileInfo.appendChild(cardElement);
+        });
+        
+        console.log('✅ Вкладка профиля обновлена');
+    }
+    
+    // Получить инициалы
+    function getInitials(firstName, lastName) {
+        const first = firstName ? firstName.charAt(0).toUpperCase() : 'T';
+        const last = lastName ? lastName.charAt(0).toUpperCase() : '';
+        return first + last;
+    }
+    
+    // Переключение вкладок
+    function setupNavigation() {
+        const navButtons = document.querySelectorAll('.nav-button');
+        const tabContents = document.querySelectorAll('.tab-content');
+        
+        navButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const tabId = button.getAttribute('data-tab');
+                
+                // Обновляем активные элементы
+                navButtons.forEach(btn => btn.classList.remove('active'));
+                tabContents.forEach(tab => tab.classList.remove('active'));
+                
+                button.classList.add('active');
+                document.getElementById(tabId).classList.add('active');
+                
+                console.log(`📱 Переключено на вкладку: ${tabId}`);
+                
+                // При переключении на профиль обновляем его
+                if (tabId === 'profileTab' && currentUser) {
+                    setTimeout(updateProfileTab, 100);
+                }
             });
-        }
+        });
+    }
+    
+    // Выйти
+    function logout() {
+        console.log('🚪 Выход из аккаунта...');
         
-        // Получить инициалы
-        function getInitials(firstName, lastName) {
-            const first = firstName ? firstName.charAt(0).toUpperCase() : 'T';
-            const last = lastName ? lastName.charAt(0).toUpperCase() : '';
-            return first + last;
-        }
+        currentUser = null;
+        window.currentUser = null;
         
-        // Переключение вкладок
-        function setupNavigation() {
-            const navButtons = document.querySelectorAll('.nav-button');
-            const tabContents = document.querySelectorAll('.tab-content');
-            
-            navButtons.forEach(button => {
-                button.addEventListener('click', () => {
-                    const tabId = button.getAttribute('data-tab');
-                    
-                    // Обновляем активные элементы
-                    navButtons.forEach(btn => btn.classList.remove('active'));
-                    tabContents.forEach(tab => tab.classList.remove('active'));
-                    
-                    button.classList.add('active');
-                    document.getElementById(tabId).classList.add('active');
-                });
-            });
-        }
-
-        function addDemoParticipants() {
-            // Не добавляем демо-участников автоматически
-            // Пользователи должны присоединяться самостоятельно через API
-            console.log('Демо-режим: пользователи могут присоединяться самостоятельно');
-        }
-        
-        // Выйти
-        function logout() {
-            currentUser = null;
+        if (dataBadge) {
             dataBadge.className = 'status-badge badge-demo';
             badgeText.textContent = 'ДЕМО РЕЖИМ';
-            updateProfileTab();
-            showStatus('Вы вышли из аккаунта', 'success');
-            
-            // Переключаем на главную вкладку
-            document.getElementById('navHome').click();
         }
         
-        // Инициализация приложения
-        document.addEventListener('DOMContentLoaded', () => {
-            initTelegram();
-            setupNavigation();
-            
-            if (!isTelegramApp) {
-                showStatus('⚠️ Откройте через Telegram бота для реальной авторизации', 'error');
-                // Добавляем демо-участников для примера
-                setTimeout(addDemoParticipants, 2000);
-            }
-            
-            // Обработчик кнопки выхода
-            document.getElementById('logoutButton')?.addEventListener('click', logout);
-            
-            // Делаем глобально доступными
-            window.currentUser = currentUser;
-            window.showStatus = showStatus;
-        });
-    </script>
+        updateProfileTab();
+        updateAuthIndicator();
+        
+        // Обновляем колесо
+        if (window.fortuneWheel) {
+            window.fortuneWheel.updateButtons();
+            window.fortuneWheel.loadGameState();
+        }
+        
+        showStatus('✅ Вы вышли из аккаунта', 'success');
+        
+        // Переключаем на главную вкладку
+        const homeButton = document.getElementById('navHome');
+        if (homeButton) homeButton.click();
+        
+        // Триггерим событие изменения пользователя
+        window.dispatchEvent(new CustomEvent('userChanged'));
+    }
+    
+    // Инициализация приложения
+    document.addEventListener('DOMContentLoaded', () => {
+        console.log('🚀 Инициализация приложения...');
+        
+        initTelegram();
+        setupNavigation();
+        
+        if (!isTelegramApp) {
+            console.log('⚠️ Приложение запущено вне Telegram');
+            showStatus('⚠️ Откройте через Telegram бота для реальной авторизации', 'error');
+        }
+        
+        // Обработчик кнопки выхода
+        const logoutButton = document.getElementById('logoutButton');
+        if (logoutButton) {
+            logoutButton.addEventListener('click', logout);
+        }
+        
+        // Делаем глобально доступными
+        window.currentUser = currentUser;
+        window.showStatus = showStatus;
+        window.updateProfileTab = updateProfileTab;
+        window.getInitials = getInitials;
+        
+        console.log('✅ Приложение инициализировано');
+    });
+</script>
 </body>
 </html>

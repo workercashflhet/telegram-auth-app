@@ -14,6 +14,8 @@ class FortuneWheel {
         this.finalAngle = null;
         this.winner = null;
         this.winnerAnnounced = false;
+        this.lastUpdateTime = null;
+        this.autoRefreshInterval = null;
         
         this.init();
     }
@@ -21,22 +23,44 @@ class FortuneWheel {
     async init() {
         this.wheelElement = document.getElementById('fortuneWheel');
         this.setupEventListeners();
+        
+        // Загружаем начальное состояние
         await this.loadGameState();
         
-        // Чаще обновляем состояние во время игры
-        setInterval(() => this.loadGameState(), 1000);
+        // Настраиваем автоматическое обновление
+        this.setupAutoRefresh();
+        
+        // Периодически обновляем колесо
+        setInterval(() => {
+            this.updateWheel();
+        }, 1000);
+    }
+    
+    setupAutoRefresh() {
+        if (this.autoRefreshInterval) {
+            clearInterval(this.autoRefreshInterval);
+        }
+        
+        // Обновляем состояние каждую секунду
+        this.autoRefreshInterval = setInterval(async () => {
+            await this.loadGameState();
+        }, 1000);
     }
     
     async loadGameState() {
         try {
             const response = await fetch('/api/game/state');
-            if (!response.ok) throw new Error('Network error');
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
             
             const data = await response.json();
             
             if (data.success && data.game) {
                 this.currentGameId = data.game.id;
+                
+                // Обновляем участников если изменились
+                const participantsChanged = JSON.stringify(this.participants) !== JSON.stringify(data.game.participants);
                 this.participants = data.game.participants || [];
+                
                 this.countdown = data.game.status === 'counting' ? data.game.countdown : null;
                 this.winner = data.game.winner || null;
                 this.finalAngle = data.game.finalAngle || null;
@@ -45,12 +69,15 @@ class FortuneWheel {
                 this.isSpinning = data.game.status === 'spinning';
                 
                 // Обновляем UI
-                this.renderParticipants();
-                this.updateWheel();
+                if (participantsChanged) {
+                    this.renderParticipants();
+                    this.updateWheel();
+                }
+                
                 this.updateTimer();
                 this.updateButtons();
                 
-                // Обновляем таймер если нужно
+                // Управляем таймером обратного отсчета
                 if (this.countdown !== null && !this.timerInterval) {
                     this.startCountdownTimer();
                 } else if (this.countdown === null && this.timerInterval) {
@@ -59,11 +86,13 @@ class FortuneWheel {
                 
                 // Если игра только начала крутиться
                 if (this.isSpinning && !wasSpinning && this.finalAngle) {
+                    console.log(`🌀 Получен финальный угол от сервера: ${this.finalAngle}°`);
                     this.startSynchronizedSpin();
                 }
                 
                 // Если игра закончилась и есть победитель
                 if (data.game.status === 'finished' && this.winner && !this.winnerAnnounced) {
+                    console.log(`🏆 Получен победитель от сервера: ${this.winner.first_name}`);
                     this.showWinner(this.winner);
                     this.winnerAnnounced = true;
                     
@@ -73,141 +102,262 @@ class FortuneWheel {
                         this.hideWinner();
                     }, 10000);
                 }
+                
+                this.lastUpdateTime = new Date();
             }
         } catch (error) {
-            console.error('Error loading game state:', error);
+            console.error('❌ Ошибка загрузки состояния игры:', error);
+            
+            // Показываем статус ошибки только если не было обновлений больше 10 секунд
+            if (!this.lastUpdateTime || (new Date() - this.lastUpdateTime) > 10000) {
+                if (window.showStatus) {
+                    window.showStatus('⚠️ Нет связи с сервером', 'error');
+                }
+            }
         }
     }
     
-    // Синхронизированное вращение
     startSynchronizedSpin() {
-        if (!this.finalAngle || this.participants.length < 2) return;
+        if (!this.finalAngle || this.participants.length < 2) {
+            console.warn('Недостаточно данных для запуска вращения');
+            return;
+        }
         
         this.isSpinning = true;
         this.updateButtons();
         this.hideWinner();
         
         console.log(`🌀 Запускаем синхронизированное вращение: ${this.finalAngle}°`);
+        console.log(`👥 Участников: ${this.participants.length}`);
         
-        // Сбрасываем трансформацию перед новым вращением
+        // Сбрасываем анимацию
         this.wheelElement.style.transition = 'none';
         this.wheelElement.style.transform = 'rotate(0deg)';
         
-        // Ждем немного для сброса анимации
+        // Принудительный пересчет стилей для сброса анимации
+        void this.wheelElement.offsetWidth;
+        
+        // Запуск плавного вращения
         setTimeout(() => {
-            this.wheelElement.style.transition = 'transform 5s cubic-bezier(0.17, 0.67, 0.83, 0.67)';
+            this.wheelElement.style.transition = 'transform 5s cubic-bezier(0.2, 0.8, 0.3, 1)';
             this.wheelElement.style.transform = `rotate(${this.finalAngle}deg)`;
             
-            // Через 5 секунд показываем победителя
+            // Визуальная обратная связь
+            this.wheelElement.classList.add('spinning');
+            
+            // Показываем победителя через 5.5 секунд
             setTimeout(() => {
+                this.wheelElement.classList.remove('spinning');
+                
                 if (this.winner) {
+                    console.log(`🎉 Показываем победителя: ${this.winner.first_name}`);
                     this.showWinner(this.winner);
+                    
+                    // Автоматически перезапускаем через 8 секунд
+                    setTimeout(() => {
+                        this.resetForNextRound();
+                    }, 8000);
                 } else {
-                    // Если победитель еще не пришел с сервера, пытаемся рассчитать
+                    console.warn('Победитель не определен, но вращение завершено');
                     this.determineWinnerFromAngle(this.finalAngle);
                 }
-            }, 5000);
+            }, 5500);
         }, 50);
     }
     
-    // Определить победителя по углу (резервный метод)
     determineWinnerFromAngle(finalAngle) {
-        if (!finalAngle || this.participants.length === 0) return;
+        if (!finalAngle || this.participants.length === 0) {
+            console.warn('Недостаточно данных для определения победителя');
+            return null;
+        }
         
+        // Нормализуем угол (убираем полные обороты)
         const normalizedAngle = finalAngle % 360;
+        
+        // Участники расположены по часовой стрелке, указатель сверху (0°)
         const sectorAngle = 360 / this.participants.length;
         
+        // Определяем сектор (от 0 до participants.length-1)
         let sector = Math.floor(normalizedAngle / sectorAngle);
-        sector = this.participants.length - 1 - sector;
         
-        if (sector < 0) sector = 0;
-        if (sector >= this.participants.length) sector = this.participants.length - 1;
+        // Инвертируем, так как вращение идет по часовой стрелке
+        sector = (this.participants.length - sector) % this.participants.length;
+        if (sector < 0) sector += this.participants.length;
         
         const winner = this.participants[sector];
-        this.showWinner(winner);
+        
+        if (winner) {
+            console.log(`🎯 Рассчитан победитель по углу: ${winner.first_name} (сектор: ${sector})`);
+            this.showWinner(winner);
+            return winner;
+        }
+        
+        return null;
     }
     
-    // ... остальные методы (joinGame, updateWheel, renderParticipants и т.д.) остаются как были ...
+    startCountdownTimer() {
+        if (this.timerInterval) {
+            clearInterval(this.timerInterval);
+        }
+        
+        this.timerInterval = setInterval(() => {
+            if (this.countdown > 0) {
+                this.countdown--;
+                this.updateTimer();
+                
+                // Обновляем колесо каждые 5 секунд
+                if (this.countdown % 5 === 0) {
+                    this.updateWheel();
+                }
+            } else {
+                this.stopCountdownTimer();
+            }
+        }, 1000);
+    }
     
-    // Обновить кнопки
-    updateButtons() {
-        const joinButton = document.getElementById('joinButton');
-        
-        if (!joinButton) return;
-        
-        const isUserParticipating = window.currentUser && 
-            this.participants.some(p => p.id === window.currentUser.id);
-        
-        // Кнопка "Участвовать"
-        if (!window.currentUser) {
-            joinButton.disabled = true;
-            joinButton.innerHTML = '<span class="icon">🔒</span> ВОЙДИТЕ ДЛЯ УЧАСТИЯ';
-        } else if (this.isSpinning || this.winnerAnnounced) {
-            joinButton.disabled = true;
-            joinButton.innerHTML = '<span class="icon">🎰</span> ИГРА АКТИВНА';
-        } else if (isUserParticipating) {
-            joinButton.disabled = true;
-            joinButton.innerHTML = '<span class="icon">✅</span> ВЫ УЧАСТВУЕТЕ';
-        } else if (this.participants.length >= this.maxParticipants) {
-            joinButton.disabled = true;
-            joinButton.innerHTML = '<span class="icon">🚫</span> МЕСТ НЕТ';
-        } else if (this.countdown !== null) {
-            joinButton.disabled = true;
-            joinButton.innerHTML = '<span class="icon">⏳</span> ОТСЧЁТ ИДЁТ';
-        } else {
-            joinButton.disabled = false;
-            joinButton.innerHTML = '<span class="icon">➕</span> УЧАСТВОВАТЬ';
+    stopCountdownTimer() {
+        if (this.timerInterval) {
+            clearInterval(this.timerInterval);
+            this.timerInterval = null;
         }
     }
     
-    // Показать победителя с улучшенной анимацией
-    showWinner(winner) {
-        if (!winner) return;
-        
-        const winnerAvatar = document.getElementById('winnerAvatar');
-        const winnerName = document.getElementById('winnerName');
-        const winnerSection = document.getElementById('winnerSection');
-        
-        // Очищаем и заполняем аватар
-        if (winner.photo_url) {
-            winnerAvatar.innerHTML = `<img src="${winner.photo_url}" alt="${winner.first_name}" style="width: 100%; height: 100%; object-fit: cover;">`;
-        } else {
-            const initials = this.getInitials(winner.first_name, winner.last_name);
-            winnerAvatar.innerHTML = `<div class="initials" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: bold;">${initials}</div>`;
-        }
-        
-        winnerName.textContent = `${winner.first_name} ${winner.last_name || ''}`.trim();
-        
-        // Анимация появления
-        winnerSection.style.display = 'block';
-        setTimeout(() => {
-            winnerSection.classList.add('visible');
-        }, 10);
-        
-        // Показываем статус
-        window.showStatus(`🎉 Победитель: ${winner.first_name}!`, 'success');
-        
-        this.winnerAnnounced = true;
-    }
-    
-    // Скрыть победителя
-    hideWinner() {
-        const winnerSection = document.getElementById('winnerSection');
-        winnerSection.classList.remove('visible');
+    resetWheelPosition() {
+        this.wheelElement.style.transition = 'transform 0.5s ease-out';
+        this.wheelElement.style.transform = 'rotate(0deg)';
         
         setTimeout(() => {
-            winnerSection.style.display = 'none';
+            this.wheelElement.style.transition = '';
         }, 500);
     }
     
-    // Обновить колесо
-    // wheel.js - исправить метод updateWheel
+    resetForNextRound() {
+        console.log('🔄 Сбрасываем игру для следующего раунда');
+        
+        this.hideWinner();
+        this.isSpinning = false;
+        this.winnerAnnounced = false;
+        this.finalAngle = null;
+        this.winner = null;
+        
+        // Плавный сброс колеса
+        this.resetWheelPosition();
+        
+        // Обновляем UI
+        this.updateButtons();
+        
+        // Перезагружаем состояние игры через 1 секунду
+        setTimeout(() => {
+            this.loadGameState();
+        }, 1000);
+    }
+    
+    // В wheel.js полностью перепишите метод joinGame:
+    async joinGame() {
+        console.log('🎮 Нажата кнопка "Участвовать"');
+        
+        if (!window.currentUser) {
+            const errorMsg = '❌ Сначала войдите в аккаунт через Telegram';
+            console.log(errorMsg);
+            if (window.showStatus) {
+                window.showStatus(errorMsg, 'error');
+            }
+            return;
+        }
+        
+        const isUserParticipating = this.participants.some(p => p.id === window.currentUser.id);
+        if (isUserParticipating) {
+            const infoMsg = '✅ Вы уже участвуете в этой игре';
+            console.log(infoMsg);
+            if (window.showStatus) {
+                window.showStatus(infoMsg, 'info');
+            }
+            return;
+        }
+        
+        try {
+            console.log('🔄 Отправляем запрос на присоединение к игре...');
+            
+            // Показываем статус
+            if (window.showStatus) {
+                window.showStatus('⏳ Присоединяемся к игре...', 'info');
+            }
+            
+            const response = await fetch('/api/game/join', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    userId: window.currentUser.id,
+                    userData: window.currentUser
+                })
+            });
+            
+            console.log('📨 Получен ответ от сервера:', response.status, response.statusText);
+            
+            const data = await response.json();
+            console.log('📊 Данные ответа:', data);
+            
+            if (data.success) {
+                const successMsg = `✅ Вы присоединились к игре! Участников: ${data.game.participants.length}`;
+                console.log(successMsg);
+                
+                if (window.showStatus) {
+                    window.showStatus(successMsg, 'success');
+                }
+                
+                // Немедленно обновляем состояние игры
+                await this.loadGameState();
+                
+                // Обновляем UI
+                this.renderParticipants();
+                this.updateWheel();
+                this.updateButtons();
+                
+                // Обновляем глобального пользователя если сервер вернул обновленные данные
+                if (data.user && window.currentUser) {
+                    window.currentUser = { ...window.currentUser, ...data.user };
+                }
+                
+            } else {
+                const errorMsg = `❌ Ошибка: ${data.error || 'Неизвестная ошибка'}`;
+                console.error(errorMsg);
+                
+                if (window.showStatus) {
+                    window.showStatus(errorMsg, 'error');
+                }
+            }
+        } catch (error) {
+            const errorMsg = `❌ Ошибка соединения с сервером: ${error.message}`;
+            console.error('Ошибка присоединения к игре:', error);
+            
+            if (window.showStatus) {
+                window.showStatus(errorMsg, 'error');
+            }
+            
+            // Показываем более подробную информацию в консоли
+            console.log('🔄 Пытаемся получить состояние игры для диагностики...');
+            try {
+                const stateResponse = await fetch('/api/game/state');
+                const stateData = await stateResponse.json();
+                console.log('📊 Текущее состояние игры:', stateData);
+            } catch (stateError) {
+                console.error('❌ Не удалось получить состояние игры:', stateError);
+            }
+        }
+    }
+    
     updateWheel() {
         const participantsContainer = document.getElementById('wheelParticipants');
         
         if (!participantsContainer) return;
         
-        participantsContainer.innerHTML = '';
+        // Очищаем только если нужно
+        if (participantsContainer.children.length !== this.participants.length) {
+            participantsContainer.innerHTML = '';
+        }
         
         if (this.participants.length === 0) {
             this.wheelElement.style.background = '#222';
@@ -217,6 +367,7 @@ class FortuneWheel {
         const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7', '#fab1a0', '#a29bfe', '#fd79a8'];
         const sectorAngle = 360 / this.participants.length;
         
+        // Создаем конический градиент
         let gradientParts = [];
         for (let i = 0; i < this.participants.length; i++) {
             const startAngle = i * sectorAngle;
@@ -227,49 +378,81 @@ class FortuneWheel {
         
         this.wheelElement.style.background = `conic-gradient(${gradientParts.join(', ')})`;
         
-        this.participants.forEach((participant, index) => {
-            // ИСПРАВЛЕНИЕ: правильный расчет угла
-            const angle = (index * sectorAngle) + (sectorAngle / 2) - 90;
-            const radius = 100; // Уменьшаем радиус для лучшего позиционирования
-            
-            const participantElement = document.createElement('div');
-            participantElement.className = 'wheel-participant';
-            
-            // ИСПРАВЛЕНИЕ: правильное позиционирование
-            participantElement.style.position = 'absolute';
-            participantElement.style.top = '50%';
-            participantElement.style.left = '50%';
-            participantElement.style.transform = `
-                translate(-50%, -50%)
-                rotate(${angle}deg) 
-                translate(${radius}px) 
-                rotate(${-angle}deg)
-            `;
-            participantElement.style.transformOrigin = '0 0';
-            
-            if (participant.photo_url) {
-                const img = document.createElement('img');
-                img.src = participant.photo_url;
-                img.alt = participant.first_name;
-                img.style.width = '100%';
-                img.style.height = '100%';
-                img.style.objectFit = 'cover';
-                img.onerror = () => {
-                    // Если фото не загружается, показываем инициалы
-                    const initials = this.getInitials(participant.first_name, participant.last_name);
-                    participantElement.innerHTML = `<div class="initials" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 24px;">${initials}</div>`;
-                };
-                participantElement.appendChild(img);
-            } else {
-                const initials = this.getInitials(participant.first_name, participant.last_name);
-                participantElement.innerHTML = `<div class="initials" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 24px;">${initials}</div>`;
-            }
-            
-            participantsContainer.appendChild(participantElement);
-        });
+        // Добавляем участников на колесо (только если их еще нет)
+        if (participantsContainer.children.length !== this.participants.length) {
+            this.participants.forEach((participant, index) => {
+                // Центр сектора (в градусах)
+                const centerAngle = (index * sectorAngle) + (sectorAngle / 2);
+                
+                const participantElement = document.createElement('div');
+                participantElement.className = 'wheel-participant';
+                participantElement.setAttribute('data-index', index);
+                participantElement.setAttribute('data-user-id', participant.id);
+                
+                // Позиционирование
+                const radius = 110; // px от центра
+                const angleRad = (centerAngle - 90) * (Math.PI / 180);
+                
+                participantElement.style.position = 'absolute';
+                participantElement.style.width = '50px';
+                participantElement.style.height = '50px';
+                participantElement.style.top = `calc(50% - 25px)`;
+                participantElement.style.left = `calc(50% - 25px)`;
+                participantElement.style.transform = `
+                    translate(${Math.cos(angleRad) * radius}px, ${Math.sin(angleRad) * radius}px)
+                `;
+                participantElement.style.transformOrigin = 'center';
+                
+                // Аватар или инициалы
+                if (participant.photo_url) {
+                    const img = document.createElement('img');
+                    img.src = participant.photo_url;
+                    img.alt = participant.first_name;
+                    img.style.width = '100%';
+                    img.style.height = '100%';
+                    img.style.objectFit = 'cover';
+                    img.style.borderRadius = '50%';
+                    img.onerror = () => {
+                        participantElement.innerHTML = `
+                            <div class="initials" style="
+                                width: 100%;
+                                height: 100%;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                font-size: 16px;
+                                background: rgba(0,0,0,0.7);
+                                color: white;
+                                border-radius: 50%;
+                            ">
+                                ${this.getInitials(participant.first_name, participant.last_name)}
+                            </div>
+                        `;
+                    };
+                    participantElement.appendChild(img);
+                } else {
+                    participantElement.innerHTML = `
+                        <div class="initials" style="
+                            width: 100%;
+                            height: 100%;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            font-size: 16px;
+                            background: rgba(0,0,0,0.7);
+                            color: white;
+                            border-radius: 50%;
+                        ">
+                            ${this.getInitials(participant.first_name, participant.last_name)}
+                        </div>
+                    `;
+                }
+                
+                participantsContainer.appendChild(participantElement);
+            });
+        }
     }
     
-    // Отобразить участников
     renderParticipants() {
         const participantsList = document.getElementById('participantsList');
         
@@ -289,21 +472,25 @@ class FortuneWheel {
         
         let html = '<div class="participants-grid">';
         
-        this.participants.forEach(participant => {
+        this.participants.forEach((participant, index) => {
             const isCurrentUser = window.currentUser && participant.id === window.currentUser.id;
+            const isWinner = this.winner && this.winner.id === participant.id;
             
             html += `
-                <div class="participant-item ${isCurrentUser ? 'current-user' : ''}">
+                <div class="participant-item ${isCurrentUser ? 'current-user' : ''} ${isWinner ? 'winner' : ''}" 
+                     data-index="${index}">
                     <div class="participant-avatar">
                         ${participant.photo_url 
-                            ? `<img src="${participant.photo_url}" alt="${participant.first_name}" onerror="this.parentElement.innerHTML='<div class=\\'initials\\'>${this.getInitials(participant.first_name, participant.last_name)}</div>'">`
+                            ? `<img src="${participant.photo_url}" alt="${participant.first_name}" 
+                                 onerror="this.parentElement.innerHTML='<div class=\\'initials\\'>${this.getInitials(participant.first_name, participant.last_name)}</div>'">`
                             : `<div class="initials">${this.getInitials(participant.first_name, participant.last_name)}</div>`
                         }
+                        ${isWinner ? '<div class="winner-crown">👑</div>' : ''}
                     </div>
                     <div class="participant-name">
                         ${participant.first_name}
                         ${participant.last_name ? ` ${participant.last_name.charAt(0)}.` : ''}
-                        ${isCurrentUser ? '<br><span style="color: #4ecdc4; font-size: 0.8rem;">(Вы)</span>' : ''}
+                        ${isCurrentUser ? '<br><span class="you-label">(Вы)</span>' : ''}
                     </div>
                 </div>
             `;
@@ -312,50 +499,7 @@ class FortuneWheel {
         html += '</div>';
         participantsList.innerHTML = html;
     }
-
-    // wheel.js - добавить метод для таймера следующего раунда
-    startNextRoundTimer() {
-        let timer = 5;
-        const timerElement = document.getElementById('nextRoundTimer');
-        
-        if (!timerElement) return;
-        
-        const countdown = setInterval(() => {
-            timer--;
-            timerElement.textContent = timer;
-            
-            if (timer <= 0) {
-                clearInterval(countdown);
-                this.resetForNextRound();
-            }
-        }, 1000);
-    }
-
-    resetForNextRound() {
-        this.hideWinner();
-        this.participants = [];
-        this.isSpinning = false;
-        this.winnerAnnounced = false;
-        this.finalAngle = null;
-        this.winner = null;
-        
-        // Сбрасываем колесо
-        this.wheelElement.style.transition = 'none';
-        this.wheelElement.style.transform = 'rotate(0deg)';
-        
-        // Обновляем UI
-        this.renderParticipants();
-        this.updateWheel();
-        this.updateTimer();
-        this.updateButtons();
-        
-        // Перезагружаем состояние игры
-        setTimeout(() => {
-            this.loadGameState();
-        }, 1000);
-    }
     
-    // Обновить таймер
     updateTimer() {
         const timerElement = document.getElementById('gameTimer');
         const timerLabel = document.getElementById('timerLabel');
@@ -366,15 +510,15 @@ class FortuneWheel {
             timerElement.textContent = this.countdown;
             timerLabel.textContent = 'СЕКУНД ДО СТАРТА';
             timerElement.style.color = '#ff6b6b';
+            timerElement.classList.add('pulse');
         } else {
             timerElement.textContent = this.participants.length;
             timerLabel.textContent = 'УЧАСТНИКОВ';
             timerElement.style.color = this.participants.length > 0 ? '#4ecdc4' : '#666';
+            timerElement.classList.remove('pulse');
         }
     }
     
-    // Обновить кнопки
-      // Обновить кнопки (теперь только одна кнопка)
     updateButtons() {
         const joinButton = document.getElementById('joinButton');
         
@@ -387,32 +531,108 @@ class FortuneWheel {
         if (!window.currentUser) {
             joinButton.disabled = true;
             joinButton.innerHTML = '<span class="icon">🔒</span> ВОЙДИТЕ ДЛЯ УЧАСТИЯ';
-        } else if (this.isSpinning) {
+            joinButton.title = 'Сначала войдите через Telegram';
+        } else if (this.isSpinning || this.winnerAnnounced) {
             joinButton.disabled = true;
-            joinButton.innerHTML = '<span class="icon">⏳</span> ИДЁТ ИГРА';
+            joinButton.innerHTML = '<span class="icon">🎰</span> ИГРА АКТИВНА';
+            joinButton.title = 'Дождитесь окончания текущей игры';
         } else if (isUserParticipating) {
             joinButton.disabled = true;
             joinButton.innerHTML = '<span class="icon">✅</span> ВЫ УЧАСТВУЕТЕ';
+            joinButton.title = 'Вы уже участвуете в этой игре';
         } else if (this.participants.length >= this.maxParticipants) {
             joinButton.disabled = true;
             joinButton.innerHTML = '<span class="icon">🚫</span> МЕСТ НЕТ';
-        } else if (this.countdown !== null) {
+            joinButton.title = 'Достигнут лимит участников';
+        } else if (this.countdown !== null && this.countdown <= 10) {
             joinButton.disabled = true;
-            joinButton.innerHTML = '<span class="icon">⏳</span> ОТСЧЁТ ИДЁТ';
+            joinButton.innerHTML = '<span class="icon">⏳</span> ЗАПУСК СКОРО';
+            joinButton.title = 'Игра скоро начнется';
+        } else if (this.countdown !== null) {
+            joinButton.disabled = false;
+            joinButton.innerHTML = '<span class="icon">➕</span> УСПЕЙ УЧАСТВОВАТЬ';
+            joinButton.title = 'Присоединиться до запуска';
         } else {
             joinButton.disabled = false;
             joinButton.innerHTML = '<span class="icon">➕</span> УЧАСТВОВАТЬ';
+            joinButton.title = 'Присоединиться к игре';
         }
     }
     
-    // Получить инициалы
+    showWinner(winner) {
+        if (!winner) return;
+        
+        const winnerAvatar = document.getElementById('winnerAvatar');
+        const winnerName = document.getElementById('winnerName');
+        const winnerSection = document.getElementById('winnerSection');
+        const nextRoundTimer = document.getElementById('nextRoundTimer');
+        
+        // Обновляем аватар
+        winnerAvatar.innerHTML = '';
+        if (winner.photo_url) {
+            const img = document.createElement('img');
+            img.src = winner.photo_url;
+            img.alt = winner.first_name;
+            img.style.width = '100%';
+            img.style.height = '100%';
+            img.style.objectFit = 'cover';
+            img.style.borderRadius = '50%';
+            img.onerror = () => {
+                const initials = this.getInitials(winner.first_name, winner.last_name);
+                winnerAvatar.innerHTML = `<div class="initials">${initials}</div>`;
+            };
+            winnerAvatar.appendChild(img);
+        } else {
+            const initials = this.getInitials(winner.first_name, winner.last_name);
+            winnerAvatar.innerHTML = `<div class="initials">${initials}</div>`;
+        }
+        
+        winnerName.textContent = `${winner.first_name} ${winner.last_name || ''}`.trim();
+        
+        // Показываем секцию
+        winnerSection.style.display = 'block';
+        setTimeout(() => {
+            winnerSection.classList.add('visible');
+        }, 10);
+        
+        // Запускаем таймер следующего раунда
+        let timer = 8;
+        nextRoundTimer.textContent = timer;
+        
+        const countdownInterval = setInterval(() => {
+            timer--;
+            nextRoundTimer.textContent = timer;
+            
+            if (timer <= 0) {
+                clearInterval(countdownInterval);
+            }
+        }, 1000);
+        
+        // Показываем статус
+        if (window.showStatus) {
+            window.showStatus(`🎉 Победитель: ${winner.first_name}!`, 'success');
+        }
+        
+        this.winnerAnnounced = true;
+    }
+    
+    hideWinner() {
+        const winnerSection = document.getElementById('winnerSection');
+        winnerSection.classList.remove('visible');
+        
+        setTimeout(() => {
+            if (!winnerSection.classList.contains('visible')) {
+                winnerSection.style.display = 'none';
+            }
+        }, 500);
+    }
+    
     getInitials(firstName, lastName) {
-        const first = firstName ? firstName.charAt(0).toUpperCase() : 'T';
+        const first = firstName ? firstName.charAt(0).toUpperCase() : 'U';
         const last = lastName ? lastName.charAt(0).toUpperCase() : '';
         return first + last;
     }
     
-    // Настройка обработчиков
     setupEventListeners() {
         const joinButton = document.getElementById('joinButton');
         
@@ -420,10 +640,34 @@ class FortuneWheel {
             joinButton.addEventListener('click', () => this.joinGame());
         }
         
+        // Обновляем кнопки при изменении пользователя
+        if (window) {
+            window.addEventListener('userChanged', () => {
+                this.updateButtons();
+            });
+        }
     }
 }
 
 // Инициализация
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('🎡 Инициализация колеса фортуны...');
     window.fortuneWheel = new FortuneWheel();
+    
+    // Делаем функции глобально доступными
+    window.refreshGameState = function() {
+        if (window.fortuneWheel) {
+            return window.fortuneWheel.loadGameState();
+        }
+        return Promise.reject('Колесо не инициализировано');
+    };
+    
+    window.joinCurrentGame = function() {
+        if (window.fortuneWheel) {
+            return window.fortuneWheel.joinGame();
+        }
+        return Promise.reject('Колесо не инициализировано');
+    };
+    
+    console.log('✅ Колесо фортуны инициализировано');
 });

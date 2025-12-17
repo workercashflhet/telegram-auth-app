@@ -144,6 +144,169 @@ body {
     }
 }
 
+/* Добавьте эти стили в конец существующего styles.css */
+
+/* Улучшенные стили для колеса */
+.wheel-participant {
+    transition: transform 0.3s ease;
+}
+
+.wheel-participant:hover {
+    transform: scale(1.1) !important;
+    z-index: 10;
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+}
+
+/* Анимация вращения */
+@keyframes wheelSpin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(var(--final-angle, 3600deg));
+    }
+}
+
+.spinning {
+    animation: wheelSpin 5s cubic-bezier(0.2, 0.8, 0.3, 1) forwards;
+}
+
+/* Пульсация для таймера */
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.05);
+        opacity: 0.8;
+    }
+}
+
+.pulse {
+    animation: pulse 1s infinite;
+}
+
+/* Стили для участников */
+.participant-item.current-user {
+    border: 2px solid #4ecdc4;
+    border-radius: 10px;
+    padding: 5px;
+    background: rgba(78, 205, 196, 0.1);
+}
+
+.participant-item.winner {
+    border: 2px solid gold;
+    border-radius: 10px;
+    padding: 5px;
+    background: rgba(255, 215, 0, 0.1);
+    position: relative;
+}
+
+.winner-crown {
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    font-size: 1.5rem;
+    z-index: 20;
+}
+
+.participant-avatar {
+    position: relative;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    overflow: hidden;
+    margin-bottom: 8px;
+    border: 2px solid #333;
+    transition: all 0.3s ease;
+}
+
+.participant-item:hover .participant-avatar {
+    border-color: #4ecdc4;
+    transform: scale(1.05);
+}
+
+.participant-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.participant-item:hover .participant-avatar img {
+    transform: scale(1.1);
+}
+
+.you-label {
+    color: #4ecdc4;
+    font-size: 0.8rem;
+    font-weight: bold;
+}
+
+/* Индикатор авторизации */
+#authIndicator {
+    animation: slideDown 0.5s ease;
+    margin: 10px auto;
+    max-width: 300px;
+}
+
+@keyframes slideDown {
+    from {
+        transform: translateY(-20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Кнопки */
+.game-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+.game-button:disabled:hover {
+    background-color: #fff !important;
+    color: #000 !important;
+    box-shadow: none !important;
+}
+
+/* Адаптивность для мобильных */
+@media (max-width: 480px) {
+    .wheel-wrapper {
+        width: 250px;
+        height: 250px;
+    }
+    
+    .wheel-participant {
+        width: 40px;
+        height: 40px;
+    }
+    
+    .participants-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .game-button {
+        min-width: 200px;
+        font-size: 1rem;
+        padding: 12px 20px;
+    }
+    
+    .winner-avatar {
+        width: 80px;
+        height: 80px;
+    }
+    
+    .winner-title {
+        font-size: 1.5rem;
+    }
+}
+
 .winner-name {
     font-size: 1.8rem;
     font-weight: bold;
