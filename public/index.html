@@ -88,36 +88,35 @@
         
         <!-- Вкладка Профиль -->
         <div id="profileTab" class="tab-content">
-            <h1 class="page-title">👤 ПРОФИЛЬ</h1>
+        <h1 class="page-title">👤 ПРОФИЛЬ</h1>
+        
+        <div class="profile-tab">
+            <!-- Бейдж реальных/демо данных -->
+            <div id="dataBadge" class="status-badge badge-demo">
+                <span id="badgeText">ДЕМО РЕЖИМ</span>
+            </div>
             
-            <div class="profile-tab">
-                <!-- Бейдж реальных/демо данных -->
-                <div id="dataBadge" class="status-badge badge-demo">
-                    <span id="badgeText">ДЕМО РЕЖИМ</span>
+            <!-- Аватар и имя -->
+            <div class="profile-header">
+                <div id="profileAvatar" class="profile-avatar">
+                    <img id="profilePhoto" class="profile-photo" style="display: none;">
+                    <div id="profileInitials" class="initials">T</div>
                 </div>
-                
-                <!-- Аватар и имя -->
-                <div class="profile-header">
-                    <div id="profileAvatar" class="profile-avatar">
-                        <div id="profileInitials" class="initials">T</div>
-                        <img id="profilePhoto" style="display: none;">
-                    </div>
-                    <h2 id="userName" class="profile-name">Telegram User</h2>
-                    <div id="userUsername" class="profile-username">@username</div>
-                </div>
-                
-                <!-- Информация -->
-                <div id="profileInfo" class="profile-info-grid">
-                    <!-- Заполняется динамически -->
-                </div>
-                
-                <!-- Кнопка выхода -->
-                <div style="text-align: center; margin-top: 30px;">
-                    <button id="logoutButton" class="game-button" style="background: #ff6b6b;">
-                        <span class="icon">🚪</span>
-                        ВЫЙТИ
-                    </button>
-                </div>
+                <h2 id="userName" class="profile-name">Telegram User</h2>
+                <div id="userUsername" class="profile-username">@username</div>
+            </div>
+            
+            <!-- Информация -->
+            <div id="profileInfo" class="profile-info-grid">
+                <!-- Заполняется динамически -->
+            </div>
+            
+            <!-- Кнопка выхода -->
+            <div style="text-align: center; margin-top: 30px;">
+                <button id="logoutButton" class="game-button" style="background: #ff6b6b;">
+                    <span class="icon">🚪</span>
+                    ВЫЙТИ
+                </button>
             </div>
         </div>
     </div>
@@ -326,19 +325,39 @@
             return;
         }
         
-        // Аватар
-        if (user.photo_url) {
+        // Аватар - ОЧЕНЬ ВАЖНО: правильная обработка photo_url
+        if (user.photo_url && user.photo_url.trim() !== '') {
+            console.log('📸 У пользователя есть фото профиля:', user.photo_url);
+            
             if (profilePhoto) {
+                // Устанавливаем src с колбэком на ошибку загрузки
                 profilePhoto.src = user.photo_url;
                 profilePhoto.style.display = 'block';
-                if (profileInitials) profileInitials.style.display = 'none';
+                
+                profilePhoto.onload = function() {
+                    console.log('✅ Фото профиля загружено');
+                    if (profileInitials) profileInitials.style.display = 'none';
+                };
+                
+                profilePhoto.onerror = function() {
+                    console.log('❌ Ошибка загрузки фото, показываем инициалы');
+                    profilePhoto.style.display = 'none';
+                    if (profileInitials) {
+                        const initials = getInitials(user.first_name, user.last_name);
+                        profileInitials.textContent = initials;
+                        profileInitials.style.display = 'flex'; // Изменено с block на flex
+                    }
+                };
             }
         } else {
+            console.log('📸 У пользователя нет фото профиля, показываем инициалы');
+            if (profilePhoto) {
+                profilePhoto.style.display = 'none';
+            }
             if (profileInitials) {
                 const initials = getInitials(user.first_name, user.last_name);
                 profileInitials.textContent = initials;
-                profileInitials.style.display = 'block';
-                if (profilePhoto) profilePhoto.style.display = 'none';
+                profileInitials.style.display = 'flex'; // Изменено с block на flex
             }
         }
         
@@ -355,7 +374,7 @@
             { label: 'ID пользователя', value: user.id, icon: '🆔' },
             { label: 'Имя', value: user.first_name || '—', icon: '👤' },
             { label: 'Фамилия', value: user.last_name || '—', icon: '👥' },
-            { label: 'Username', value: user.username ? '@' + currentUser.username : '—', icon: '📛' },
+            { label: 'Username', value: user.username ? '@' + user.username : '—', icon: '📛' },
             { label: 'Язык', value: user.language_code?.toUpperCase() || 'RU', icon: '🌐' },
             { label: 'Premium статус', value: user.is_premium ? '✅ Активен' : '❌ Не активен', icon: '⭐' },
             { label: 'Доступ к ЛС', value: user.allows_write_to_pm ? '✅ Разрешен' : '❌ Запрещен', icon: '💬' },
@@ -363,6 +382,14 @@
             { label: 'Тип данных', value: user.is_demo ? 'Демо режим' : 'Реальные данные', icon: '🔐' },
             { label: 'Статус', value: 'Онлайн', icon: '💚' }
         ];
+        
+        if (user.photo_url) {
+            infoCards.unshift({ 
+                label: 'Фото профиля', 
+                value: user.photo_url ? '✅ Есть' : '❌ Нет', 
+                icon: '📸' 
+            });
+        }
         
         infoCards.forEach(card => {
             const cardElement = document.createElement('div');
@@ -380,11 +407,11 @@
         console.log('✅ Вкладка профиля обновлена');
     }
     
-    // Получить инициалы
     function getInitials(firstName, lastName) {
-        const first = firstName ? firstName.charAt(0).toUpperCase() : 'T';
+        if (!firstName && !lastName) return '??';
+        const first = firstName ? firstName.charAt(0).toUpperCase() : '';
         const last = lastName ? lastName.charAt(0).toUpperCase() : '';
-        return first + last;
+        return (first + last) || 'U';
     }
     
     // Переключение вкладок
