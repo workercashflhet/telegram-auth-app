@@ -227,6 +227,7 @@
     }
     
     // Автоматический вход
+    // В index.html добавьте в функцию autoLogin():
     async function autoLogin() {
         try {
             showStatus('⏳ Проверка авторизации...', 'info');
@@ -241,8 +242,8 @@
             
             if (data.success && data.user) {
                 // Устанавливаем глобальную переменную
-                window.currentUser = data.user; // Это критически важно!
-                currentUser = data.user; // И локальную тоже
+                window.currentUser = data.user;
+                currentUser = data.user;
                 
                 console.log('✅ Пользователь установлен:', window.currentUser.first_name);
                 
@@ -252,7 +253,10 @@
                 // Обновляем колесо если оно инициализировано
                 if (window.fortuneWheel) {
                     window.fortuneWheel.updateButtons();
-                    window.fortuneWheel.loadGameState();
+                    // Даем время на синхронизацию времени
+                    setTimeout(() => {
+                        window.fortuneWheel.loadGameState();
+                    }, 500);
                 }
                 
                 // Обновляем профиль

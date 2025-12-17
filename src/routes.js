@@ -182,6 +182,82 @@ router.post('/api/game/join', (req, res) => {
     }
 });
 
+// Получить состояние текущей игры
+router.get('/api/game/state', (req, res) => {
+    try {
+        const game = gameManager.getActiveGame();
+        if (!game) {
+            return res.json({
+                success: false,
+                error: 'Игра не найдена'
+            });
+        }
+        
+        const gameState = game.getGameState();
+        
+        // Добавляем точное серверное время для синхронизации
+        const serverTime = Date.now();
+        
+        // Рассчитываем время до старта вращения
+        let timeToSpin = null;
+        if (gameState.status === 'counting' && gameState.countdown !== null) {
+            timeToSpin = gameState.countdown * 1000; // в миллисекундах
+        }
+        
+        res.json({
+            success: true,
+            game: gameState,
+            serverTime: serverTime,
+            timeToSpin: timeToSpin,
+            timestamp: new Date().toISOString(),
+            syncInfo: {
+                participants: gameState.participants.length,
+                status: gameState.status,
+                countdown: gameState.countdown,
+                isSpinning: gameState.status === 'spinning',
+                spinProgress: gameState.spinProgress
+            }
+        });
+    } catch (error) {
+        console.error('Game state error:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
+// Новый эндпоинт для точной синхронизации вращения
+router.get('/api/game/sync-spin', (req, res) => {
+    try {
+        const game = gameManager.getActiveGame();
+        if (!game) {
+            return res.json({
+                success: false,
+                error: 'Игра не найдена'
+            });
+        }
+        
+        const syncData = game.getSpinSyncData();
+        const serverTime = Date.now();
+        
+        res.json({
+            success: true,
+            serverTime: serverTime,
+            syncData: syncData,
+            gameId: game.id,
+            gameStatus: game.status,
+            hasWinner: !!game.winner,
+            timestamp: new Date().toISOString()
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
 // Установить победителя игры
 router.post('/api/game/set-winner', (req, res) => {
     try {

@@ -16,6 +16,10 @@ class FortuneWheel {
         this.winnerAnnounced = false;
         this.lastUpdateTime = null;
         this.autoRefreshInterval = null;
+        this.syncInterval = null;
+        this.lastServerTime = null;
+        this.clientTimeOffset = 0;
+        this.spinAnimation = null;
         
         this.init();
     }
@@ -24,16 +28,88 @@ class FortuneWheel {
         this.wheelElement = document.getElementById('fortuneWheel');
         this.setupEventListeners();
         
+        // Сначала синхронизируем время с сервером
+        await this.syncTimeWithServer();
+        
         // Загружаем начальное состояние
         await this.loadGameState();
         
         // Настраиваем автоматическое обновление
         this.setupAutoRefresh();
         
-        // Периодически обновляем колесо
-        setInterval(() => {
-            this.updateWheel();
-        }, 1000);
+        // Настраиваем синхронизацию вращения
+        this.setupSpinSync();
+        
+        console.log('✅ Колесо инициализировано с синхронизацией времени');
+    }
+
+    // Синхронизация времени с сервером
+    async syncTimeWithServer() {
+        try {
+            const startTime = Date.now();
+            const response = await fetch('/api/sync');
+            const endTime = Date.now();
+            const roundTrip = endTime - startTime;
+            
+            if (response.ok) {
+                const data = await response.json();
+                const serverTime = data.serverTime;
+                const estimatedOneWay = roundTrip / 2;
+                
+                // Рассчитываем разницу между клиентом и сервером
+                this.clientTimeOffset = serverTime - (startTime + estimatedOneWay);
+                this.lastServerTime = serverTime;
+                
+                console.log(`🕐 Синхронизация времени: offset=${this.clientTimeOffset}ms, RTT=${roundTrip}ms`);
+            }
+        } catch (error) {
+            console.warn('⚠️ Не удалось синхронизировать время с сервером');
+        }
+    }
+
+    getCurrentServerTime() {
+        return Date.now() + (this.clientTimeOffset || 0);
+    }
+    
+    setupSpinSync() {
+        // Синхронизация каждые 100ms во время вращения
+        this.syncInterval = setInterval(() => {
+            if (this.isSpinning && this.spinStartTime && this.finalAngle) {
+                this.updateWheelPosition();
+            }
+        }, 100);
+    }
+
+    updateWheelPosition() {
+        if (!this.spinStartTime || !this.finalAngle) return;
+        
+        const now = this.getCurrentServerTime();
+        const elapsed = now - this.spinStartTime;
+        const totalTime = 5000; // 5 секунд вращения
+        
+        if (elapsed < 0 || elapsed > totalTime + 1000) {
+            return; // Вращение еще не началось или уже давно закончилось
+        }
+        
+        // Плавная кривая замедления
+        let progress = elapsed / totalTime;
+        progress = Math.min(progress, 1);
+        
+        // Кривая замедления (ease-out)
+        const easeProgress = 1 - Math.pow(1 - progress, 3);
+        
+        // Текущий угол
+        const currentAngle = easeProgress * this.finalAngle;
+        
+        // Плавное обновление позиции
+        this.wheelElement.style.transition = 'transform 0.1s linear';
+        this.wheelElement.style.transform = `rotate(${currentAngle}deg)`;
+        
+        // Если вращение завершено
+        if (progress >= 1 && !this.winnerAnnounced && this.winner) {
+            this.showWinner(this.winner);
+            this.winnerAnnounced = true;
+        }
     }
     
     setupAutoRefresh() {
@@ -84,36 +160,34 @@ class FortuneWheel {
                     this.stopCountdownTimer();
                 }
                 
-                // Если игра только начала крутиться
-                if (this.isSpinning && !wasSpinning && this.finalAngle) {
-                    console.log(`🌀 Получен финальный угол от сервера: ${this.finalAngle}°`);
-                    this.startSynchronizedSpin();
+                // Синхронизация вращения
+                if (this.isSpinning && this.finalAngle) {
+                    if (!wasSpinning) {
+                        // Вращение только началось
+                        console.log(`🌀 Начало синхронизированного вращения: ${this.finalAngle}°`);
+                        this.startSynchronizedSpin(data.game.spinStartedAt);
+                    } else if (data.game.spinSyncData) {
+                        // Продолжаем синхронизацию существующего вращения
+                        this.syncExistingSpin(data.game.spinSyncData);
+                    }
                 }
                 
                 // Если игра закончилась и есть победитель
                 if (data.game.status === 'finished' && this.winner && !this.winnerAnnounced) {
-                    console.log(`🏆 Получен победитель от сервера: ${this.winner.first_name}`);
+                    console.log(`🏆 Победитель: ${this.winner.first_name}`);
                     this.showWinner(this.winner);
                     this.winnerAnnounced = true;
                     
-                    // Через 10 секунд очищаем
+                    // Перезапуск через 8 секунд
                     setTimeout(() => {
-                        this.winnerAnnounced = false;
-                        this.hideWinner();
-                    }, 10000);
+                        this.resetForNextRound();
+                    }, 8000);
                 }
                 
                 this.lastUpdateTime = new Date();
             }
         } catch (error) {
             console.error('❌ Ошибка загрузки состояния игры:', error);
-            
-            // Показываем статус ошибки только если не было обновлений больше 10 секунд
-            if (!this.lastUpdateTime || (new Date() - this.lastUpdateTime) > 10000) {
-                if (window.showStatus) {
-                    window.showStatus('⚠️ Нет связи с сервером', 'error');
-                }
-            }
         }
     }
 
@@ -142,72 +216,47 @@ class FortuneWheel {
         }
     }
     
-    startSynchronizedSpin() {
-        if (this.participants.length < 2) {
-            console.warn('Недостаточно участников для запуска вращения');
-            return;
-        }
+    startSynchronizedSpin(spinStartedAt) {
+        if (!this.finalAngle || this.participants.length < 2) return;
         
         this.isSpinning = true;
         this.updateButtons();
         this.hideWinner();
         
-        console.log(`🌀 Запускаем синхронизированное вращение`);
-        console.log(`👥 Участников: ${this.participants.length}`);
+        // Устанавливаем время начала вращения
+        if (spinStartedAt) {
+            this.spinStartTime = new Date(spinStartedAt).getTime() + (this.clientTimeOffset || 0);
+        } else {
+            this.spinStartTime = this.getCurrentServerTime();
+        }
         
-        // Сбрасываем анимацию
+        console.log(`🎰 Запуск вращения: угол=${this.finalAngle}°, startTime=${this.spinStartTime}`);
+        
+        // Сбрасываем позицию колеса
         this.wheelElement.style.transition = 'none';
         this.wheelElement.style.transform = 'rotate(0deg)';
+        void this.wheelElement.offsetWidth; // Принудительный reflow
         
-        // Принудительный пересчет стилей для сброса анимации
-        void this.wheelElement.offsetWidth;
-        
-        // Генерируем случайный финальный угол
-        const spins = 5; // 5 полных оборотов
-        const sectorAngle = 360 / this.participants.length;
-        
-        // Случайный выбор победителя (еще неизвестен фронтенду)
-        const winnerIndex = Math.floor(Math.random() * this.participants.length);
-        const winnerCenterAngle = (360 - (winnerIndex * sectorAngle)) - (sectorAngle / 2);
-        const randomOffset = (Math.random() - 0.5) * sectorAngle * 0.6;
-        
-        this.finalAngle = spins * 360 + winnerCenterAngle + randomOffset;
-        
-        console.log(`🎰 Вращение: конечный угол ${this.finalAngle}°, будет указывать на участника #${winnerIndex}`);
-        
-        // Запуск плавного вращения
+        // Начинаем плавное вращение
         setTimeout(() => {
-            this.wheelElement.style.transition = 'transform 5s cubic-bezier(0.2, 0.8, 0.3, 1)';
-            this.wheelElement.style.transform = `rotate(${this.finalAngle}deg)`;
-            
-            // Визуальная обратная связь
-            this.wheelElement.classList.add('spinning');
-            
-            // Определяем победителя по углу через 5 секунд
-            setTimeout(() => {
-                this.wheelElement.classList.remove('spinning');
-                
-                // Определяем победителя на основе финального угла
-                const winner = this.determineWinnerFromAngle(this.finalAngle);
-                
-                if (winner) {
-                    console.log(`🎉 Победитель определен: ${winner.first_name}!`);
-                    this.showWinner(winner);
-                    
-                    // Обновляем состояние на сервере через API
-                    this.notifyServerAboutWinner(winner);
-                    
-                    // Автоматически перезапускаем через 8 секунд
-                    setTimeout(() => {
-                        this.resetForNextRound();
-                    }, 8000);
-                } else {
-                    console.warn('Не удалось определить победителя');
-                }
-            }, 5500);
-        }, 50);
+            this.updateWheelPosition();
+        }, 10);
     }
     
+    syncExistingSpin(syncData) {
+        if (!syncData || !syncData.startTime || !syncData.finalAngle) return;
+        
+        // Синхронизируем с данными сервера
+        this.finalAngle = syncData.finalAngle;
+        this.spinStartTime = syncData.startTime + (this.clientTimeOffset || 0);
+        
+        // Если вращение должно быть активно
+        if (syncData.shouldBeSpinning) {
+            this.isSpinning = true;
+            this.updateWheelPosition();
+        }
+    }
+
     determineWinnerFromAngle(finalAngle) {
         if (!finalAngle || this.participants.length === 0) {
             console.warn('Недостаточно данных для определения победителя');
@@ -251,6 +300,11 @@ class FortuneWheel {
                 // Обновляем колесо каждые 5 секунд
                 if (this.countdown % 5 === 0) {
                     this.updateWheel();
+                }
+                
+                // Автоматический запуск вращения при достижении 0
+                if (this.countdown === 0) {
+                    console.log('⏰ Таймер истек, ожидаем запуска вращения с сервера...');
                 }
             } else {
                 this.stopCountdownTimer();
@@ -647,23 +701,6 @@ class FortuneWheel {
 
 // Инициализация
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('🎡 Инициализация колеса фортуны...');
+    console.log('🎡 Инициализация синхронизированного колеса фортуны...');
     window.fortuneWheel = new FortuneWheel();
-    
-    // Делаем функции глобально доступными
-    window.refreshGameState = function() {
-        if (window.fortuneWheel) {
-            return window.fortuneWheel.loadGameState();
-        }
-        return Promise.reject('Колесо не инициализировано');
-    };
-    
-    window.joinCurrentGame = function() {
-        if (window.fortuneWheel) {
-            return window.fortuneWheel.joinGame();
-        }
-        return Promise.reject('Колесо не инициализировано');
-    };
-    
-    console.log('✅ Колесо фортуны инициализировано');
 });
