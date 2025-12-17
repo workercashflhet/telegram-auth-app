@@ -127,6 +127,16 @@ class FortuneWheel {
                 const prevState = this.lastGameState;
                 this.lastGameState = data.game;
                 
+                // Проверяем сброс участников (новый раунд)
+                const participantsReset = prevState && 
+                    prevState.participants.length > 0 && 
+                    data.game.participants.length === 0;
+                
+                if (participantsReset) {
+                    console.log('🔄 Обнаружен сброс участников - новый раунд');
+                    this.resetForNextRound();
+                }
+                
                 // Обновляем данные
                 this.participants = data.game.participants || [];
                 this.countdown = data.game.countdown;
@@ -148,12 +158,6 @@ class FortuneWheel {
                     console.log(`🏆 Победитель: ${this.winner.first_name}`);
                     this.showWinner(this.winner);
                     this.winnerAnnounced = true;
-                }
-                
-                // Сброс если начался новый раунд
-                if (data.game.status === 'waiting' && prevState && prevState.status === 'finished') {
-                    console.log('🔄 Начинается новый раунд');
-                    this.resetForNextRound();
                 }
                 
                 // Обновляем UI
@@ -383,11 +387,12 @@ class FortuneWheel {
     }
     
     resetForNextRound() {
-        console.log('🔄 Сброс для нового раунда');
+        console.log('🔄 Сброс клиента для нового раунда');
         
         this.hideWinner();
         this.winnerAnnounced = false;
         this.spinStartTime = null;
+        this.isSpinning = false;
         
         // Сбрасываем позицию колеса
         this.wheelElement.style.transition = 'transform 0.5s ease-out';
@@ -396,8 +401,11 @@ class FortuneWheel {
         setTimeout(() => {
             this.wheelElement.style.transition = '';
         }, 500);
+        
+        // Обновляем кнопки
+        this.updateButtons();
     }
-    
+        
     // В wheel.js полностью перепишите метод joinGame:
     // В wheel.js упростите метод joinGame:
     async joinGame() {
@@ -593,6 +601,8 @@ class FortuneWheel {
         const winnerName = document.getElementById('winnerName');
         const winnerSection = document.getElementById('winnerSection');
         const nextRoundTimer = document.getElementById('nextRoundTimer');
+        const newRoundInfo = document.getElementById('newRoundInfo');
+        const nextRoundInfo = document.getElementById('nextRoundInfo');
         
         // Обновляем аватар
         winnerAvatar.innerHTML = '';
@@ -623,11 +633,23 @@ class FortuneWheel {
             const updateTimer = () => {
                 if (this.nextRoundTimer > 0) {
                     nextRoundTimer.textContent = this.nextRoundTimer;
+                    nextRoundInfo.style.display = 'block';
+                    newRoundInfo.style.display = 'none';
+                } else {
+                    // Таймер истек - показываем сообщение о новом раунде
+                    nextRoundInfo.style.display = 'none';
+                    newRoundInfo.style.display = 'block';
+                    winnerName.textContent = "Раунд завершен";
                 }
             };
             
             updateTimer();
-            setInterval(updateTimer, 1000);
+            const timerInterval = setInterval(updateTimer, 1000);
+            
+            // Очищаем интервал через 10 секунд
+            setTimeout(() => {
+                clearInterval(timerInterval);
+            }, 10000);
         }
         
         if (window.showStatus) {

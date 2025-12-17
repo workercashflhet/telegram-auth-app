@@ -99,25 +99,19 @@ class WheelGame {
             }
             
             // Через 8 секунд после начала вращения завершаем игру
-            if (spinDuration >= 8) {
-                this.status = 'finished';
-                console.log(`🏁 Игра завершена! Победитель: ${this.winner?.first_name || 'не определен'}`);
+            if (spinDuration >= 8 && this.status === 'spinning') {
+                this.finishGame();
             }
         }
         
-        // Если игра завершена - запускаем таймер следующего раунда
+        // Если игра завершена - обновляем таймер следующего раунда
         if (this.status === 'finished') {
             if (!this.nextRoundTimer) {
-                this.nextRoundTimer = 8; // 8 секунд до следующего раунда
-                console.log(`🔄 Следующий раунд через ${this.nextRoundTimer} секунд`);
+                this.nextRoundTimer = 8; // 8 секунд показа победителя
             } else {
-                const finishedDuration = Math.floor((now - this.spinStartedAt) / 1000) - 8;
-                this.nextRoundTimer = Math.max(0, 8 - finishedDuration);
-                
-                // Если время вышло - сбрасываем игру
-                if (this.nextRoundTimer <= 0) {
-                    this.resetForNextRound();
-                }
+                const finishedAt = this.spinStartedAt ? new Date(this.spinStartedAt.getTime() + 8000) : new Date();
+                const secondsSinceFinish = Math.floor((now - finishedAt) / 1000);
+                this.nextRoundTimer = Math.max(0, 8 - secondsSinceFinish);
             }
         }
     }
@@ -187,11 +181,28 @@ class WheelGame {
             gameManager.incrementUserWins(this.winner.id);
         }
     }
+
+    finishGame() {
+        if (this.status !== 'spinning') return;
+        
+        console.log(`🏁 Игра ${this.id}: завершена! Победитель: ${this.winner?.first_name || 'не определен'}`);
+        
+        this.status = 'finished';
+        this.lastActivity = new Date();
+        
+        // Через 8 секунд сбрасываем и начинаем новый раунд
+        setTimeout(() => {
+            this.resetForNextRound();
+        }, 8000);
+    }
     
     resetForNextRound() {
-        console.log(`🔄 Сброс игры для следующего раунда`);
+        console.log(`🔄 Сброс игры для нового раунда`);
         
-        // Оставляем участников, сбрасываем состояние игры
+        // ВАЖНО: Очищаем участников!
+        this.participants = [];
+        
+        // Полностью сбрасываем состояние игры
         this.status = 'waiting';
         this.countdown = null;
         this.countdownStartTime = null;
@@ -202,14 +213,7 @@ class WheelGame {
         this.winnerAnnounced = false;
         this.nextRoundTimer = null;
         
-        // Если участников меньше 2 - сбрасываем таймер
-        if (this.participants.length < 2) {
-            console.log(`👥 Недостаточно участников, ждем новых...`);
-        } else {
-            // Если есть участники - сразу запускаем новый таймер
-            console.log(`⏳ Запускаем новый 30-секундный таймер`);
-            this.startCountdown();
-        }
+        console.log(`👥 Все участники удалены, начинаем новый раунд с чистого листа`);
         
         this.lastActivity = new Date();
     }
@@ -242,6 +246,8 @@ class WheelGame {
         };
     }
 }
+
+
 
 const gameManager = {
     createGame() {
