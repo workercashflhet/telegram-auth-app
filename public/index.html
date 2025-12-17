@@ -3,290 +3,248 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Telegram Auth App</title>
+    <title>Telegram Auth | Чёрно-белый</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-            color: white;
-        }
-        
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 20px;
-            padding: 30px;
-            color: #333;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
-        }
-        
-        h1 {
-            text-align: center;
-            margin-bottom: 20px;
-            color: #667eea;
-        }
-        
-        .status {
-            padding: 15px;
-            border-radius: 10px;
-            margin: 15px 0;
-            text-align: center;
-            font-weight: 500;
-        }
-        
-        .status.success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-        
-        .status.error {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-        
-        .status.info {
-            background: #d1ecf1;
-            color: #0c5460;
-            border: 1px solid #bee5eb;
-        }
-        
-        button {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            padding: 12px 30px;
-            font-size: 16px;
-            border-radius: 50px;
-            cursor: pointer;
-            margin: 10px;
-            font-weight: 600;
-            transition: transform 0.3s;
-        }
-        
-        button:hover {
-            transform: translateY(-2px);
-        }
-        
-        .user-info {
-            background: white;
-            border-radius: 15px;
-            padding: 20px;
-            margin-top: 20px;
-            border: 1px solid #e9ecef;
-        }
-        
-        .info-item {
-            margin: 10px 0;
-            padding: 10px;
-            background: #f8f9fa;
-            border-radius: 8px;
-        }
-        
-        .info-label {
-            font-size: 12px;
-            color: #6c757d;
-            text-transform: uppercase;
-            margin-bottom: 5px;
-        }
-        
-        .info-value {
-            font-size: 16px;
-            font-weight: 500;
-        }
-        
-        .buttons {
-            display: flex;
-            justify-content: center;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin: 20px 0;
-        }
-        
-        .telegram-data {
-            background: #f8f9fa;
-            border-radius: 10px;
-            padding: 15px;
-            margin-top: 20px;
-            font-family: monospace;
-            font-size: 12px;
-            overflow-x: auto;
-            max-height: 200px;
-            overflow-y: auto;
-        }
-    </style>
+    <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
-    <div class="container">
-        <h1>🔐 Telegram Auth App</h1>
-        
-        <div id="status" class="status info">
-            Загрузка приложения...
+    <div class="app-container">
+        <!-- Шапка -->
+        <header class="app-header">
+            <h1 class="app-title">TELEGRAM AUTH</h1>
+            <p class="app-subtitle">Минималистичная авторизация через Telegram</p>
+        </header>
+
+        <!-- Статус -->
+        <div id="status" class="status status-info">
+            <span id="statusText">Инициализация приложения...</span>
         </div>
-        
-        <div class="buttons">
-            <button onclick="testServer()">🔄 Проверить сервер</button>
-            <button onclick="testAuth()">🔐 Тест авторизации</button>
-            <button onclick="showTelegramData()">📱 Данные Telegram</button>
-        </div>
-        
-        <div id="serverResult" class="status" style="display: none;"></div>
-        
-        <div id="userInfo" class="user-info" style="display: none;">
-            <h2>Информация пользователя</h2>
-            <div id="userData"></div>
-        </div>
-        
-        <div id="telegramData" class="telegram-data" style="display: none;"></div>
-        
-        <div style="text-align: center; margin-top: 30px; color: #6c757d; font-size: 14px;">
-            <p>Приложение развернуто на Vercel</p>
-            <p>Откройте через Telegram бота для полного функционала</p>
-        </div>
+
+        <!-- Основной контент -->
+        <main>
+            <!-- Карточка управления -->
+            <section class="card fade-in">
+                <h2 class="card-title">
+                    <span class="icon">⚙️</span>
+                    Управление
+                </h2>
+                
+                <div class="btn-group">
+                    <button onclick="testServer()" class="btn btn-primary">
+                        <span class="btn-icon">🔄</span>
+                        Проверить сервер
+                    </button>
+                    
+                    <button onclick="testAuth()" class="btn">
+                        <span class="btn-icon">🔐</span>
+                        Авторизация
+                    </button>
+                    
+                    <button onclick="showTelegramData()" class="btn">
+                        <span class="btn-icon">📱</span>
+                        Данные Telegram
+                    </button>
+                </div>
+            </section>
+
+            <!-- Результат проверки сервера -->
+            <section id="serverResult" class="card" style="display: none;">
+                <h2 class="card-title">
+                    <span class="icon">🌐</span>
+                    Статус сервера
+                </h2>
+                <div id="serverContent"></div>
+            </section>
+
+            <!-- Информация о пользователе -->
+            <section id="userInfo" class="card" style="display: none;">
+                <h2 class="card-title">
+                    <span class="icon">👤</span>
+                    Информация пользователя
+                </h2>
+                <div id="userData" class="user-info-grid"></div>
+            </section>
+
+            <!-- Данные Telegram -->
+            <section id="telegramData" class="telegram-data"></section>
+        </main>
+
+        <!-- Футер -->
+        <footer class="app-footer">
+            <p class="footer-text">Мини-приложение для авторизации через Telegram</p>
+            <p class="footer-text">Чёрно-белый минимализм • Полная приватность</p>
+            <div class="vercel-badge">Развернуто на Vercel</div>
+        </footer>
     </div>
 
     <script>
-        // Инициализация Telegram WebApp
+        // Telegram WebApp
         let tg = null;
         
+        // Инициализация
         function initTelegram() {
             if (window.Telegram && window.Telegram.WebApp) {
                 tg = window.Telegram.WebApp;
                 tg.expand();
                 tg.ready();
+                tg.setHeaderColor('#000000');
+                tg.setBackgroundColor('#000000');
                 
-                showStatus('✅ Telegram WebApp инициализирован', 'success');
+                showStatus('✅ Telegram WebApp успешно инициализирован', 'success');
                 return true;
             }
             return false;
         }
         
+        // Показать статус
         function showStatus(message, type = 'info') {
             const statusDiv = document.getElementById('status');
-            statusDiv.textContent = message;
-            statusDiv.className = `status ${type}`;
-            statusDiv.style.display = 'block';
-        }
-        
-        function testServer() {
-            fetch('/api/test')
-                .then(response => response.json())
-                .then(data => {
-                    const resultDiv = document.getElementById('serverResult');
-                    resultDiv.innerHTML = `
-                        <strong>✅ Сервер работает!</strong><br>
-                        <small>${data.message}</small><br>
-                        <small>Время: ${new Date(data.timestamp).toLocaleString()}</small><br>
-                        <small>Токен бота: ${data.botToken}</small>
-                    `;
-                    resultDiv.className = 'status success';
-                    resultDiv.style.display = 'block';
-                })
-                .catch(error => {
-                    const resultDiv = document.getElementById('serverResult');
-                    resultDiv.innerHTML = `<strong>❌ Ошибка сервера:</strong> ${error.message}`;
-                    resultDiv.className = 'status error';
-                    resultDiv.style.display = 'block';
-                });
-        }
-        
-        function testAuth() {
-            let initData = 'demo';
+            const statusText = document.getElementById('statusText');
             
+            statusText.textContent = message;
+            statusDiv.className = `status status-${type} visible`;
+            
+            // Автоскрытие информационных сообщений
+            if (type === 'info') {
+                setTimeout(() => {
+                    statusDiv.classList.remove('visible');
+                }, 3000);
+            }
+        }
+        
+        // Проверка сервера
+        async function testServer() {
+            showStatus('Проверка соединения с сервером...', 'info');
+            
+            try {
+                const response = await fetch('/api/test');
+                const data = await response.json();
+                
+                const serverResult = document.getElementById('serverResult');
+                const serverContent = document.getElementById('serverContent');
+                
+                serverContent.innerHTML = `
+                    <div style="margin-bottom: 15px;">
+                        <div class="info-label">Статус</div>
+                        <div class="info-value">${data.message}</div>
+                    </div>
+                    <div style="margin-bottom: 15px;">
+                        <div class="info-label">Время сервера</div>
+                        <div class="info-value">${new Date(data.timestamp).toLocaleString('ru-RU')}</div>
+                    </div>
+                    <div>
+                        <div class="info-label">Токен бота</div>
+                        <div class="info-value">${data.botToken}</div>
+                    </div>
+                `;
+                
+                serverResult.style.display = 'block';
+                showStatus('✅ Соединение с сервером установлено', 'success');
+                
+            } catch (error) {
+                showStatus(`❌ Ошибка соединения: ${error.message}`, 'error');
+            }
+        }
+        
+        // Тест авторизации
+        async function testAuth() {
+            showStatus('Выполняется авторизация...', 'info');
+            
+            let initData = 'demo_' + Date.now();
             if (tg && tg.initData) {
                 initData = tg.initData;
             }
             
-            showStatus('Авторизация...', 'info');
-            
-            fetch('/api/auth', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ initData })
-            })
-            .then(response => response.json())
-            .then(data => {
+            try {
+                const response = await fetch('/api/auth', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ initData })
+                });
+                
+                const data = await response.json();
+                
                 if (data.success) {
-                    showStatus('✅ Авторизация успешна!', 'success');
+                    showStatus('✅ Авторизация успешна', 'success');
                     displayUserInfo(data.user);
                 } else {
-                    showStatus(`❌ Ошибка: ${data.error}`, 'error');
+                    showStatus(`❌ ${data.error || 'Ошибка авторизации'}`, 'error');
                 }
-            })
-            .catch(error => {
+                
+            } catch (error) {
                 showStatus(`❌ Ошибка сети: ${error.message}`, 'error');
-            });
+            }
         }
         
+        // Отображение информации о пользователе
         function displayUserInfo(user) {
-            const userDataDiv = document.getElementById('userData');
-            const userInfoDiv = document.getElementById('userInfo');
+            const userInfo = document.getElementById('userInfo');
+            const userData = document.getElementById('userData');
             
-            userDataDiv.innerHTML = '';
+            userData.innerHTML = '';
             
             const fields = [
-                { label: 'ID', value: user.id },
-                { label: 'Имя', value: user.first_name },
-                { label: 'Фамилия', value: user.last_name },
-                { label: 'Username', value: user.username ? '@' + user.username : 'Нет' },
-                { label: 'Язык', value: user.language_code },
-                { label: 'Premium', value: user.is_premium ? 'Да ✅' : 'Нет ❌' },
-                { label: 'Дата авторизации', value: new Date(user.auth_date).toLocaleString() }
+                { label: 'ID пользователя', value: user.id, icon: '🆔' },
+                { label: 'Имя', value: user.first_name, icon: '👤' },
+                { label: 'Фамилия', value: user.last_name || '—', icon: '👥' },
+                { label: 'Username', value: user.username ? `@${user.username}` : '—', icon: '📛' },
+                { label: 'Язык', value: user.language_code || '—', icon: '🌐' },
+                { label: 'Premium статус', value: user.is_premium ? 'Да ✅' : 'Нет ❌', icon: '⭐' },
+                { label: 'Доступ к ЛС', value: user.allows_write_to_pm ? 'Разрешен ✅' : 'Запрещен ❌', icon: '💬' },
+                { label: 'Дата авторизации', value: new Date(user.auth_date).toLocaleString('ru-RU'), icon: '📅' },
+                { label: 'Тип чата', value: user.chat_type || 'private', icon: '💭' },
+                { label: 'ID запроса', value: user.query_id || '—', icon: '🔍' }
             ];
             
             fields.forEach(field => {
                 const item = document.createElement('div');
                 item.className = 'info-item';
                 item.innerHTML = `
-                    <div class="info-label">${field.label}</div>
+                    <div style="display: flex; align-items: center; margin-bottom: 5px;">
+                        <span style="margin-right: 8px;">${field.icon}</span>
+                        <div class="info-label">${field.label}</div>
+                    </div>
                     <div class="info-value">${field.value}</div>
                 `;
-                userDataDiv.appendChild(item);
+                userData.appendChild(item);
             });
             
-            userInfoDiv.style.display = 'block';
+            userInfo.style.display = 'block';
+            userInfo.classList.add('fade-in');
         }
         
+        // Показать данные Telegram
         function showTelegramData() {
             const telegramDataDiv = document.getElementById('telegramData');
             
             if (!tg) {
-                telegramDataDiv.innerHTML = 'Telegram WebApp не обнаружен. Откройте через Telegram бота.';
-                telegramDataDiv.style.display = 'block';
+                telegramDataDiv.innerHTML = '<pre>Telegram WebApp не обнаружен.\nОткройте приложение через Telegram бота для полного функционала.</pre>';
+                telegramDataDiv.className = 'telegram-data visible';
                 return;
             }
             
             const data = {
-                initData: tg.initData || 'Нет данных',
-                initDataUnsafe: tg.initDataUnsafe || 'Нет данных',
-                version: tg.version,
-                platform: tg.platform,
-                colorScheme: tg.colorScheme,
-                themeParams: tg.themeParams
+                'Версия WebApp': tg.version,
+                'Платформа': tg.platform,
+                'Цветовая схема': tg.colorScheme,
+                'Данные авторизации': tg.initData ? 'Присутствуют' : 'Отсутствуют',
+                'Безопасные данные': tg.initDataUnsafe ? 'Присутствуют' : 'Отсутствуют',
+                'Параметры темы': tg.themeParams
             };
             
             telegramDataDiv.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
-            telegramDataDiv.style.display = 'block';
+            telegramDataDiv.className = 'telegram-data visible';
         }
         
         // Инициализация при загрузке
         document.addEventListener('DOMContentLoaded', () => {
             if (initTelegram()) {
-                // Автоматически проверяем сервер при загрузке
-                setTimeout(testServer, 500);
+                // Автоматически проверяем сервер через 1 секунду
+                setTimeout(() => {
+                    testServer();
+                }, 1000);
             } else {
                 showStatus('⚠️ Откройте приложение через Telegram бота для полного функционала', 'info');
             }
