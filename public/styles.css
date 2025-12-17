@@ -244,6 +244,391 @@ body {
     font-weight: bold;
 }
 
+/* ========== STYLES FOR STACKS TITLE WITH LOST STAR FONT ========== */
+
+/* Контейнер для заголовка */
+.stacks-header {
+    text-align: center;
+    margin: 20px 0 40px 0;
+    padding: 30px 0;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Основной заголовок с градиентом */
+.stacks-logo {
+    font-family: 'Lost Star', cursive;
+    font-size: 5.5rem;
+    font-weight: normal;
+    background: linear-gradient(45deg, 
+        #ffffff 0%,
+        #f8f8f8 15%,
+        #e0e0e0 30%,
+        #c0c0c0 45%,
+        #a0a0a0 60%,
+        #c0c0c0 75%,
+        #e0e0e0 90%,
+        #ffffff 100%
+    );
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: 3px;
+    margin: 0;
+    padding: 0;
+    text-transform: uppercase;
+    position: relative;
+    z-index: 2;
+    text-shadow: 
+        0 0 30px rgba(255, 255, 255, 0.2),
+        0 0 60px rgba(255, 255, 255, 0.1),
+        0 0 90px rgba(255, 255, 255, 0.05);
+    animation: gradientFlow 8s ease infinite;
+    background-size: 300% 300%;
+}
+
+/* Анимация градиента */
+@keyframes gradientFlow {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+/* Вариант с чистым белым цветом */
+.stacks-logo.white {
+    background: none;
+    -webkit-text-fill-color: #ffffff;
+    text-shadow: 
+        0 0 20px rgba(255, 255, 255, 0.7),
+        0 0 40px rgba(255, 255, 255, 0.5),
+        0 0 60px rgba(255, 255, 255, 0.3),
+        0 0 80px rgba(255, 255, 255, 0.1);
+    animation: whiteGlow 3s ease-in-out infinite alternate;
+}
+
+@keyframes whiteGlow {
+    0% {
+        text-shadow: 
+            0 0 20px rgba(255, 255, 255, 0.7),
+            0 0 40px rgba(255, 255, 255, 0.5),
+            0 0 60px rgba(255, 255, 255, 0.3);
+    }
+    100% {
+        text-shadow: 
+            0 0 30px rgba(255, 255, 255, 0.9),
+            0 0 50px rgba(255, 255, 255, 0.7),
+            0 0 70px rgba(255, 255, 255, 0.5),
+            0 0 90px rgba(255, 255, 255, 0.3);
+    }
+}
+
+/* Вариант с цветным градиентом */
+.stacks-logo.colorful {
+    background: linear-gradient(45deg,
+        #ff6b6b 0%,
+        #4ecdc4 25%,
+        #45b7d1 50%,
+        #96ceb4 75%,
+        #ff6b6b 100%
+    );
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: colorfulGradient 6s ease infinite;
+    background-size: 200% 200%;
+    text-shadow: none;
+}
+
+@keyframes colorfulGradient {
+    0% {
+        background-position: 0% 50%;
+        filter: hue-rotate(0deg);
+    }
+    50% {
+        background-position: 100% 50%;
+        filter: hue-rotate(180deg);
+    }
+    100% {
+        background-position: 0% 50%;
+        filter: hue-rotate(360deg);
+    }
+}
+
+/* Контурная версия */
+.stacks-logo.outlined {
+    font-family: 'Lost Star Outlined', 'Lost Star', cursive;
+    -webkit-text-fill-color: transparent;
+    -webkit-text-stroke: 2px #4ecdc4;
+    text-shadow: 
+        0 0 10px rgba(78, 205, 196, 0.7),
+        0 0 20px rgba(78, 205, 196, 0.5),
+        0 0 30px rgba(78, 205, 196, 0.3);
+    background: none;
+    animation: outlinePulse 2s ease-in-out infinite alternate;
+}
+
+@keyframes outlinePulse {
+    0% {
+        -webkit-text-stroke-width: 2px;
+        text-shadow: 
+            0 0 10px rgba(78, 205, 196, 0.7),
+            0 0 20px rgba(78, 205, 196, 0.5);
+    }
+    100% {
+        -webkit-text-stroke-width: 3px;
+        text-shadow: 
+            0 0 20px rgba(78, 205, 196, 0.9),
+            0 0 40px rgba(78, 205, 196, 0.7),
+            0 0 60px rgba(78, 205, 196, 0.5);
+    }
+}
+
+/* Подзаголовок */
+.stacks-subtitle {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.4rem;
+    color: #888;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    margin-top: 10px;
+    font-weight: 500;
+    position: relative;
+    display: inline-block;
+    padding: 0 20px;
+}
+
+.stacks-subtitle::before,
+.stacks-subtitle::after {
+    content: '✦';
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #4ecdc4;
+    font-size: 1.2rem;
+    animation: starSpin 3s linear infinite;
+}
+
+@keyframes starSpin {
+    0% { transform: translateY(-50%) rotate(0deg); }
+    100% { transform: translateY(-50%) rotate(360deg); }
+}
+
+.stacks-subtitle::before {
+    left: -10px;
+}
+
+.stacks-subtitle::after {
+    right: -10px;
+}
+
+/* Декоративные элементы вокруг заголовка */
+.stars-decoration {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.star {
+    position: absolute;
+    color: #4ecdc4;
+    font-size: 1rem;
+    opacity: 0.7;
+    animation: starFloat 5s ease-in-out infinite;
+}
+
+@keyframes starFloat {
+    0%, 100% {
+        transform: translate(0, 0) scale(1);
+        opacity: 0.3;
+    }
+    25% {
+        transform: translate(10px, -10px) scale(1.2);
+        opacity: 0.7;
+    }
+    50% {
+        transform: translate(-5px, 5px) scale(0.8);
+        opacity: 0.5;
+    }
+    75% {
+        transform: translate(-10px, -5px) scale(1.1);
+        opacity: 0.8;
+    }
+}
+
+/* Линии-акценты */
+.title-accent-line {
+    height: 2px;
+    background: linear-gradient(90deg, 
+        transparent 0%,
+        #4ecdc4 20%,
+        #ff6b6b 50%,
+        #4ecdc4 80%,
+        transparent 100%
+    );
+    margin: 20px auto;
+    width: 300px;
+    max-width: 80%;
+    border-radius: 1px;
+    animation: lineFlow 4s linear infinite;
+}
+
+@keyframes lineFlow {
+    0% {
+        background-position: -300px 0;
+    }
+    100% {
+        background-position: 300px 0;
+    }
+}
+
+/* Эффект свечения фона */
+.glow-effect {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 400px;
+    height: 200px;
+    background: radial-gradient(
+        ellipse at center,
+        rgba(78, 205, 196, 0.15) 0%,
+        rgba(78, 205, 196, 0.1) 30%,
+        transparent 70%
+    );
+    filter: blur(20px);
+    z-index: 1;
+    animation: glowPulse 4s ease-in-out infinite;
+}
+
+@keyframes glowPulse {
+    0%, 100% {
+        opacity: 0.5;
+        transform: translate(-50%, -50%) scale(1);
+    }
+    50% {
+        opacity: 0.8;
+        transform: translate(-50%, -50%) scale(1.1);
+    }
+}
+
+/* Мобильная адаптация */
+@media (max-width: 768px) {
+    .stacks-logo {
+        font-size: 4rem;
+        letter-spacing: 2px;
+    }
+    
+    .stacks-subtitle {
+        font-size: 1.1rem;
+        letter-spacing: 3px;
+    }
+    
+    .title-accent-line {
+        width: 200px;
+    }
+}
+
+@media (max-width: 480px) {
+    .stacks-logo {
+        font-size: 3rem;
+        letter-spacing: 1px;
+    }
+    
+    .stacks-subtitle {
+        font-size: 0.9rem;
+        letter-spacing: 2px;
+    }
+    
+    .stacks-subtitle::before,
+    .stacks-subtitle::after {
+        font-size: 1rem;
+    }
+    
+    .title-accent-line {
+        width: 150px;
+    }
+    
+    .glow-effect {
+        width: 250px;
+        height: 150px;
+    }
+}
+
+/* Для больших экранов */
+@media (min-width: 1200px) {
+    .stacks-logo {
+        font-size: 6.5rem;
+    }
+    
+    .stacks-subtitle {
+        font-size: 1.6rem;
+        letter-spacing: 5px;
+    }
+    
+    .title-accent-line {
+        width: 400px;
+    }
+}
+
+/* Альтернативные цветовые схемы */
+
+/* Неоновый градиент */
+.stacks-logo.neon {
+    background: linear-gradient(45deg,
+        #ff00ff 0%,
+        #00ffff 25%,
+        #ffff00 50%,
+        #ff00ff 75%,
+        #00ffff 100%
+    );
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: neonFlow 3s linear infinite;
+    text-shadow: 
+        0 0 10px rgba(255, 0, 255, 0.5),
+        0 0 20px rgba(0, 255, 255, 0.5),
+        0 0 30px rgba(255, 255, 0, 0.3);
+}
+
+@keyframes neonFlow {
+    0% {
+        background-position: 0% 50%;
+        filter: hue-rotate(0deg);
+    }
+    100% {
+        background-position: 100% 50%;
+        filter: hue-rotate(360deg);
+    }
+}
+
+/* Золотой градиент */
+.stacks-logo.gold {
+    background: linear-gradient(45deg,
+        #ffd700 0%,
+        #ffed4e 25%,
+        #ffd700 50%,
+        #d4af37 75%,
+        #ffd700 100%
+    );
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: 
+        0 0 20px rgba(255, 215, 0, 0.3),
+        0 0 40px rgba(255, 215, 0, 0.2);
+}
+
 /* Индикатор авторизации */
 #authIndicator {
     animation: slideDown 0.5s ease;

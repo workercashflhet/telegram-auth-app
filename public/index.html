@@ -7,6 +7,11 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="stylesheet" href="/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Подключаем шрифт Lost Star и другие шрифты -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- Lost Star с сайта 1001fonts.com (альтернатива через Google Fonts) -->
+    <link href="https://fonts.googleapis.com/css2?family=Sacramento&family=Bangers&family=Russo+One&family=Orbitron:wght@400;500;600;700;800&display=swap" rel="stylesheet">
      <style>
         /* Временные стили для красивого заголовка */
         .stacks-title {
@@ -134,17 +139,19 @@
     <div class="app-container">
         <!-- Вкладка Главная -->
         <div id="homeTab" class="tab-content active">
-            <!-- КРАСИВЫЙ ЗАГОЛОВОК STACKS С ДЕКОРАЦИЯМИ -->
-            <div class="title-container">
-                <h1 class="stacks-title">STACKS</h1>
+            <!-- КРАСИВЫЙ ЗАГОЛОВОК STACKS СО ШРИФТОМ LOST STAR -->
+            <div class="stacks-header">
+                <!-- Эффект свечения фона -->
+                <div class="glow-effect"></div>
                 
-                <div class="title-decoration">
-                    <div class="decoration-line"></div>
-                    <div class="decoration-dot"></div>
-                    <div class="decoration-dot"></div>
-                    <div class="decoration-dot"></div>
-                    <div class="decoration-line"></div>
-                </div>
+                <!-- Декоративные звезды -->
+                <div class="stars-decoration" id="starsContainer"></div>
+                
+                <!-- Основной заголовок STACKS (выберите один вариант) -->
+                <h1 class="stacks-logo white" id="stacksTitle">STACKS</h1>
+                
+                <!-- Акцентная линия -->
+                <div class="title-accent-line"></div>
             </div>
             
             <!-- Статус -->
@@ -1271,6 +1278,89 @@ function startGameAutoRefresh() {
         });
     }
 }
+
+// Функция для создания звездного фона
+function createStarDecoration() {
+    const starsContainer = document.getElementById('starsContainer');
+    if (!starsContainer) return;
+    
+    starsContainer.innerHTML = '';
+    
+    // Создаем 15 звезд
+    for (let i = 0; i < 15; i++) {
+        const star = document.createElement('div');
+        star.className = 'star';
+        
+        // Случайная позиция
+        const left = Math.random() * 100;
+        const top = Math.random() * 100;
+        
+        // Случайная задержка анимации
+        const delay = Math.random() * 5;
+        const duration = 3 + Math.random() * 4;
+        
+        star.style.left = `${left}%`;
+        star.style.top = `${top}%`;
+        star.style.animationDelay = `${delay}s`;
+        star.style.animationDuration = `${duration}s`;
+        star.innerHTML = '★';
+        
+        starsContainer.appendChild(star);
+    }
+}
+
+// Функция для переключения стилей заголовка
+function setupTitleEffects() {
+    const title = document.getElementById('stacksTitle');
+    if (!title) return;
+    
+    // Варианты стилей
+    const styles = ['white', 'colorful', 'outlined', 'neon', 'gold'];
+    let currentStyle = 0;
+    
+    // Переключение стиля по клику (опционально)
+    title.addEventListener('click', function() {
+        // Удаляем все классы стилей
+        styles.forEach(style => {
+            title.classList.remove(style);
+        });
+        
+        // Добавляем следующий стиль
+        currentStyle = (currentStyle + 1) % styles.length;
+        title.classList.add(styles[currentStyle]);
+        
+        console.log(`🎨 Стиль заголовка изменен на: ${styles[currentStyle]}`);
+    });
+    
+    // Автоматическая смена стилей каждые 10 секунд
+    setInterval(() => {
+        // Удаляем все классы стилей
+        styles.forEach(style => {
+            title.classList.remove(style);
+        });
+        
+        // Выбираем случайный стиль (кроме текущего)
+        let newStyle;
+        do {
+            newStyle = Math.floor(Math.random() * styles.length);
+        } while (newStyle === currentStyle);
+        
+        currentStyle = newStyle;
+        title.classList.add(styles[currentStyle]);
+    }, 10000);
+}
+
+// Инициализация эффектов
+document.addEventListener('DOMContentLoaded', () => {
+    // Создаем звездный фон
+    createStarDecoration();
+    
+    // Настраиваем эффекты заголовка
+    setupTitleEffects();
+    
+    // Обновляем звезды каждые 30 секунд
+    setInterval(createStarDecoration, 30000);
+});
 
 // Инициализация при загрузке
 document.addEventListener('DOMContentLoaded', () => {
