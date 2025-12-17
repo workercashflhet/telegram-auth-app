@@ -73,26 +73,23 @@ router.get('/api/game/state', (req, res) => {
         
         const gameState = game.getGameState();
         
-        // Добавляем серверную метку времени для синхронизации
-        const serverTime = Date.now();
-        
-        // Рассчитываем время до старта вращения
-        let timeToSpin = null;
-        if (gameState.status === 'counting' && gameState.countdown !== null) {
-            timeToSpin = gameState.countdown * 1000; // в миллисекундах
-        }
+        // Добавляем отладочную информацию
+        const debugInfo = {
+            participantsCount: gameState.participants.length,
+            participantsNames: gameState.participants.map(p => p.first_name),
+            winnerName: gameState.winner ? gameState.winner.first_name : 'нет',
+            winnerIndex: gameState.winnerIndex,
+            finalAngle: gameState.finalAngle,
+            normalizedAngle: gameState.finalAngle ? gameState.finalAngle % 360 : null,
+            sectorAngle: gameState.participants.length > 0 ? 360 / gameState.participants.length : null
+        };
         
         res.json({
             success: true,
             game: gameState,
-            serverTime: serverTime,
-            timeToSpin: timeToSpin,
-            timestamp: new Date().toISOString(),
-            syncInfo: {
-                participants: gameState.participants.length,
-                status: gameState.status,
-                countdown: gameState.countdown
-            }
+            serverTime: Date.now(),
+            debug: debugInfo, // Добавляем отладочную информацию
+            timestamp: new Date().toISOString()
         });
     } catch (error) {
         console.error('Game state error:', error);

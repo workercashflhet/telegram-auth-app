@@ -321,27 +321,37 @@ class FortuneWheel {
             return null;
         }
         
-        // Нормализуем угол (убираем полные обороты)
+        // Нормализуем угол
         const normalizedAngle = finalAngle % 360;
-        
-        // Участники расположены по часовой стрелке, указатель сверху (0°)
         const sectorAngle = 360 / this.participants.length;
         
-        // Определяем сектор (от 0 до participants.length-1)
-        let sector = Math.floor(normalizedAngle / sectorAngle);
+        console.log(`🎯 Фронтенд: определяем победителя по углу ${normalizedAngle}°`);
+        console.log(`📏 Сектор: ${sectorAngle}°, Участников: ${this.participants.length}`);
         
-        // Инвертируем, так как вращение идет по часовой стрелке
-        sector = (this.participants.length - sector) % this.participants.length;
+        // КОРРЕКТНЫЙ РАСЧЕТ ДЛЯ ФРОНТЕНДА:
+        // Участники на колесе расположены против часовой стрелки
+        // Колесо вращается по часовой стрелке
+        // Указатель вверху (0°)
+        
+        let sector = Math.floor((360 - normalizedAngle) / sectorAngle) % this.participants.length;
+        
+        // Корректировка граничных случаев
         if (sector < 0) sector += this.participants.length;
+        if (sector >= this.participants.length) sector = 0;
         
         const winner = this.participants[sector];
         
         if (winner) {
-            console.log(`🎯 Рассчитан победитель по углу: ${winner.first_name} (сектор: ${sector})`);
+            console.log(`🏆 Фронтенд определил победителя: ${winner.first_name} (сектор: ${sector})`);
+            
+            // Синхронизируем с сервером
+            this.winner = winner;
             this.showWinner(winner);
+            
             return winner;
         }
         
+        console.warn('❌ Фронтенд: победитель не найден');
         return null;
     }
     
@@ -595,17 +605,28 @@ class FortuneWheel {
     }
     
     showWinner(winner) {
-        if (!winner) return;
+        if (!winner) {
+            console.error('❌ showWinner вызван без победителя');
+            return;
+        }
+        
+        console.log(`🎉 Показываем победителя: ${winner.first_name} (ID: ${winner.id})`);
         
         const winnerAvatar = document.getElementById('winnerAvatar');
         const winnerName = document.getElementById('winnerName');
         const winnerSection = document.getElementById('winnerSection');
         const nextRoundTimer = document.getElementById('nextRoundTimer');
-        const newRoundInfo = document.getElementById('newRoundInfo');
-        const nextRoundInfo = document.getElementById('nextRoundInfo');
         
-        // Обновляем аватар
+        // Проверяем элементы
+        if (!winnerAvatar || !winnerName || !winnerSection) {
+            console.error('❌ Не найдены элементы для отображения победителя');
+            return;
+        }
+        
+        // Очищаем предыдущий аватар
         winnerAvatar.innerHTML = '';
+        
+        // Создаем аватар
         if (winner.photo_url) {
             const img = document.createElement('img');
             img.src = winner.photo_url;
@@ -614,47 +635,77 @@ class FortuneWheel {
             img.style.height = '100%';
             img.style.objectFit = 'cover';
             img.style.borderRadius = '50%';
+            
+            // Обработка ошибки загрузки фото
+            img.onerror = () => {
+                console.log('❌ Ошибка загрузки фото, показываем инициалы');
+                const initials = this.getInitials(winner.first_name, winner.last_name);
+                winnerAvatar.innerHTML = `<div class="initials" style="
+                    width: 100%;
+                    height: 100%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 2.5rem;
+                    font-weight: bold;
+                    color: white;
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    border-radius: 50%;
+                ">${initials}</div>`;
+            };
+            
             winnerAvatar.appendChild(img);
         } else {
             const initials = this.getInitials(winner.first_name, winner.last_name);
-            winnerAvatar.innerHTML = `<div class="initials">${initials}</div>`;
+            winnerAvatar.innerHTML = `<div class="initials" style="
+                width: 100%;
+                height: 100%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 2.5rem;
+                font-weight: bold;
+                color: white;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                border-radius: 50%;
+            ">${initials}</div>`;
         }
         
+        // Устанавливаем имя
         winnerName.textContent = `${winner.first_name} ${winner.last_name || ''}`.trim();
         
         // Показываем секцию с анимацией
         winnerSection.style.display = 'block';
+        
+        // Небольшая задержка для анимации
         setTimeout(() => {
             winnerSection.classList.add('visible');
-        }, 10);
+            
+            // Анимация появления
+            winnerSection.style.animation = 'pulse 2s infinite';
+        }, 100);
         
         // Обновляем таймер следующего раунда
-        if (this.nextRoundTimer !== null && nextRoundTimer) {
-            const updateTimer = () => {
+        if (nextRoundTimer && this.nextRoundTimer !== null && this.nextRoundTimer > 0) {
+            nextRoundTimer.textContent = this.nextRoundTimer;
+            
+            // Обновляем каждую секунду
+            const timerInterval = setInterval(() => {
                 if (this.nextRoundTimer > 0) {
+                    this.nextRoundTimer--;
                     nextRoundTimer.textContent = this.nextRoundTimer;
-                    nextRoundInfo.style.display = 'block';
-                    newRoundInfo.style.display = 'none';
                 } else {
-                    // Таймер истек - показываем сообщение о новом раунде
-                    nextRoundInfo.style.display = 'none';
-                    newRoundInfo.style.display = 'block';
-                    winnerName.textContent = "Раунд завершен";
+                    clearInterval(timerInterval);
                 }
-            };
-            
-            updateTimer();
-            const timerInterval = setInterval(updateTimer, 1000);
-            
-            // Очищаем интервал через 10 секунд
-            setTimeout(() => {
-                clearInterval(timerInterval);
-            }, 10000);
+            }, 1000);
         }
         
+        // Показываем статус
         if (window.showStatus) {
-            window.showStatus(`🎉 Победитель: ${winner.first_name}!`, 'success');
+            window.showStatus(`🎉 Победитель: ${winner.first_name}! Следующий раунд через 8 секунд`, 'success');
         }
+        
+        this.winnerAnnounced = true;
     }
     
     hideWinner() {

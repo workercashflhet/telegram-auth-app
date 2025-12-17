@@ -776,6 +776,50 @@ body {
     background-color: #222;
 }
 
+/* Добавьте в styles.css */
+.winner-avatar {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    overflow: hidden;
+    margin: 0 auto 20px;
+    border: 5px solid #000;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.winner-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.winner-name {
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: #000;
+    text-shadow: 2px 2px 0 rgba(255, 255, 255, 0.5);
+    margin: 10px 0;
+    padding: 10px 20px;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 10px;
+    display: inline-block;
+}
+
+/* Анимация для победителя */
+@keyframes winnerGlow {
+    0%, 100% {
+        box-shadow: 0 0 20px rgba(78, 205, 196, 0.7);
+    }
+    50% {
+        box-shadow: 0 0 40px rgba(78, 205, 196, 1);
+    }
+}
+
+.winner-section.visible {
+    animation: winnerGlow 2s infinite;
+}
+
 .profile-avatar .initials {
     position: absolute;
     top: 0;
