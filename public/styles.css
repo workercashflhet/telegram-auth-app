@@ -321,6 +321,63 @@ body {
     z-index: 6;
 }
 
+/* Разделители между секторами */
+.wheel-divider {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: 2px;
+    height: 50%;
+    background: linear-gradient(
+        to bottom,
+        transparent,
+        rgba(255, 255, 255, 0.7),
+        transparent
+    );
+    transform-origin: bottom center;
+    z-index: 1;
+    pointer-events: none;
+}
+
+/* Альтернативный способ - границы секторов */
+.wheel-sector-border {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: 1px;
+    height: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transform-origin: bottom center;
+    z-index: 3;
+}
+
+/* Центральный круг для маскировки */
+.wheel-center-mask {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100px;
+    height: 100px;
+    background: rgba(0, 0, 0, 0.8);
+    border-radius: 50%;
+    z-index: 4;
+    pointer-events: none;
+}
+
+/* Для градиентных колес - улучшенные разделители */
+.wheel-container.gradient-transparent .wheel-divider {
+    background: linear-gradient(
+        to bottom,
+        transparent 0%,
+        rgba(255, 255, 255, 0.9) 30%,
+        rgba(255, 255, 255, 0.9) 70%,
+        transparent 100%
+    );
+    width: 3px;
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
 /* Улучшенные стили для колеса */
 .wheel-participant {
     transition: transform 0.3s ease;
