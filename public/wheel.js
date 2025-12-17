@@ -253,41 +253,25 @@ class FortuneWheel {
     }
     
     // В wheel.js полностью перепишите метод joinGame:
+    // В wheel.js упростите метод joinGame:
     async joinGame() {
-        console.log('🎮 Нажата кнопка "Участвовать"');
+        console.log('🎮 joinGame вызван');
         
+        // Проверяем наличие пользователя
         if (!window.currentUser) {
-            const errorMsg = '❌ Сначала войдите в аккаунт через Telegram';
-            console.log(errorMsg);
-            if (window.showStatus) {
-                window.showStatus(errorMsg, 'error');
-            }
+            console.error('❌ Нет текущего пользователя');
+            window.showStatus('❌ Сначала войдите в аккаунт', 'error');
             return;
         }
         
-        const isUserParticipating = this.participants.some(p => p.id === window.currentUser.id);
-        if (isUserParticipating) {
-            const infoMsg = '✅ Вы уже участвуете в этой игре';
-            console.log(infoMsg);
-            if (window.showStatus) {
-                window.showStatus(infoMsg, 'info');
-            }
-            return;
-        }
+        console.log('👤 Текущий пользователь:', window.currentUser.first_name);
         
         try {
-            console.log('🔄 Отправляем запрос на присоединение к игре...');
-            
-            // Показываем статус
-            if (window.showStatus) {
-                window.showStatus('⏳ Присоединяемся к игре...', 'info');
-            }
-            
+            // Прямой вызов API
             const response = await fetch('/api/game/join', {
                 method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
+                headers: {
+                    'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
                     userId: window.currentUser.id,
@@ -295,57 +279,25 @@ class FortuneWheel {
                 })
             });
             
-            console.log('📨 Получен ответ от сервера:', response.status, response.statusText);
+            const result = await response.json();
+            console.log('📊 Результат API:', result);
             
-            const data = await response.json();
-            console.log('📊 Данные ответа:', data);
-            
-            if (data.success) {
-                const successMsg = `✅ Вы присоединились к игре! Участников: ${data.game.participants.length}`;
-                console.log(successMsg);
-                
-                if (window.showStatus) {
-                    window.showStatus(successMsg, 'success');
-                }
-                
-                // Немедленно обновляем состояние игры
+            if (result.success) {
+                // Обновляем состояние игры
                 await this.loadGameState();
                 
                 // Обновляем UI
+                this.updateButtons();
                 this.renderParticipants();
                 this.updateWheel();
-                this.updateButtons();
                 
-                // Обновляем глобального пользователя если сервер вернул обновленные данные
-                if (data.user && window.currentUser) {
-                    window.currentUser = { ...window.currentUser, ...data.user };
-                }
-                
+                window.showStatus('✅ Вы присоединились к игре!', 'success');
             } else {
-                const errorMsg = `❌ Ошибка: ${data.error || 'Неизвестная ошибка'}`;
-                console.error(errorMsg);
-                
-                if (window.showStatus) {
-                    window.showStatus(errorMsg, 'error');
-                }
+                window.showStatus(`❌ ${result.error}`, 'error');
             }
         } catch (error) {
-            const errorMsg = `❌ Ошибка соединения с сервером: ${error.message}`;
-            console.error('Ошибка присоединения к игре:', error);
-            
-            if (window.showStatus) {
-                window.showStatus(errorMsg, 'error');
-            }
-            
-            // Показываем более подробную информацию в консоли
-            console.log('🔄 Пытаемся получить состояние игры для диагностики...');
-            try {
-                const stateResponse = await fetch('/api/game/state');
-                const stateData = await stateResponse.json();
-                console.log('📊 Текущее состояние игры:', stateData);
-            } catch (stateError) {
-                console.error('❌ Не удалось получить состояние игры:', stateError);
-            }
+            console.error('Ошибка joinGame:', error);
+            window.showStatus('❌ Ошибка соединения', 'error');
         }
     }
     

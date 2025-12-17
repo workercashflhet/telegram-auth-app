@@ -168,11 +168,49 @@
                 console.log('⚠️ Нет данных Telegram, требуется открыть через бота');
                 showStatus('⚠️ Откройте через Telegram бота для реальной авторизации', 'error');
             }
+
+            function setupJoinButton() {
+                const joinButton = document.getElementById('joinButton');
+                if (joinButton) {
+                    console.log('🔄 Настройка обработчика кнопки "Участвовать"...');
+                    joinButton.addEventListener('click', function() {
+                        console.log('🎮 Нажата кнопка "Участвовать"');
+                        if (window.fortuneWheel) {
+                            window.fortuneWheel.joinGame();
+                        } else {
+                            console.error('❌ Колесо не инициализировано');
+                            showStatus('❌ Ошибка: игра не загружена', 'error');
+                        }
+                    });
+                    console.log('✅ Обработчик кнопки установлен');
+                } else {
+                    console.error('❌ Кнопка "joinButton" не найдена');
+                }
+            }
             
             return true;
         }
         return false;
     }
+
+    console.log('🔧 Запуск диагностики...');
+
+    // Проверяем наличие элементов
+    document.addEventListener('DOMContentLoaded', () => {
+        console.log('🔍 Проверка элементов DOM:');
+        console.log('  joinButton:', document.getElementById('joinButton') ? '✅ найден' : '❌ не найден');
+        console.log('  fortuneWheel:', document.getElementById('fortuneWheel') ? '✅ найден' : '❌ не найден');
+        console.log('  navHome:', document.getElementById('navHome') ? '✅ найден' : '❌ не найден');
+        
+        // Проверяем объект колеса
+        setTimeout(() => {
+            console.log('🎡 Проверка объекта колеса:', window.fortuneWheel ? '✅ инициализирован' : '❌ не инициализирован');
+            if (window.fortuneWheel) {
+                console.log('  Участников:', window.fortuneWheel.participants.length);
+                console.log('  Текущий пользователь:', window.currentUser ? window.currentUser.first_name : 'нет');
+            }
+        }, 1000);
+    });
     
     // Функция для обновления индикатора авторизации
     function updateAuthIndicator() {
@@ -412,6 +450,7 @@
         
         initTelegram();
         setupNavigation();
+        setupJoinButton();
         
         if (!isTelegramApp) {
             console.log('⚠️ Приложение запущено вне Telegram');
