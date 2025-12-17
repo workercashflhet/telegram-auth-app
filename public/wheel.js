@@ -577,153 +577,71 @@ class FortuneWheel {
     updateWheel() {
         const participantsContainer = document.getElementById('wheelParticipants');
         
-        if (!participantsContainer) return;
-        
-        // Очищаем контейнер
-        participantsContainer.innerHTML = '';
-        participantsContainer.className = 'wheel-participants-container';
-        
-        if (this.participants.length === 0) {
-            this.wheelElement.style.background = '#222';
+        if (!participantsContainer) {
+            console.error('❌ Контейнер для участников не найден!');
             return;
         }
         
-        const totalParticipants = this.participants.length;
-        const sectorAngle = 360 / totalParticipants;
-        const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7', '#fab1a0', '#a29bfe', '#fd79a8'];
+        // ОЧЕНЬ ВАЖНО: полностью очищаем контейнер
+        participantsContainer.innerHTML = '';
         
-        console.log(`🎨 Рисуем колесо: ${totalParticipants} участников, сектор: ${sectorAngle}°`);
-        
-        // 1. Создаем конический градиент для фона колеса
-        let gradientParts = [];
-        for (let i = 0; i < totalParticipants; i++) {
-            const startAngle = i * sectorAngle;
-            const endAngle = (i + 1) * sectorAngle;
-            const color = colors[i % colors.length];
-            gradientParts.push(`${color} ${startAngle}deg ${endAngle}deg`);
+        if (this.participants.length === 0) {
+            console.log('❌ Нет участников для отображения');
+            return;
         }
         
-        this.wheelElement.style.background = `conic-gradient(${gradientParts.join(', ')})`;
+        console.log(`🎨 Отрисовываем ${this.participants.length} участников на колесе`);
         
-        // 2. Добавляем участников с правильным позиционированием
+        // Создаем элементы для каждого участника
         this.participants.forEach((participant, index) => {
-            // Угол центра сектора (в градусах)
-            const centerAngle = (index * sectorAngle) + (sectorAngle / 2);
+            const participantElement = document.createElement('div');
+            participantElement.className = 'wheel-participant';
+            participantElement.dataset.index = index;
             
-            // Преобразуем в радианы для расчетов
-            const centerAngleRad = (centerAngle - 90) * (Math.PI / 180);
+            // Позиционирование
+            const totalParticipants = this.participants.length;
+            const angle = (360 / totalParticipants) * index;
+            const radius = 120; // Расстояние от центра
             
-            // Радиус от центра для позиционирования фото
-            const radius = 45; // Процент от радиуса колеса
+            // Расчет позиции (центр колеса в середине)
+            const centerX = 150; // Половина width колеса
+            const centerY = 150; // Половина height колеса
+            const radian = (angle - 90) * (Math.PI / 180); // -90 чтобы начать сверху
             
-            // Рассчитываем координаты для фото
-            const x = 50 + Math.cos(centerAngleRad) * radius;
-            const y = 50 + Math.sin(centerAngleRad) * radius;
+            const x = centerX + Math.cos(radian) * radius;
+            const y = centerY + Math.sin(radian) * radius;
             
-            // Создаем контейнер для участника
-            const participantContainer = document.createElement('div');
-            participantContainer.className = 'wheel-participant-container';
-            participantContainer.setAttribute('data-index', index);
-            
-            // Устанавливаем CSS переменные для позиционирования
-            participantContainer.style.setProperty('--sector-angle', `${sectorAngle}deg`);
-            participantContainer.style.setProperty('--rotate-angle', centerAngle);
-            participantContainer.style.setProperty('--index', index);
-            
-            // Создаем элемент для фото
-            const photoElement = document.createElement('div');
-            photoElement.className = 'wheel-participant-photo';
-            photoElement.title = `${participant.first_name}`;
-            photoElement.style.left = `${x}%`;
-            photoElement.style.top = `${y}%`;
-            
-            // Определяем размер фото в зависимости от позиции
-            if (radius < 40) {
-                photoElement.classList.add('inner');
-            } else if (radius > 50) {
-                photoElement.classList.add('outer');
-            }
+            participantElement.style.left = `${x}px`;
+            participantElement.style.top = `${y}px`;
             
             // Добавляем фото или инициалы
             if (participant.photo_url && participant.photo_url.trim() !== '') {
                 const img = document.createElement('img');
                 img.src = participant.photo_url;
                 img.alt = participant.first_name;
+                img.style.width = '100%';
+                img.style.height = '100%';
+                img.style.objectFit = 'cover';
+                img.style.borderRadius = '50%';
+                
+                // Обработчик ошибки загрузки фото
                 img.onerror = () => {
-                    // Если фото не загрузилось, показываем инициалы
+                    participantElement.innerHTML = '';
                     const initials = this.getInitials(participant.first_name, participant.last_name);
-                    photoElement.innerHTML = `<div class="wheel-participant-initials">${initials}</div>`;
+                    participantElement.innerHTML = `<div class="initials">${initials}</div>`;
+                    console.log(`❌ Не удалось загрузить фото для ${participant.first_name}, показываем инициалы`);
                 };
-                photoElement.appendChild(img);
+                
+                participantElement.appendChild(img);
             } else {
                 const initials = this.getInitials(participant.first_name, participant.last_name);
-                photoElement.innerHTML = `<div class="wheel-participant-initials">${initials}</div>`;
+                participantElement.innerHTML = `<div class="initials">${initials}</div>`;
             }
             
-            // Добавляем номер участника (для отладки, можно убрать)
-            const numberElement = document.createElement('div');
-            numberElement.className = 'participant-number';
-            numberElement.textContent = index + 1;
-            photoElement.appendChild(numberElement);
-            
-            // Добавляем фото в контейнер
-            participantContainer.appendChild(photoElement);
-            
-            // Создаем сектор для клиппинга (опционально)
-            const sectorElement = document.createElement('div');
-            sectorElement.className = 'wheel-sector';
-            
-            // Рассчитываем координаты для клип-патча
-            const startAngle = index * sectorAngle;
-            const endAngle = (index + 1) * sectorAngle;
-            
-            // Преобразуем углы в координаты
-            const startRad = (startAngle - 90) * (Math.PI / 180);
-            const endRad = (endAngle - 90) * (Math.PI / 180);
-            
-            const startX = 50 + Math.cos(startRad) * 50;
-            const startY = 50 + Math.sin(startRad) * 50;
-            const endX = 50 + Math.cos(endRad) * 50;
-            const endY = 50 + Math.sin(endRad) * 50;
-            
-            sectorElement.style.setProperty('--start-x', `${startX}%`);
-            sectorElement.style.setProperty('--start-y', `${startY}%`);
-            sectorElement.style.setProperty('--end-x', `${endX}%`);
-            sectorElement.style.setProperty('--end-y', `${endY}%`);
-            sectorElement.style.transform = `rotate(${startAngle}deg)`;
-            
-            // Добавляем элементы в контейнер
-            participantsContainer.appendChild(sectorElement);
-            participantsContainer.appendChild(participantContainer);
-            
-            // Добавляем обработчик клика (опционально)
-            photoElement.addEventListener('click', (e) => {
-                e.stopPropagation();
-                console.log(`👤 Выбран участник: ${participant.first_name} (индекс: ${index})`);
-                // Можно добавить дополнительную логику при клике
-            });
+            participantsContainer.appendChild(participantElement);
         });
         
-        // 3. Добавляем разделительные линии между секторами
-        for (let i = 0; i < totalParticipants; i++) {
-            const lineAngle = i * sectorAngle;
-            
-            const line = document.createElement('div');
-            line.className = 'wheel-divider';
-            line.style.position = 'absolute';
-            line.style.top = '0';
-            line.style.left = '50%';
-            line.style.width = '2px';
-            line.style.height = '50%';
-            line.style.backgroundColor = 'rgba(255, 255, 255, 0.5)';
-            line.style.transformOrigin = 'bottom center';
-            line.style.transform = `translateX(-50%) rotate(${lineAngle}deg)`;
-            line.style.zIndex = '1';
-            
-            participantsContainer.appendChild(line);
-        }
-        
-        console.log(`✅ Колесо обновлено: ${totalParticipants} фото участников правильно позиционированы`);
+        console.log(`✅ Участники добавлены на колесо`);
     }
 
     // Метод для подсветки сектора победителя
