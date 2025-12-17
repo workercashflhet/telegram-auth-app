@@ -22,6 +22,7 @@ class FortuneWheel {
     }
     
     // Загрузить состояние игры
+    // wheel.js - исправить метод loadGameState и добавить авто-вращение
     async loadGameState() {
         if (this.isSpinning) return;
         
@@ -36,6 +37,12 @@ class FortuneWheel {
                 this.participants = data.game.participants || [];
                 this.countdown = data.game.status === 'counting' ? data.game.countdown : null;
                 this.isSpinning = data.game.status === 'spinning';
+                
+                // ВАЖНО: Если игра крутится, запускаем анимацию
+                if (this.isSpinning && !this.spinningStarted) {
+                    this.spinningStarted = true;
+                    this.startSpinningAnimation();
+                }
                 
                 // Обновляем UI
                 this.renderParticipants();
@@ -54,6 +61,32 @@ class FortuneWheel {
             console.error('Error loading game state:', error);
         }
     }
+
+    // Новый метод для анимации вращения (автоматической)
+    startSpinningAnimation() {
+        if (this.participants.length < 2) return;
+        
+        this.isSpinning = true;
+        this.updateButtons();
+        this.hideWinner();
+        
+        // Анимация вращения
+        const spins = 5;
+        const sectorAngle = 360 / this.participants.length;
+        const randomSector = Math.floor(Math.random() * this.participants.length);
+        const finalAngle = spins * 360 + (randomSector * sectorAngle) + (Math.random() * sectorAngle);
+        
+        this.wheelElement.style.transition = 'transform 5s cubic-bezier(0.17, 0.67, 0.83, 0.67)';
+        this.wheelElement.style.transform = `rotate(${finalAngle}deg)`;
+        
+        // Определяем победителя
+        setTimeout(() => {
+            this.determineWinner(finalAngle);
+        }, 5000);
+    }
+
+    // Убираем старый метод startSpinning (он обращался к API, который больше не нужен)
+    // Заменяем его на анимацию выше
     
     // Участвовать в игре
     // wheel.js - исправленная функция joinGame
@@ -191,7 +224,7 @@ class FortuneWheel {
             this.updateTimer();
             
             if (this.countdown <= 0) {
-                this.startSpinning();
+                this.startSpinningAnimation();
                 this.stopCountdownTimer();
             }
         }, 1000);
@@ -207,65 +240,6 @@ class FortuneWheel {
         this.updateTimer();
     }
     
-    // Запустить колесо
-    async startSpinning() {
-        if (this.isSpinning || this.participants.length < 2) {
-            return;
-        }
-        
-        this.isSpinning = true;
-        this.updateButtons();
-        this.hideWinner();
-        
-        // Показываем загрузку
-        const startButton = document.getElementById('startButton');
-        const originalText = startButton.innerHTML;
-        startButton.innerHTML = '<span class="icon">⏳</span> ЗАПУСК...';
-        startButton.disabled = true;
-        
-        try {
-            const response = await fetch('/api/game/spin', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    gameId: this.currentGameId
-                })
-            });
-            
-            const data = await response.json();
-            
-            if (data.success) {
-                // Анимация вращения
-                const spins = 5;
-                const sectorAngle = 360 / this.participants.length;
-                const randomSector = Math.floor(Math.random() * this.participants.length);
-                const finalAngle = spins * 360 + (randomSector * sectorAngle) + (Math.random() * sectorAngle);
-                
-                this.wheelElement.style.transition = 'transform 5s cubic-bezier(0.17, 0.67, 0.83, 0.67)';
-                this.wheelElement.style.transform = `rotate(${finalAngle}deg)`;
-                
-                // Определяем победителя
-                setTimeout(() => {
-                    this.determineWinner(finalAngle);
-                }, 5000);
-                
-            } else {
-                window.showStatus(`❌ ${data.error || 'Ошибка запуска колеса'}`, 'error');
-                this.isSpinning = false;
-                this.updateButtons();
-            }
-        } catch (error) {
-            console.error('Error starting spin:', error);
-            window.showStatus('❌ Ошибка соединения с сервером', 'error');
-            this.isSpinning = false;
-            this.updateButtons();
-        } finally {
-            startButton.innerHTML = originalText;
-            startButton.disabled = false;
-        }
-    }
     
     // Определить победителя
     determineWinner(finalAngle) {
@@ -318,6 +292,7 @@ class FortuneWheel {
     }
     
     // Обновить колесо
+    // wheel.js - исправить метод updateWheel
     updateWheel() {
         const participantsContainer = document.getElementById('wheelParticipants');
         
@@ -344,30 +319,41 @@ class FortuneWheel {
         this.wheelElement.style.background = `conic-gradient(${gradientParts.join(', ')})`;
         
         this.participants.forEach((participant, index) => {
+            // ИСПРАВЛЕНИЕ: правильный расчет угла
             const angle = (index * sectorAngle) + (sectorAngle / 2) - 90;
-            const radius = 120;
+            const radius = 100; // Уменьшаем радиус для лучшего позиционирования
             
             const participantElement = document.createElement('div');
             participantElement.className = 'wheel-participant';
+            
+            // ИСПРАВЛЕНИЕ: правильное позиционирование
+            participantElement.style.position = 'absolute';
+            participantElement.style.top = '50%';
+            participantElement.style.left = '50%';
             participantElement.style.transform = `
+                translate(-50%, -50%)
                 rotate(${angle}deg) 
                 translate(${radius}px) 
                 rotate(${-angle}deg)
             `;
+            participantElement.style.transformOrigin = '0 0';
             
             if (participant.photo_url) {
                 const img = document.createElement('img');
                 img.src = participant.photo_url;
                 img.alt = participant.first_name;
+                img.style.width = '100%';
+                img.style.height = '100%';
+                img.style.objectFit = 'cover';
                 img.onerror = () => {
                     // Если фото не загружается, показываем инициалы
                     const initials = this.getInitials(participant.first_name, participant.last_name);
-                    participantElement.innerHTML = `<div class="initials">${initials}</div>`;
+                    participantElement.innerHTML = `<div class="initials" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 24px;">${initials}</div>`;
                 };
                 participantElement.appendChild(img);
             } else {
                 const initials = this.getInitials(participant.first_name, participant.last_name);
-                participantElement.innerHTML = `<div class="initials">${initials}</div>`;
+                participantElement.innerHTML = `<div class="initials" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 24px;">${initials}</div>`;
             }
             
             participantsContainer.appendChild(participantElement);

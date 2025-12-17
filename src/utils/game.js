@@ -68,6 +68,7 @@ class WheelGame {
         // Для демо просто сохраняем время старта
     }
     
+    // game.js - исправить метод updateCountdown
     updateCountdown() {
         if (this.status !== 'counting') return;
         
@@ -76,8 +77,39 @@ class WheelGame {
         this.countdown = Math.max(0, 30 - secondsPassed);
         
         if (this.countdown <= 0) {
-            this.startGame(); // Автоматический запуск
+            // Автоматически запускаем игру
+            this.status = 'spinning';
+            this.lastActivity = new Date();
+            
+            // Выбираем случайного победителя
+            const winnerIndex = Math.floor(Math.random() * this.participants.length);
+            this.winner = this.participants[winnerIndex];
+            
+            console.log(`Игра ${this.id}: автоматический запуск, победитель: ${this.winner.first_name}`);
+            
+            // Через 5 секунд завершаем игру
+            setTimeout(() => {
+                this.finishGame();
+            }, 5000);
         }
+    }
+
+    // Убираем метод startGame или переименовываем его
+    getGameState() {
+        // Обновляем таймер если игра в режиме отсчета
+        if (this.status === 'counting') {
+            this.updateCountdown();
+        }
+        
+        return {
+            id: this.id,
+            participants: this.participants,
+            status: this.status,
+            countdown: this.countdown,
+            winner: this.winner,
+            maxParticipants: this.maxParticipants,
+            lastActivity: this.lastActivity
+        };
     }
     
     // Запустить игру (автоматически при завершении таймера)
