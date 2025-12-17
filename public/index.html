@@ -42,6 +42,25 @@
             
             <!-- Колесо фортуны -->
             <div class="wheel-container">
+                <!-- Добавьте явный указатель стрелки -->
+                <div style="position: absolute; top: -10px; left: 50%; transform: translateX(-50%); z-index: 100;">
+                    <div style="
+                        width: 0;
+                        height: 0;
+                        border-left: 15px solid transparent;
+                        border-right: 15px solid transparent;
+                        border-top: 30px solid #ff6b6b;
+                        filter: drop-shadow(0 0 5px rgba(255,107,107,0.8));
+                    "></div>
+                    <div style="
+                        margin-top: 5px;
+                        color: #ff6b6b;
+                        font-weight: bold;
+                        text-align: center;
+                        font-size: 0.9rem;
+                    ">СТРЕЛКА</div>
+                </div>
+                
                 <div class="wheel-wrapper">
                     <div id="fortuneWheel" class="wheel">
                         <div id="wheelParticipants"></div>
