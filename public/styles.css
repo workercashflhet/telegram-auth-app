@@ -776,27 +776,29 @@ body {
     background-color: #222;
 }
 
-/* ========== КОМПАКТНЫЙ ПРОФИЛЬ ========== */
+/* ========== КОМПАКТНЫЙ ПРОФИЛЬ - ИСПРАВЛЕННЫЙ ========== */
 .compact-profile {
-    position: fixed;
+    position: absolute; /* Изменено с fixed */
     top: 15px;
     left: 15px;
-    z-index: 2000;
+    z-index: 100;
     display: flex;
     align-items: center;
-    background: rgba(255, 255, 255, 0.95);
+    background: rgba(0, 0, 0, 0.95); /* Черный фон */
     backdrop-filter: blur(10px);
     border-radius: 50px;
     padding: 8px 15px 8px 8px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-    border: 2px solid #4ecdc4;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    border: 2px solid #333; /* Темная граница вместо синей */
     transition: all 0.3s ease;
     max-width: 250px;
+    color: #fff; /* Белый текст */
 }
 
 .compact-profile:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 25px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 6px 25px rgba(0, 0, 0, 0.5);
+    border-color: #4ecdc4; /* Подсветка при наведении */
 }
 
 .compact-avatar {
@@ -825,16 +827,18 @@ body {
     color: white;
     font-weight: bold;
     font-size: 16px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 
 .compact-info {
     flex: 1;
     min-width: 0;
+    color: #fff; /* Белый текст */
 }
 
 .compact-name {
     font-weight: bold;
-    color: #000;
+    color: #fff; /* Белый текст */
     font-size: 14px;
     white-space: nowrap;
     overflow: hidden;
@@ -843,23 +847,30 @@ body {
 
 .compact-status {
     font-size: 12px;
-    color: #666;
+    color: #4ecdc4; /* Акцентный цвет */
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
 .compact-toggle {
-    background: none;
+    background: rgba(255, 255, 255, 0.1);
     border: none;
-    color: #4ecdc4;
+    color: #fff;
     cursor: pointer;
     padding: 5px;
     margin-left: 5px;
-    transition: transform 0.3s;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s;
 }
 
 .compact-toggle:hover {
+    background: rgba(255, 255, 255, 0.2);
     transform: rotate(180deg);
 }
 
@@ -980,6 +991,49 @@ body {
     align-items: center;
     justify-content: center;
     transition: all 0.3s;
+}
+
+/* Исправление для аватара профиля */
+.profile-avatar {
+    position: relative;
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    overflow: hidden;
+    margin: 0 auto 20px;
+    border: 4px solid #fff;
+    background-color: #222;
+}
+
+.profile-photo {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 1;
+}
+
+.profile-initials {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    font-weight: bold;
+    color: #fff;
+    background-color: #222;
+    z-index: 0;
+}
+
+/* Показываем фото когда оно загружено */
+.profile-photo.loaded {
+    z-index: 2;
 }
 
 .winner-push-close:hover {

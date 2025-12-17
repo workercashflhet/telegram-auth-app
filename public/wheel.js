@@ -588,11 +588,68 @@ class FortuneWheel {
         
         const totalParticipants = this.participants.length;
         const sectorAngle = 360 / totalParticipants;
+        
+        // Создаем градиент для фона колеса
         const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7', '#fab1a0', '#a29bfe', '#fd79a8'];
         
-        console.log(`🎨 Рисуем колесо: ${totalParticipants} участников, сектор: ${sectorAngle}°`);
+        // Создаем разделители
+        for (let i = 0; i < totalParticipants; i++) {
+            const line = document.createElement('div');
+            line.style.position = 'absolute';
+            line.style.top = '50%';
+            line.style.left = '50%';
+            line.style.width = '2px';
+            line.style.height = '50%';
+            line.style.backgroundColor = 'rgba(255,255,255,0.5)';
+            line.style.transformOrigin = 'bottom center';
+            line.style.transform = `translate(-50%, -100%) rotate(${i * sectorAngle}deg)`;
+            participantsContainer.appendChild(line);
+        }
         
-        // 1. Создаем конический градиент
+        // Добавляем участников
+        this.participants.forEach((participant, index) => {
+            // Угол центра сектора
+            const centerAngle = (index * sectorAngle) + (sectorAngle / 2);
+            
+            // Преобразуем в радианы и рассчитываем позицию
+            const angleRad = (centerAngle - 90) * (Math.PI / 180);
+            const radius = 110; // Радиус от центра
+            
+            const participantElement = document.createElement('div');
+            participantElement.className = 'wheel-participant';
+            participantElement.setAttribute('data-index', index);
+            participantElement.title = participant.first_name;
+            
+            // Позиционируем
+            const x = Math.cos(angleRad) * radius;
+            const y = Math.sin(angleRad) * radius;
+            
+            participantElement.style.transform = `translate(calc(150px + ${x}px), calc(150px + ${y}px))`;
+            
+            // Содержимое аватара
+            if (participant.photo_url && participant.photo_url.trim() !== '') {
+                const img = document.createElement('img');
+                img.src = participant.photo_url;
+                img.alt = participant.first_name;
+                img.style.width = '100%';
+                img.style.height = '100%';
+                img.style.objectFit = 'cover';
+                img.style.borderRadius = '50%';
+                participantElement.appendChild(img);
+                
+                img.onerror = function() {
+                    const initials = this.getInitials(participant.first_name, participant.last_name);
+                    participantElement.innerHTML = `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#222;color:white;border-radius:50%;font-weight:bold;">${initials}</div>`;
+                };
+            } else {
+                const initials = this.getInitials(participant.first_name, participant.last_name);
+                participantElement.innerHTML = `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#222;color:white;border-radius:50%;font-weight:bold;">${initials}</div>`;
+            }
+            
+            participantsContainer.appendChild(participantElement);
+        });
+        
+        // Обновляем фон колеса
         let gradientParts = [];
         for (let i = 0; i < totalParticipants; i++) {
             const startAngle = i * sectorAngle;
@@ -602,86 +659,6 @@ class FortuneWheel {
         }
         
         this.wheelElement.style.background = `conic-gradient(${gradientParts.join(', ')})`;
-        
-        // 2. Добавляем линии-разделители
-        for (let i = 0; i < totalParticipants; i++) {
-            const angle = i * sectorAngle;
-            const line = document.createElement('div');
-            line.style.position = 'absolute';
-            line.style.top = '0';
-            line.style.left = '50%';
-            line.style.width = '2px';
-            line.style.height = '50%';
-            line.style.backgroundColor = 'rgba(255,255,255,0.5)';
-            line.style.transform = `rotate(${angle}deg)`;
-            line.style.transformOrigin = 'bottom center';
-            participantsContainer.appendChild(line);
-        }
-        
-        // 3. Добавляем участников
-        this.participants.forEach((participant, index) => {
-            // Центр сектора
-            const centerAngle = (index * sectorAngle) + (sectorAngle / 2);
-            
-            // Позиция на окружности
-            const angleRad = (centerAngle - 90) * (Math.PI / 180);
-            const radius = 110;
-            
-            const participantElement = document.createElement('div');
-            participantElement.className = 'wheel-participant';
-            participantElement.setAttribute('data-index', index);
-            participantElement.title = `${participant.first_name}`;
-            
-            participantElement.style.position = 'absolute';
-            participantElement.style.width = '50px';
-            participantElement.style.height = '50px';
-            participantElement.style.top = '50%';
-            participantElement.style.left = '50%';
-            participantElement.style.marginLeft = '-25px';
-            participantElement.style.marginTop = '-25px';
-            
-            const x = Math.cos(angleRad) * radius;
-            const y = Math.sin(angleRad) * radius;
-            
-            participantElement.style.transform = `translate(${x}px, ${y}px)`;
-            
-            // Аватар
-            if (participant.photo_url) {
-                const img = document.createElement('img');
-                img.src = participant.photo_url;
-                img.alt = participant.first_name;
-                img.style.width = '100%';
-                img.style.height = '100%';
-                img.style.objectFit = 'cover';
-                img.style.borderRadius = '50%';
-                participantElement.appendChild(img);
-            } else {
-                const initials = this.getInitials(participant.first_name, participant.last_name);
-                participantElement.innerHTML = `<div class="initials">${initials}</div>`;
-            }
-            
-            // Номер сектора (для отладки)
-            const number = document.createElement('div');
-            number.textContent = index;
-            number.style.position = 'absolute';
-            number.style.top = '-25px';
-            number.style.left = '50%';
-            number.style.transform = 'translateX(-50%)';
-            number.style.color = 'white';
-            number.style.fontWeight = 'bold';
-            number.style.background = 'rgba(0,0,0,0.7)';
-            number.style.padding = '2px 6px';
-            number.style.borderRadius = '10px';
-            number.style.fontSize = '12px';
-            participantElement.appendChild(number);
-            
-            participantsContainer.appendChild(participantElement);
-        });
-        
-        // 4. Добавляем индикатор сектора под стрелкой
-        if (this.winnerIndex !== undefined && this.winnerIndex !== null) {
-            this.highlightWinnerSector();
-        }
     }
 
     // Метод для подсветки сектора победителя
