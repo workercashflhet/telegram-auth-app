@@ -66,6 +66,12 @@ router.get('/api/game/state', (req, res) => {
         const game = gameManager.getActiveGame();
         const gameState = game.getGameState();
         
+        // Добавляем время с начала вращения для синхронизации
+        if (gameState.status === 'spinning' && gameState.spinStartedAt) {
+            const spinDuration = Math.floor((new Date() - new Date(gameState.spinStartedAt)) / 1000);
+            gameState.spinDuration = spinDuration;
+        }
+        
         res.json({
             success: true,
             game: gameState
@@ -207,6 +213,30 @@ router.get('/api/user/:userId', (req, res) => {
             success: false,
             error: error.message
         });
+    }
+});
+
+// В routes.js добавить простой эндпоинт для отладки
+router.get('/api/debug/game', (req, res) => {
+    try {
+        const game = gameManager.getActiveGame();
+        if (!game) {
+            return res.json({ success: false, error: 'Нет активной игры' });
+        }
+        
+        res.json({
+            success: true,
+            game: {
+                id: game.id,
+                participants: game.participants,
+                status: game.status,
+                countdown: game.countdown,
+                lastActivity: game.lastActivity,
+                timeSinceLastActivity: Math.floor((new Date() - game.lastActivity) / 1000) + ' сек'
+            }
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
     }
 });
 

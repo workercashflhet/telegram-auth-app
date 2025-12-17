@@ -5,13 +5,16 @@ const userSessions = new Map(); // Хранилище сессий пользо�
 class WheelGame {
     constructor(gameId) {
         this.id = gameId;
-        this.participants = []; // Только реальные пользователи
+        this.participants = [];
         this.status = 'waiting';
         this.countdown = 30;
-        this.winner = null;
+        this.winner = null; // Победитель выбирается на сервере
+        this.winnerIndex = null; // Индекс победителя для анимации
+        this.finalAngle = null; // Угол вращения для всех клиентов
         this.createdAt = new Date();
         this.maxParticipants = 8;
         this.lastActivity = new Date();
+        this.spinStartedAt = null; // Когда началось вращение
     }
     
    // game.js - исправить метод addParticipant
@@ -76,22 +79,43 @@ class WheelGame {
         const secondsPassed = Math.floor((now - this.lastActivity) / 1000);
         this.countdown = Math.max(0, 30 - secondsPassed);
         
-        if (this.countdown <= 0) {
-            // Автоматически запускаем игру
-            this.status = 'spinning';
-            this.lastActivity = new Date();
-            
-            // Выбираем случайного победителя
-            const winnerIndex = Math.floor(Math.random() * this.participants.length);
-            this.winner = this.participants[winnerIndex];
-            
-            console.log(`Игра ${this.id}: автоматический запуск, победитель: ${this.winner.first_name}`);
-            
-            // Через 5 секунд завершаем игру
-            setTimeout(() => {
-                this.finishGame();
-            }, 5000);
+        if (this.countdown <= 0 && this.status === 'counting') {
+            this.startSpinning();
         }
+    }
+
+    // Запустить вращение (сервер определяет победителя)
+    startSpinning() {
+        if (this.participants.length < 2) {
+            this.status = 'waiting';
+            this.countdown = null;
+            return;
+        }
+        
+        this.status = 'spinning';
+        this.spinStartedAt = new Date();
+        this.lastActivity = new Date();
+        
+        // ВАЖНО: Сервер выбирает победителя
+        this.winnerIndex = Math.floor(Math.random() * this.participants.length);
+        this.winner = this.participants[this.winnerIndex];
+        
+        // Рассчитываем конечный угол для всех клиентов
+        const spins = 5;
+        const sectorAngle = 360 / this.participants.length;
+        const extraAngle = Math.random() * sectorAngle; // Немного случайности
+        
+        // Формула для расчета финального угла
+        this.finalAngle = spins * 360 + (this.winnerIndex * sectorAngle) + extraAngle;
+        
+        console.log(`🎰 Игра ${this.id}: запущено вращение!`);
+        console.log(`🏆 Победитель: ${this.winner.first_name} (индекс: ${this.winnerIndex})`);
+        console.log(`📐 Финальный угол: ${this.finalAngle}°`);
+        
+        // Через 5 секунд завершаем игру
+        setTimeout(() => {
+            this.finishGame();
+        }, 5000);
     }
 
     // Убираем метод startGame или переименовываем его
@@ -107,6 +131,9 @@ class WheelGame {
             status: this.status,
             countdown: this.countdown,
             winner: this.winner,
+            winnerIndex: this.winnerIndex,
+            finalAngle: this.finalAngle,
+            spinStartedAt: this.spinStartedAt,
             maxParticipants: this.maxParticipants,
             lastActivity: this.lastActivity
         };
