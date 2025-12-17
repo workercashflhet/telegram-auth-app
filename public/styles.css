@@ -1209,6 +1209,131 @@ body {
     margin-bottom: 20px;
 }
 
+/* ========== УЛУЧШЕННЫЕ СТИЛИ ДЛЯ ПРОФИЛЯ ========== */
+
+/* Основная секция с ID, Premium и Языком */
+.info-section {
+    margin-bottom: 30px;
+}
+
+.info-section h3 {
+    font-size: 1.2rem;
+    color: #fff;
+    font-weight: 600;
+    letter-spacing: 1px;
+}
+
+/* Специальные стили для статусов */
+.info-value.premium {
+    color: gold !important;
+    font-weight: bold;
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+}
+
+.info-value.regular {
+    color: #ccc;
+}
+
+.info-value.demo {
+    color: #ff9900;
+}
+
+.info-value.active {
+    color: #00cc00;
+}
+
+/* Карточка с кнопкой копирования */
+.info-card {
+    position: relative;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 20px;
+    border-radius: 12px;
+    border-left: 4px solid #4ecdc4;
+    transition: all 0.3s ease;
+    height: 100%;
+    min-height: 120px;
+    display: flex;
+    flex-direction: column;
+}
+
+.info-card:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    border-left-color: #ff6b6b;
+}
+
+/* Кнопка копирования */
+.copy-button {
+    background: rgba(78, 205, 196, 0.1);
+    border: 1px solid rgba(78, 205, 196, 0.3);
+    border-radius: 8px;
+    padding: 8px 12px;
+    color: #4ecdc4;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.copy-button:hover {
+    background: rgba(78, 205, 196, 0.3);
+    transform: scale(1.1);
+}
+
+/* Иконка Premium */
+.premium-icon {
+    color: gold;
+    text-shadow: 0 0 10px gold;
+    animation: premiumGlow 2s infinite;
+}
+
+@keyframes premiumGlow {
+    0%, 100% {
+        text-shadow: 0 0 10px gold;
+    }
+    50% {
+        text-shadow: 0 0 20px gold;
+    }
+}
+
+/* Флаг языка */
+.language-flag {
+    font-size: 1.2rem;
+    margin-right: 8px;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .info-section h3 {
+        font-size: 1.1rem;
+    }
+    
+    .info-card {
+        min-height: 110px;
+        padding: 15px;
+    }
+    
+    .info-label {
+        font-size: 0.8rem;
+    }
+    
+    .info-value {
+        font-size: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .info-section > div {
+        grid-template-columns: 1fr !important;
+    }
+    
+    .info-card {
+        min-height: auto;
+    }
+}
+
 @media (max-width: 480px) {
     .profile-avatar {
         width: 100px;

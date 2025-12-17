@@ -418,6 +418,7 @@
     
     // Обновить вкладку профиля
     // Обновить вкладку профиля
+    // Функция для обновления профиля пользователя
     async function updateProfileTab() {
         console.log('🔄 Обновление вкладки профиля...');
         
@@ -500,14 +501,8 @@
         // Обновляем основную информацию
         updateBasicInfo(user);
         
-        // Обновляем статистику
-        updateUserStats(user);
-        
-        // Обновляем информацию о профиле
+        // Обновляем информацию профиля с ID, Premium и языком
         updateProfileInfo(user);
-        
-        // Обновляем Telegram информацию
-        updateTelegramInfo(user);
         
         // Настраиваем бейдж
         updateProfileBadge(user);
@@ -573,44 +568,39 @@
         }
     }
 
-    // Обновить статистику пользователя
-    function updateUserStats(user) {
-        const statGamesPlayed = document.getElementById('statGamesPlayed');
-        const statGamesWon = document.getElementById('statGamesWon');
-        const statWinRate = document.getElementById('statWinRate');
-        
-        if (statGamesPlayed) {
-            const gamesPlayed = user.gamesPlayed || user.totalGames || 0;
-            statGamesPlayed.textContent = gamesPlayed;
-        }
-        
-        if (statGamesWon) {
-            const gamesWon = user.gamesWon || 0;
-            statGamesWon.textContent = gamesWon;
-        }
-        
-        if (statWinRate) {
-            const gamesPlayed = user.gamesPlayed || user.totalGames || 0;
-            const gamesWon = user.gamesWon || 0;
-            const winRate = gamesPlayed > 0 ? Math.round((gamesWon / gamesPlayed) * 100) : 0;
-            statWinRate.textContent = `${winRate}%`;
-        }
-    }
-
-    // Обновить информацию профиля
+    // Обновить информацию профиля (ID, Premium, язык и другие данные)
     function updateProfileInfo(user) {
         const profileInfo = document.getElementById('profileInfo');
         if (!profileInfo) return;
         
         profileInfo.innerHTML = '';
         
-        const infoCards = [
+        // Основная информация - ID, Premium, Язык всегда наверху
+        const primaryInfoCards = [
             {
-                label: 'ID пользователя',
+                label: 'Telegram ID',
                 value: user.id,
                 icon: '🆔',
-                copyable: true
+                copyable: true,
+                description: 'Уникальный идентификатор'
             },
+            {
+                label: 'Premium статус',
+                value: user.is_premium ? '✅ Активен' : '❌ Не активен',
+                icon: '⭐',
+                specialClass: user.is_premium ? 'premium' : 'regular',
+                description: user.is_premium ? 'Премиум подписка активна' : 'Бесплатная версия'
+            },
+            {
+                label: 'Язык интерфейса',
+                value: getLanguageName(user.language_code),
+                icon: '🌐',
+                description: user.language_code ? `Код: ${user.language_code.toUpperCase()}` : 'Не указан'
+            }
+        ];
+        
+        // Дополнительная информация
+        const secondaryInfoCards = [
             {
                 label: 'Имя',
                 value: user.first_name || 'Не указано',
@@ -622,15 +612,10 @@
                 icon: '👥'
             },
             {
-                label: 'Telegram Username',
+                label: 'Username',
                 value: user.username ? `@${user.username}` : 'Не установлен',
                 icon: '📛',
                 copyable: !!user.username
-            },
-            {
-                label: 'Язык интерфейса',
-                value: user.language_code ? user.language_code.toUpperCase() : 'RU',
-                icon: '🌐'
             },
             {
                 label: 'Дата регистрации',
@@ -644,42 +629,81 @@
             },
             {
                 label: 'Статус аккаунта',
-                value: user.is_demo ? 'Демо-режим' : 'Активный',
+                value: user.is_demo ? 'Демо-режим' : 'Реальный аккаунт',
                 icon: '🔐',
                 specialClass: user.is_demo ? 'demo' : 'active'
             }
         ];
         
-        infoCards.forEach(card => {
-            const cardElement = document.createElement('div');
-            cardElement.className = 'info-card';
-            
-            let valueHtml = `<div class="info-value ${card.specialClass || ''}">${card.value}</div>`;
-            
-            if (card.copyable) {
-                valueHtml = `
-                    <div style="display: flex; align-items: center; justify-content: space-between;">
-                        <div class="info-value">${card.value}</div>
-                        <button class="copy-button" 
-                                onclick="copyToClipboard('${card.value.replace("'", "\\'")}')"
-                                title="Копировать"
-                                style="background: none; border: none; color: #4ecdc4; cursor: pointer; padding: 5px;">
-                            <i class="far fa-copy"></i>
-                        </button>
-                    </div>
-                `;
-            }
-            
-            cardElement.innerHTML = `
+        // Создаем заголовок для основной информации
+        const primarySection = document.createElement('div');
+        primarySection.className = 'info-section';
+        primarySection.innerHTML = `
+            <h3 style="color: #fff; margin: 25px 0 15px 0; padding-bottom: 10px; border-bottom: 2px solid #4ecdc4;">
+                📊 Основная информация
+            </h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px;">
+        `;
+        
+        // Добавляем карточки основной информации
+        primaryInfoCards.forEach(card => {
+            primarySection.innerHTML += createInfoCardHTML(card);
+        });
+        
+        primarySection.innerHTML += `</div>`;
+        profileInfo.appendChild(primarySection);
+        
+        // Создаем заголовок для дополнительной информации
+        const secondarySection = document.createElement('div');
+        secondarySection.className = 'info-section';
+        secondarySection.innerHTML = `
+            <h3 style="color: #fff; margin: 30px 0 15px 0; padding-bottom: 10px; border-bottom: 2px solid #4ecdc4;">
+                📝 Дополнительная информация
+            </h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px;">
+        `;
+        
+        // Добавляем карточки дополнительной информации
+        secondaryInfoCards.forEach(card => {
+            secondarySection.innerHTML += createInfoCardHTML(card);
+        });
+        
+        secondarySection.innerHTML += `</div>`;
+        profileInfo.appendChild(secondarySection);
+    }
+
+    // Вспомогательная функция для создания HTML карточки
+    function createInfoCardHTML(card) {
+        let valueHtml = `
+            <div class="info-value ${card.specialClass || ''}">
+                ${card.value}
+            </div>
+        `;
+        
+        if (card.copyable) {
+            valueHtml = `
+                <div style="display: flex; align-items: center; justify-content: space-between;">
+                    <div class="info-value ${card.specialClass || ''}">${card.value}</div>
+                    <button class="copy-button" 
+                            onclick="copyToClipboard('${card.value.replace("'", "\\'").replace('@', '')}')"
+                            title="Копировать"
+                            style="background: none; border: none; color: #4ecdc4; cursor: pointer; padding: 5px; font-size: 1.2rem;">
+                        <i class="far fa-copy"></i>
+                    </button>
+                </div>
+            `;
+        }
+        
+        return `
+            <div class="info-card">
                 <div class="info-label">
                     <span class="icon">${card.icon}</span>
                     ${card.label}
                 </div>
                 ${valueHtml}
-            `;
-            
-            profileInfo.appendChild(cardElement);
-        });
+                ${card.description ? `<div style="font-size: 0.8rem; color: #666; margin-top: 5px;">${card.description}</div>` : ''}
+            </div>
+        `;
     }
 
     // Обновить информацию Telegram
@@ -697,13 +721,21 @@
                 label: 'Telegram ID',
                 value: user.id,
                 icon: '🤖',
-                copyable: true
+                copyable: true,
+                description: 'Уникальный ID в Telegram'
             },
             {
                 label: 'Premium статус',
                 value: user.is_premium ? '✅ Активен' : '❌ Не активен',
                 icon: '⭐',
-                specialClass: user.is_premium ? 'premium' : 'regular'
+                specialClass: user.is_premium ? 'premium' : 'regular',
+                description: user.is_premium ? 'Имеет премиум подписку' : 'Стандартный аккаунт'
+            },
+            {
+                label: 'Язык интерфейса',
+                value: getLanguageName(user.language_code),
+                icon: '🌐',
+                description: user.language_code ? `Код: ${user.language_code.toUpperCase()}` : 'Не указан'
             },
             {
                 label: 'Доступ к ЛС',
@@ -720,44 +752,11 @@
                 label: 'Дата авторизации',
                 value: user.auth_date ? new Date(user.auth_date).toLocaleString('ru-RU') : 'Неизвестно',
                 icon: '📱'
-            },
-            {
-                label: 'Query ID',
-                value: user.query_id || 'Неизвестно',
-                icon: '🔑',
-                copyable: !!user.query_id
             }
         ];
         
         telegramCards.forEach(card => {
-            const cardElement = document.createElement('div');
-            cardElement.className = 'info-card';
-            
-            let valueHtml = `<div class="info-value ${card.specialClass || ''}">${card.value}</div>`;
-            
-            if (card.copyable) {
-                valueHtml = `
-                    <div style="display: flex; align-items: center; justify-content: space-between;">
-                        <div class="info-value">${card.value}</div>
-                        <button class="copy-button" 
-                                onclick="copyToClipboard('${card.value.replace("'", "\\'")}')"
-                                title="Копировать"
-                                style="background: none; border: none; color: #0088cc; cursor: pointer; padding: 5px;">
-                            <i class="far fa-copy"></i>
-                        </button>
-                    </div>
-                `;
-            }
-            
-            cardElement.innerHTML = `
-                <div class="info-label">
-                    <span class="icon">${card.icon}</span>
-                    ${card.label}
-                </div>
-                ${valueHtml}
-            `;
-            
-            telegramGrid.appendChild(cardElement);
+            telegramGrid.innerHTML += createInfoCardHTML(card);
         });
     }
 
@@ -774,7 +773,7 @@
                 badgeText.textContent = 'ДЕМО РЕЖИМ';
             } else {
                 dataBadge.className = 'status-badge badge-telegram';
-                badgeText.textContent = 'TELEGRAM АККАУНТ';
+                badgeText.textContent = user.is_premium ? 'TELEGRAM PREMIUM' : 'TELEGRAM АККАУНТ';
             }
         }
     }
@@ -813,7 +812,33 @@
         }
     }
 
-    // Вспомогательные функции
+    // ===================== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ =====================
+
+    // Функция для получения названия языка по коду
+    function getLanguageName(languageCode) {
+        if (!languageCode) return 'Не указан';
+        
+        const languages = {
+            'ru': 'Русский 🇷🇺',
+            'en': 'Английский 🇺🇸',
+            'es': 'Испанский 🇪🇸',
+            'fr': 'Французский 🇫🇷',
+            'de': 'Немецкий 🇩🇪',
+            'it': 'Итальянский 🇮🇹',
+            'pt': 'Португальский 🇵🇹',
+            'ar': 'Арабский 🇸🇦',
+            'zh': 'Китайский 🇨🇳',
+            'ja': 'Японский 🇯🇵',
+            'ko': 'Корейский 🇰🇷',
+            'tr': 'Турецкий 🇹🇷',
+            'uk': 'Украинский 🇺🇦',
+            'be': 'Белорусский 🇧🇾',
+            'kk': 'Казахский 🇰🇿'
+        };
+        
+        return languages[languageCode.toLowerCase()] || `${languageCode.toUpperCase()} (${languageCode})`;
+    }
+
     function formatChatType(chatType) {
         const types = {
             'private': 'Личный чат',
@@ -1042,8 +1067,9 @@
     // Добавьте эти функции в конец скрипта в index.html:
 
 // Обновить компактный профиль
+// Обновить компактный профиль
 function updateCompactProfile() {
-    const user = window.currentUser || currentUser;
+    const user = window.currentUser;
     const compactProfile = document.getElementById('compactProfile');
     const compactAvatar = document.getElementById('compactAvatar');
     const compactPhoto = document.getElementById('compactPhoto');
@@ -1068,8 +1094,24 @@ function updateCompactProfile() {
         
         // Обновляем имя и статус
         compactName.textContent = `${user.first_name} ${user.last_name || ''}`.trim();
-        compactStatus.textContent = user.username ? `@${user.username}` : 'В сети';
-        compactStatus.style.color = '#4ecdc4';
+        
+        // Статус с информацией о Premium
+        if (user.is_premium) {
+            compactStatus.innerHTML = `<span style="color: gold;">⭐ Premium</span> | @${user.username || 'без username'}`;
+            compactStatus.style.color = '#4ecdc4';
+        } else {
+            compactStatus.textContent = user.username ? `@${user.username}` : 'Без username';
+            compactStatus.style.color = '#666';
+        }
+        
+        // Добавляем индикатор Premium в аватар
+        if (user.is_premium) {
+            compactAvatar.style.borderColor = 'gold';
+            compactAvatar.style.boxShadow = '0 0 10px rgba(255, 215, 0, 0.5)';
+        } else {
+            compactAvatar.style.borderColor = '#4ecdc4';
+            compactAvatar.style.boxShadow = 'none';
+        }
         
         // Показываем профиль
         compactProfile.style.display = 'flex';
@@ -1081,6 +1123,8 @@ function updateCompactProfile() {
         compactName.textContent = 'Гость';
         compactStatus.textContent = 'Не авторизован';
         compactStatus.style.color = '#ff6b6b';
+        compactAvatar.style.borderColor = '#333';
+        compactAvatar.style.boxShadow = 'none';
     }
 }
 
@@ -1132,7 +1176,21 @@ document.addEventListener('DOMContentLoaded', () => {
         showStatus('⚠️ Откройте через Telegram бота для реальной авторизации', 'error');
     }
     
-    // ... остальной код ...
+    window.addEventListener('userChanged', () => {
+        console.log('🔄 Событие userChanged, обновляем профиль...');
+        updateProfileTab();
+        updateCompactProfile();
+    });
+    
+    // Принудительно обновляем профиль при переключении на вкладку
+    document.addEventListener('visibilitychange', () => {
+        if (!document.hidden && document.getElementById('profileTab')?.classList.contains('active')) {
+            console.log('🔄 Видимость изменена, обновляем профиль...');
+            setTimeout(() => {
+                updateProfileTab();
+            }, 500);
+        }
+    });
 });
 
 // Автоматическое обновление состояния игры
