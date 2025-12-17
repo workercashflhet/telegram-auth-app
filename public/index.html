@@ -22,11 +22,20 @@
             <div id="statusMessage" class="status-message">
                 <span id="statusText">Нажмите кнопку для входа</span>
             </div>
+            
+            <div id="telegramStatus" class="status-message" style="display: none;">
+                <span id="telegramStatusText"></span>
+            </div>
         </div>
         
         <!-- Экран профиля -->
         <div id="profileScreen" class="profile-screen">
             <div class="profile-header">
+                <!-- Бейдж реальных/демо данных -->
+                <div id="dataBadge" class="data-badge demo">
+                    <span id="badgeText">ДЕМО РЕЖИМ</span>
+                </div>
+                
                 <div id="profilePhotoContainer" class="profile-photo-container">
                     <div id="profileInitials" class="profile-initials">T</div>
                     <img id="profilePhoto" class="profile-photo" style="display: none;">
@@ -41,16 +50,24 @@
                     <!-- Информация будет добавлена динамически -->
                 </div>
                 
-                <button id="logoutButton" class="logout-button">
-                    <span class="icon">🚪</span>
-                    ВЫЙТИ
-                </button>
+                <div class="profile-actions">
+                    <button id="logoutButton" class="logout-button">
+                        <span class="icon">🚪</span>
+                        ВЫЙТИ
+                    </button>
+                    
+                    <button id="refreshButton" class="refresh-button" onclick="location.reload()">
+                        <span class="icon">🔄</span>
+                        ОБНОВИТЬ
+                    </button>
+                </div>
             </div>
         </div>
         
         <!-- Футер -->
         <div class="app-footer">
-            <div>Telegram Auth • Минимализм • Безопасность</div>
+            <div>Telegram Auth • Безопасная авторизация</div>
+            <div id="appInfo" style="font-size: 0.8rem; color: #999; margin-top: 5px;"></div>
         </div>
     </div>
 
@@ -58,6 +75,7 @@
         // Telegram WebApp
         let tg = null;
         let currentUser = null;
+        let isTelegramApp = false;
         
         // Элементы DOM
         const loginScreen = document.getElementById('loginScreen');
@@ -66,6 +84,11 @@
         const logoutButton = document.getElementById('logoutButton');
         const statusMessage = document.getElementById('statusMessage');
         const statusText = document.getElementById('statusText');
+        const telegramStatus = document.getElementById('telegramStatus');
+        const telegramStatusText = document.getElementById('telegramStatusText');
+        const dataBadge = document.getElementById('dataBadge');
+        const badgeText = document.getElementById('badgeText');
+        const appInfo = document.getElementById('appInfo');
         
         // Инициализация Telegram
         function initTelegram() {
@@ -75,22 +98,38 @@
                 tg.ready();
                 tg.setHeaderColor('#000000');
                 tg.setBackgroundColor('#000000');
+                isTelegramApp = true;
+                
+                showTelegramStatus('✅ Telegram WebApp обнаружен', 'success');
+                
+                // Проверяем, есть ли данные авторизации
+                if (tg.initData) {
+                    showTelegramStatus('Данные авторизации получены', 'success');
+                    // Автоматический вход через 1 секунду
+                    setTimeout(() => {
+                        showStatus('Автоматический вход...', 'loading');
+                        login();
+                    }, 1000);
+                } else {
+                    showTelegramStatus('Нажмите "Войти" для авторизации', 'info');
+                }
+                
                 return true;
             }
             return false;
         }
         
-        // Показать статус
+        // Показать статус Telegram
+        function showTelegramStatus(message, type = 'info') {
+            telegramStatusText.textContent = message;
+            telegramStatus.className = `status-message status-${type}`;
+            telegramStatus.style.display = 'block';
+        }
+        
+        // Показать общий статус
         function showStatus(message, type = 'info') {
             statusText.textContent = message;
             statusMessage.className = `status-message status-${type} visible`;
-            
-            // Автоскрытие информационных сообщений
-            if (type === 'loading') {
-                setTimeout(() => {
-                    statusMessage.classList.remove('visible');
-                }, 5000);
-            }
         }
         
         // Скрыть статус
@@ -98,7 +137,7 @@
             statusMessage.classList.remove('visible');
         }
         
-        // Получить инициалы для аватара
+        // Получить инициалы
         function getInitials(firstName, lastName) {
             const first = firstName ? firstName.charAt(0).toUpperCase() : 'T';
             const last = lastName ? lastName.charAt(0).toUpperCase() : '';
@@ -110,17 +149,16 @@
             showStatus('Выполняется вход...', 'loading');
             loginButton.disabled = true;
             
-            let initData = 'telegram_auth_' + Date.now();
+            let initData = '';
             if (tg && tg.initData) {
                 initData = tg.initData;
+                console.log('Используем данные Telegram WebApp');
             }
             
             try {
                 const response = await fetch('/api/auth', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ initData })
                 });
                 
@@ -128,9 +166,23 @@
                 
                 if (data.success) {
                     currentUser = data.user;
+                    
+                    // Показываем источник данных
+                    if (data.source === 'telegram') {
+                        dataBadge.className = 'data-badge real';
+                        badgeText.textContent = 'REAL TELEGRAM DATA';
+                        showStatus('✅ Авторизация через Telegram успешна', 'success');
+                        appInfo.textContent = '✅ Реальные данные Telegram';
+                    } else {
+                        dataBadge.className = 'data-badge demo';
+                        badgeText.textContent = 'ДЕМО РЕЖИМ';
+                        showStatus('⚠️ Демо-режим. Откройте через Telegram бота', 'info');
+                        appInfo.textContent = '⚠️ Демо-данные. Откройте через Telegram бота для реальной авторизации';
+                    }
+                    
                     showProfile(currentUser);
-                    showStatus('✅ Вход выполнен успешно', 'success');
-                    setTimeout(hideStatus, 2000);
+                    setTimeout(hideStatus, 3000);
+                    
                 } else {
                     showStatus(`❌ ${data.error || 'Ошибка входа'}`, 'error');
                     loginButton.disabled = false;
@@ -139,54 +191,36 @@
             } catch (error) {
                 showStatus(`❌ Ошибка сети: ${error.message}`, 'error');
                 loginButton.disabled = false;
-                
-                // Демо-режим при ошибке сети
-                setTimeout(() => {
-                    const demoUser = {
-                        id: 123456789,
-                        first_name: 'Telegram',
-                        last_name: 'User',
-                        username: 'telegram_user',
-                        language_code: 'ru',
-                        is_premium: true,
-                        allows_write_to_pm: true,
-                        photo_url: 'https://via.placeholder.com/150/000000/FFFFFF?text=TG',
-                        auth_date: new Date().toISOString(),
-                        query_id: 'demo_query_id',
-                        chat_type: 'private',
-                        chat_instance: 'demo_chat_instance'
-                    };
-                    currentUser = demoUser;
-                    showProfile(currentUser);
-                    showStatus('✅ Демо-вход выполнен', 'success');
-                    setTimeout(hideStatus, 2000);
-                }, 500);
             }
         }
         
         // Показать профиль
         function showProfile(user) {
-            // Обновляем фото профиля
+            // Обновляем фото
             const profilePhoto = document.getElementById('profilePhoto');
             const profileInitials = document.getElementById('profileInitials');
             const userName = document.getElementById('userName');
             const userUsername = document.getElementById('userUsername');
             
-            // Устанавливаем фото или инициалы
             if (user.photo_url) {
                 profilePhoto.src = user.photo_url;
                 profilePhoto.style.display = 'block';
                 profileInitials.style.display = 'none';
+                profilePhoto.onerror = function() {
+                    // Если фото не загружается, показываем инициалы
+                    profilePhoto.style.display = 'none';
+                    profileInitials.textContent = getInitials(user.first_name, user.last_name);
+                    profileInitials.style.display = 'block';
+                };
             } else {
-                const initials = getInitials(user.first_name, user.last_name);
-                profileInitials.textContent = initials;
+                profileInitials.textContent = getInitials(user.first_name, user.last_name);
                 profileInitials.style.display = 'block';
                 profilePhoto.style.display = 'none';
             }
             
             // Устанавливаем имя
             const fullName = `${user.first_name || ''} ${user.last_name || ''}`.trim();
-            userName.textContent = fullName || 'Telegram User';
+            userName.textContent = fullName || 'Пользователь Telegram';
             userUsername.textContent = user.username ? `@${user.username}` : 'Без username';
             
             // Заполняем информацию
@@ -194,12 +228,15 @@
             infoGrid.innerHTML = '';
             
             const infoItems = [
-                { label: 'ID', value: user.id, icon: '🆔' },
+                { label: 'ID пользователя', value: user.id, icon: '🆔' },
+                { label: 'Имя', value: user.first_name || '—', icon: '👤' },
+                { label: 'Фамилия', value: user.last_name || '—', icon: '👥' },
+                { label: 'Username', value: user.username ? '@' + user.username : '—', icon: '📛' },
                 { label: 'Язык', value: user.language_code?.toUpperCase() || 'RU', icon: '🌐' },
-                { label: 'Premium', value: user.is_premium ? 'Активен' : 'Не активен', icon: '⭐' },
-                { label: 'Статус', value: user.allows_write_to_pm ? 'Online' : 'Offline', icon: '💬' },
-                { label: 'Тип аккаунта', value: 'Telegram', icon: '📱' },
-                { label: 'Дата входа', value: new Date().toLocaleDateString('ru-RU'), icon: '📅' }
+                { label: 'Premium', value: user.is_premium ? '✅ Активен' : '❌ Не активен', icon: '⭐' },
+                { label: 'Доступ к ЛС', value: user.allows_write_to_pm ? '✅ Разрешен' : '❌ Запрещен', icon: '💬' },
+                { label: 'Дата авторизации', value: new Date(user.auth_date).toLocaleString('ru-RU'), icon: '📅' },
+                { label: 'Тип чата', value: user.chat_type || 'private', icon: '💭' }
             ];
             
             infoItems.forEach(item => {
@@ -218,43 +255,33 @@
             // Переключаем экраны
             loginScreen.style.display = 'none';
             profileScreen.style.display = 'block';
-            
-            // Включаем анимацию
             profileScreen.style.animation = 'fadeIn 0.5s ease';
         }
         
         // Выйти
         function logout() {
             currentUser = null;
-            
-            // Переключаем экраны
             profileScreen.style.display = 'none';
             loginScreen.style.display = 'block';
-            
-            // Сбрасываем кнопку
             loginButton.disabled = false;
             loginButton.classList.add('pulse');
-            
-            // Показываем сообщение
+            dataBadge.className = 'data-badge demo';
+            badgeText.textContent = 'ДЕМО РЕЖИМ';
+            appInfo.textContent = '';
             showStatus('Вы вышли из аккаунта', 'success');
             setTimeout(hideStatus, 2000);
         }
         
-        // Инициализация при загрузке
+        // Инициализация
         document.addEventListener('DOMContentLoaded', () => {
-            if (initTelegram()) {
-                showStatus('Telegram WebApp готов к работе', 'success');
-                setTimeout(hideStatus, 2000);
-                
-                // Если уже есть данные авторизации, пытаемся войти автоматически
-                if (tg.initData) {
-                    setTimeout(login, 1000);
-                }
-            } else {
-                showStatus('⚠️ Откройте через Telegram бота', 'error');
+            initTelegram();
+            
+            if (!isTelegramApp) {
+                showTelegramStatus('⚠️ Откройте приложение через Telegram бота для реальной авторизации', 'error');
+                appInfo.textContent = '⚠️ Демо-режим. Для реальной авторизации откройте через Telegram бота';
             }
             
-            // Обработчики событий
+            // Обработчики
             loginButton.addEventListener('click', login);
             logoutButton.addEventListener('click', logout);
         });

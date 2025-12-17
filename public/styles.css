@@ -287,4 +287,65 @@ body {
     .info-grid {
         grid-template-columns: 1fr;
     }
+
+    /* Бейдж реальных/демо данных */
+.data-badge {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 1px;
+    z-index: 10;
+}
+
+.data-badge.real {
+    background-color: #00cc00;
+    color: #000000;
+    animation: pulseGreen 2s infinite;
+}
+
+.data-badge.demo {
+    background-color: #ff9900;
+    color: #000000;
+    animation: pulseOrange 2s infinite;
+}
+
+@keyframes pulseGreen {
+    0% { box-shadow: 0 0 0 0 rgba(0, 204, 0, 0.4); }
+    70% { box-shadow: 0 0 0 10px rgba(0, 204, 0, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(0, 204, 0, 0); }
+}
+
+@keyframes pulseOrange {
+    0% { box-shadow: 0 0 0 0 rgba(255, 153, 0, 0.4); }
+    70% { box-shadow: 0 0 0 10px rgba(255, 153, 0, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(255, 153, 0, 0); }
+}
+
+/* Кнопка обновления */
+.profile-actions {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    margin-top: 30px;
+}
+
+.refresh-button {
+    background-color: transparent;
+    color: #000000;
+    border: 2px solid #000000;
+    padding: 15px 30px;
+    font-size: 1rem;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.refresh-button:hover {
+    background-color: #000000;
+    color: #ffffff;
+}
 }

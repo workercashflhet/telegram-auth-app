@@ -1,43 +1,66 @@
 const express = require('express');
 const router = express.Router();
-const { validateTelegramData } = require('./utils/auth');
+const { validateTelegramData, generateDemoData } = require('./utils/auth');
 
 // Главная страница
 router.get('/', (req, res) => {
   res.sendFile('index.html', { root: './public' });
 });
 
-// API эндпоинт для проверки авторизации
-router.post('/api/validate', async (req, res) => {
+// Проверка сервера
+router.get('/api/test', (req, res) => {
+  res.json({
+    status: 'ok',
+    message: 'Telegram Auth Server',
+    timestamp: new Date().toISOString(),
+    botToken: process.env.BOT_TOKEN ? '✅ Настроен' : '❌ Не настроен',
+    environment: process.env.NODE_ENV || 'development'
+  });
+});
+
+// Реальная авторизация Telegram
+router.post('/api/auth', (req, res) => {
   try {
     const { initData } = req.body;
     
     if (!initData) {
-      return res.status(400).json({ 
-        success: false, 
-        error: 'Отсутствуют данные авторизации' 
+      return res.status(400).json({
+        success: false,
+        error: 'Отсутствуют данные авторизации',
+        user: generateDemoData()
       });
     }
 
+    // Валидируем реальные данные Telegram
     const userData = validateTelegramData(initData);
     
-    if (!userData) {
-      return res.status(401).json({ 
-        success: false, 
-        error: 'Недействительные данные авторизации' 
+    if (userData) {
+      // Реальные данные Telegram
+      console.log('✅ Реальная авторизация Telegram:', userData.id);
+      return res.json({
+        success: true,
+        user: userData,
+        source: 'telegram',
+        message: 'Авторизация через Telegram успешна'
+      });
+    } else {
+      // Демо-данные (если нет валидных данных Telegram)
+      console.log('⚠️ Демо-авторизация');
+      const demoUser = generateDemoData();
+      return res.json({
+        success: true,
+        user: demoUser,
+        source: 'demo',
+        message: 'Демо-режим. Откройте через Telegram бота для реальной авторизации'
       });
     }
 
-    res.json({
-      success: true,
-      user: userData
-    });
-
   } catch (error) {
-    console.error('Ошибка при валидации данных:', error);
-    res.status(500).json({ 
-      success: false, 
-      error: 'Внутренняя ошибка сервера' 
+    console.error('Auth error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Ошибка сервера',
+      user: generateDemoData()
     });
   }
 });
@@ -48,44 +71,30 @@ router.get('/api/bot-info', async (req, res) => {
     const botToken = process.env.BOT_TOKEN;
     
     if (!botToken) {
-      return res.status(500).json({
+      return res.json({
         success: false,
-        error: 'Токен бота не настроен'
+        error: 'Токен бота не настроен',
+        instructions: 'Добавьте BOT_TOKEN в настройках Vercel'
       });
     }
 
-    // Получаем информацию о боте
+    // Получаем реальную информацию о боте
     const response = await fetch(`https://api.telegram.org/bot${botToken}/getMe`);
     const data = await response.json();
     
-    if (!data.ok) {
-      return res.status(500).json({
-        success: false,
-        error: 'Не удалось получить информацию о боте'
-      });
-    }
-
     res.json({
-      success: true,
-      bot: data.result
+      success: data.ok,
+      bot: data.ok ? data.result : null,
+      error: data.ok ? null : data.description
     });
 
   } catch (error) {
-    console.error('Ошибка при получении информации о боте:', error);
-    res.status(500).json({
+    res.json({
       success: false,
-      error: 'Внутренняя ошибка сервера'
+      error: error.message,
+      bot: null
     });
   }
-});
-
-// Health check для Vercel
-router.get('/api/health', (req, res) => {
-  res.json({ 
-    status: 'ok', 
-    timestamp: new Date().toISOString(),
-    service: 'Telegram Auth App'
-  });
 });
 
 module.exports = router;
