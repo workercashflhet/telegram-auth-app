@@ -1013,18 +1013,18 @@ body {
 }
 
 /* Вкладка Главная (Колесо фортуны) */
-/* Обновленные стили для контейнера колеса
+ /* Обновленные стили для контейнера колеса */
 .wheel-container {
-    background-color: rgba(17, 17, 17, 0.7) !important; /* Было #111, стало прозрачнее */
-    /* backdrop-filter: blur(10px); /* Дополнительный эффект размытия */
-    /* border-radius: 20px;
+    background-color: rgba(17, 17, 17, 0.7) !important; 
+    backdrop-filter: blur(10px); 
+    border-radius: 20px;
     padding: 30px;
     margin-bottom: 20px;
-    border: 1px solid rgba(255, 255, 255, 0.1); Полупрозрачная граница */
-    /* box-shadow: 
+    border: 1px solid rgba(255, 255, 255, 0.1); 
+    box-shadow: 
         0 10px 30px rgba(0, 0, 0, 0.3),
-        inset 0 1px 0 rgba(255, 255, 255, 0.1); Внутреннее свечение */ */
-/* } */
+        inset 0 1px 0 rgba(255, 255, 255, 0.1); е 
+}
 
 /* Градиентная прозрачность */
 .wheel-container.gradient-transparent {
