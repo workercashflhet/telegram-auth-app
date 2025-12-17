@@ -115,22 +115,25 @@ router.get('/api/sync', (req, res) => {
 
 // Присоединиться к игре
 // routes.js - исправить маршрут /api/game/join
+// Присоединиться к игре
 router.post('/api/game/join', (req, res) => {
     try {
-        const { userId, userData } = req.body;
+        let { userId, userData } = req.body; // ← Измените const на let
         
         console.log('🔄 Запрос на присоединение к игре:', { userId, userData: userData ? 'предоставлен' : 'не предоставлен' });
         
         let user = null;
+        let effectiveUserId = userId; // ← Создаем новую переменную
         
         // Если предоставлен userData, регистрируем пользователя
         if (userData) {
             console.log('📝 Регистрируем пользователя из данных запроса:', userData.id, userData.first_name);
             user = gameManager.registerUser(userData);
-            userId = userData.id;
+            effectiveUserId = userData.id; // ← Используем новую переменную
         } else if (userId) {
             // Ищем существующего пользователя
             user = gameManager.getUser(userId);
+            effectiveUserId = userId; // ← Используем новую переменную
             console.log('👤 Найден пользователь по ID:', userId, user ? 'да' : 'нет');
         }
         
@@ -142,7 +145,7 @@ router.post('/api/game/join', (req, res) => {
             });
         }
         
-        console.log(`👤 Пользователь для игры: ${user.first_name} (ID: ${user.id})`);
+        console.log(`👤 Пользователь для игры: ${user.first_name} (ID: ${effectiveUserId})`);
         
         // Получаем активную игру
         const game = gameManager.getActiveGame();
@@ -155,7 +158,7 @@ router.post('/api/game/join', (req, res) => {
         
         if (result.success) {
             // Увеличиваем счетчик игр пользователя
-            gameManager.incrementUserGames(userId);
+            gameManager.incrementUserGames(effectiveUserId); // ← Используем effectiveUserId
             
             res.json({
                 success: true,
