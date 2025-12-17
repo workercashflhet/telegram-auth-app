@@ -1,4 +1,4 @@
-/* public/styles.css - ОДНА КНОПКА ВХОДА */
+/* public/styles.css */
 * {
     margin: 0;
     padding: 0;
@@ -6,95 +6,390 @@
 }
 
 body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     background-color: #000000;
     color: #ffffff;
     min-height: 100vh;
+}
+
+/* Навигация */
+.app-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: #111;
     display: flex;
-    justify-content: center;
+    justify-content: space-around;
+    padding: 15px 0;
+    border-top: 1px solid #333;
+    z-index: 1000;
+}
+
+.nav-button {
+    background: none;
+    border: none;
+    color: #666;
+    font-size: 0.9rem;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
     align-items: center;
-    padding: 20px;
+    gap: 5px;
+    transition: color 0.3s;
+    padding: 10px;
+}
+
+.nav-button.active {
+    color: #ffffff;
+}
+
+.nav-button .icon {
+    font-size: 1.5rem;
 }
 
 /* Основной контейнер */
 .app-container {
-    width: 100%;
-    max-width: 500px;
-    text-align: center;
-}
-
-/* Экран входа */
-.login-screen {
-    background-color: #ffffff;
-    color: #000000;
-    border-radius: 20px;
-    padding: 50px 40px;
-    box-shadow: 0 10px 40px rgba(255, 255, 255, 0.1);
-    transition: transform 0.5s ease;
-}
-
-.app-title {
-    font-size: 2.5rem;
-    font-weight: 300;
-    letter-spacing: 3px;
-    margin-bottom: 10px;
-    color: #000000;
-}
-
-.app-subtitle {
-    font-size: 1rem;
-    color: #666;
-    margin-bottom: 40px;
-    font-weight: 300;
-}
-
-/* Кнопка входа */
-.login-button {
-    background-color: #000000;
-    color: #ffffff;
-    border: 2px solid #000000;
-    padding: 20px 50px;
-    font-size: 1.2rem;
-    font-weight: 500;
-    border-radius: 50px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    width: 100%;
-    max-width: 300px;
+    max-width: 800px;
     margin: 0 auto;
+    padding: 20px;
+    padding-bottom: 80px; /* Для навигации */
+}
+
+/* Общие стили для вкладок */
+.tab-content {
+    display: none;
+    animation: fadeIn 0.5s ease;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* Заголовки */
+.page-title {
+    text-align: center;
+    font-size: 2rem;
+    font-weight: 300;
+    margin-bottom: 30px;
+    color: #ffffff;
+    letter-spacing: 2px;
+}
+
+/* Вкладка Главная (Колесо фортуны) */
+.wheel-container {
+    background-color: #111;
+    border-radius: 20px;
+    padding: 30px;
+    margin-bottom: 20px;
+}
+
+.wheel-title {
+    text-align: center;
+    font-size: 1.5rem;
+    margin-bottom: 20px;
+    color: #ffffff;
+}
+
+/* Контейнер для колеса */
+.wheel-wrapper {
+    position: relative;
+    width: 300px;
+    height: 300px;
+    margin: 0 auto 30px;
+}
+
+#fortuneWheel {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: conic-gradient(
+        #ff6b6b, #4ecdc4, #45b7d1, #96ceb4, 
+        #ffeaa7, #fab1a0, #a29bfe, #fd79a8
+    );
+    position: relative;
+    transition: transform 5s cubic-bezier(0.17, 0.67, 0.83, 0.67);
+    transform: rotate(0deg);
+    box-shadow: 0 0 30px rgba(255, 255, 255, 0.1);
+}
+
+.wheel-center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 60px;
+    height: 60px;
+    background-color: #000;
+    border-radius: 50%;
+    border: 4px solid #fff;
+    z-index: 10;
+}
+
+.wheel-pointer {
+    position: absolute;
+    top: -20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 40px;
+    height: 40px;
+    font-size: 2rem;
+    z-index: 20;
+}
+
+/* Участники на колесе */
+.wheel-participant {
+    position: absolute;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 3px solid #fff;
+    transform-origin: center;
     display: flex;
     align-items: center;
     justify-content: center;
+    background: #222;
+}
+
+.wheel-participant img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.wheel-participant .initials {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #fff;
+}
+
+/* Таймер игры */
+.game-timer {
+    text-align: center;
+    font-size: 3rem;
+    font-weight: bold;
+    margin: 20px 0;
+    color: #4ecdc4;
+    text-shadow: 0 0 10px rgba(78, 205, 196, 0.5);
+}
+
+.timer-label {
+    font-size: 1rem;
+    color: #666;
+    margin-top: 10px;
+}
+
+/* Кнопки игры */
+.game-controls {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.game-button {
+    background-color: #fff;
+    color: #000;
+    border: none;
+    padding: 15px 30px;
+    border-radius: 50px;
+    font-size: 1.1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 200px;
+    justify-content: center;
+}
+
+.game-button:hover:not(:disabled) {
+    background-color: #4ecdc4;
+    color: #000;
+    transform: translateY(-2px);
+}
+
+.game-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Список участников */
+.participants-list {
+    background-color: #111;
+    border-radius: 15px;
+    padding: 20px;
+    margin-top: 20px;
+}
+
+.participants-title {
+    font-size: 1.2rem;
+    margin-bottom: 15px;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.participants-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
     gap: 15px;
 }
 
-.login-button:hover {
-    background-color: #ffffff;
-    color: #000000;
-    transform: translateY(-3px);
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+.participant-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
 }
 
-.login-button:active {
-    transform: translateY(-1px);
+.participant-avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    overflow: hidden;
+    margin-bottom: 8px;
+    border: 2px solid #333;
 }
 
-.login-button .icon {
-    font-size: 1.5rem;
+.participant-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 
-/* Статус */
+.participant-name {
+    font-size: 0.9rem;
+    color: #fff;
+    max-width: 100px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.no-participants {
+    text-align: center;
+    color: #666;
+    padding: 20px;
+    font-style: italic;
+}
+
+/* Вкладка Профиль */
+.profile-tab {
+    background-color: #111;
+    border-radius: 20px;
+    padding: 30px;
+}
+
+.profile-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.profile-avatar {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    overflow: hidden;
+    margin: 0 auto 20px;
+    border: 4px solid #fff;
+    background-color: #222;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.profile-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.profile-avatar .initials {
+    font-size: 3rem;
+    font-weight: bold;
+    color: #fff;
+}
+
+.profile-name {
+    font-size: 1.8rem;
+    margin-bottom: 5px;
+    color: #fff;
+}
+
+.profile-username {
+    font-size: 1.1rem;
+    color: #666;
+    margin-bottom: 20px;
+}
+
+/* Информация профиля */
+.profile-info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 15px;
+    margin-bottom: 30px;
+}
+
+.info-card {
+    background-color: #222;
+    padding: 20px;
+    border-radius: 10px;
+    border-left: 4px solid #4ecdc4;
+}
+
+.info-label {
+    font-size: 0.8rem;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.info-value {
+    font-size: 1.1rem;
+    color: #fff;
+    font-weight: 500;
+}
+
+/* Статусы */
+.status-badge {
+    display: inline-block;
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    margin-top: 10px;
+}
+
+.badge-real {
+    background-color: #00cc00;
+    color: #000;
+}
+
+.badge-demo {
+    background-color: #ff9900;
+    color: #000;
+}
+
+/* Статус сообщения */
 .status-message {
-    margin-top: 25px;
     padding: 15px;
     border-radius: 10px;
-    font-size: 0.9rem;
+    margin: 15px 0;
     display: none;
+    text-align: center;
 }
 
 .status-message.visible {
     display: block;
-    animation: fadeIn 0.3s ease;
+    animation: fadeIn 0.3s;
 }
 
 .status-success {
@@ -109,137 +404,21 @@ body {
     border: 1px solid rgba(255, 0, 0, 0.2);
 }
 
-.status-loading {
+.status-info {
     background-color: rgba(255, 255, 255, 0.1);
     color: #999;
     border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-/* Экран профиля */
-.profile-screen {
-    display: none;
-    background-color: #ffffff;
-    color: #000000;
-    border-radius: 20px;
-    padding: 40px;
-    box-shadow: 0 10px 40px rgba(255, 255, 255, 0.1);
-    animation: fadeIn 0.5s ease;
-}
-
-.profile-header {
-    margin-bottom: 30px;
-}
-
-.profile-photo-container {
-    width: 150px;
-    height: 150px;
-    margin: 0 auto 25px;
-    border-radius: 50%;
-    overflow: hidden;
-    border: 4px solid #000000;
-    background-color: #f0f0f0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.profile-photo {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.profile-initials {
-    font-size: 3.5rem;
-    font-weight: 300;
-    color: #000000;
-}
-
-.user-name {
-    font-size: 1.8rem;
-    font-weight: 400;
-    margin-bottom: 5px;
-}
-
-.user-username {
-    font-size: 1.1rem;
-    color: #666;
-    margin-bottom: 20px;
-}
-
-/* Информация профиля */
-.profile-info {
-    text-align: left;
-}
-
-.info-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 15px;
-    margin-bottom: 30px;
-}
-
-.info-item {
-    background-color: #f8f8f8;
-    padding: 15px;
-    border-radius: 10px;
-    border-left: 3px solid #000000;
-}
-
-.info-label {
-    font-size: 0.8rem;
-    color: #666;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-bottom: 5px;
-}
-
-.info-value {
-    font-size: 1rem;
-    color: #000000;
-    font-weight: 500;
-}
-
-/* Кнопка выхода */
-.logout-button {
-    background-color: transparent;
-    color: #000000;
-    border: 2px solid #000000;
-    padding: 15px 40px;
-    font-size: 1rem;
-    border-radius: 50px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    width: 100%;
-    max-width: 250px;
-    margin: 0 auto;
-    display: block;
-}
-
-.logout-button:hover {
-    background-color: #000000;
-    color: #ffffff;
-}
-
-/* Футер */
-.app-footer {
-    margin-top: 40px;
-    color: #666;
-    font-size: 0.9rem;
-    padding-top: 20px;
-    border-top: 1px solid #333;
-}
-
 /* Анимации */
 @keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
 }
 
 @keyframes pulse {
@@ -252,100 +431,68 @@ body {
     animation: pulse 2s infinite;
 }
 
+.spin {
+    animation: spin 5s linear infinite;
+}
+
+/* Победитель */
+.winner-section {
+    text-align: center;
+    padding: 20px;
+    background: linear-gradient(135deg, #4ecdc4, #44a08d);
+    border-radius: 15px;
+    margin-top: 20px;
+    display: none;
+}
+
+.winner-section.visible {
+    display: block;
+    animation: fadeIn 0.5s;
+}
+
+.winner-title {
+    font-size: 1.5rem;
+    margin-bottom: 15px;
+    color: #000;
+}
+
+.winner-avatar {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    overflow: hidden;
+    margin: 0 auto 15px;
+    border: 4px solid #000;
+}
+
+.winner-name {
+    font-size: 1.3rem;
+    font-weight: bold;
+    color: #000;
+}
+
 /* Адаптивность */
 @media (max-width: 600px) {
     .app-container {
-        padding: 10px;
+        padding: 15px;
+        padding-bottom: 70px;
     }
     
-    .login-screen {
-        padding: 40px 25px;
+    .wheel-wrapper {
+        width: 250px;
+        height: 250px;
     }
     
-    .profile-screen {
-        padding: 30px 20px;
+    .game-button {
+        min-width: 150px;
+        padding: 12px 20px;
     }
     
-    .app-title {
-        font-size: 2rem;
-    }
-    
-    .login-button {
-        padding: 18px 40px;
-        font-size: 1.1rem;
-    }
-    
-    .profile-photo-container {
-        width: 120px;
-        height: 120px;
-    }
-    
-    .profile-initials {
-        font-size: 2.8rem;
-    }
-    
-    .info-grid {
+    .profile-info-grid {
         grid-template-columns: 1fr;
     }
-
-    /* Бейдж реальных/демо данных */
-.data-badge {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    padding: 8px 16px;
-    border-radius: 20px;
-    font-size: 0.8rem;
-    font-weight: 600;
-    letter-spacing: 1px;
-    z-index: 10;
-}
-
-.data-badge.real {
-    background-color: #00cc00;
-    color: #000000;
-    animation: pulseGreen 2s infinite;
-}
-
-.data-badge.demo {
-    background-color: #ff9900;
-    color: #000000;
-    animation: pulseOrange 2s infinite;
-}
-
-@keyframes pulseGreen {
-    0% { box-shadow: 0 0 0 0 rgba(0, 204, 0, 0.4); }
-    70% { box-shadow: 0 0 0 10px rgba(0, 204, 0, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(0, 204, 0, 0); }
-}
-
-@keyframes pulseOrange {
-    0% { box-shadow: 0 0 0 0 rgba(255, 153, 0, 0.4); }
-    70% { box-shadow: 0 0 0 10px rgba(255, 153, 0, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(255, 153, 0, 0); }
-}
-
-/* Кнопка обновления */
-.profile-actions {
-    display: flex;
-    gap: 15px;
-    justify-content: center;
-    margin-top: 30px;
-}
-
-.refresh-button {
-    background-color: transparent;
-    color: #000000;
-    border: 2px solid #000000;
-    padding: 15px 30px;
-    font-size: 1rem;
-    border-radius: 50px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.refresh-button:hover {
-    background-color: #000000;
-    color: #ffffff;
-}
+    
+    .game-timer {
+        font-size: 2.5rem;
+    }
 }

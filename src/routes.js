@@ -1,100 +1,131 @@
 const express = require('express');
 const router = express.Router();
 const { validateTelegramData, generateDemoData } = require('./utils/auth');
+const { gameManager } = require('./utils/game');
 
 // Главная страница
 router.get('/', (req, res) => {
-  res.sendFile('index.html', { root: './public' });
+    res.sendFile('index.html', { root: './public' });
 });
 
 // Проверка сервера
 router.get('/api/test', (req, res) => {
-  res.json({
-    status: 'ok',
-    message: 'Telegram Auth Server',
-    timestamp: new Date().toISOString(),
-    botToken: process.env.BOT_TOKEN ? '✅ Настроен' : '❌ Не настроен',
-    environment: process.env.NODE_ENV || 'development'
-  });
+    res.json({
+        status: 'ok',
+        message: 'Wheel of Fortune Server',
+        timestamp: new Date().toISOString(),
+        botToken: process.env.BOT_TOKEN ? '✅ Настроен' : '❌ Не настроен'
+    });
 });
 
-// Реальная авторизация Telegram
+// Авторизация
 router.post('/api/auth', (req, res) => {
-  try {
-    const { initData } = req.body;
-    
-    if (!initData) {
-      return res.status(400).json({
-        success: false,
-        error: 'Отсутствуют данные авторизации',
-        user: generateDemoData()
-      });
-    }
+    try {
+        const { initData } = req.body;
+        
+        if (!initData) {
+            return res.status(400).json({
+                success: false,
+                error: 'Нет данных авторизации',
+                user: generateDemoData()
+            });
+        }
 
-    // Валидируем реальные данные Telegram
-    const userData = validateTelegramData(initData);
-    
-    if (userData) {
-      // Реальные данные Telegram
-      console.log('✅ Реальная авторизация Telegram:', userData.id);
-      return res.json({
-        success: true,
-        user: userData,
-        source: 'telegram',
-        message: 'Авторизация через Telegram успешна'
-      });
-    } else {
-      // Демо-данные (если нет валидных данных Telegram)
-      console.log('⚠️ Демо-авторизация');
-      const demoUser = generateDemoData();
-      return res.json({
-        success: true,
-        user: demoUser,
-        source: 'demo',
-        message: 'Демо-режим. Откройте через Telegram бота для реальной авторизации'
-      });
-    }
+        const userData = validateTelegramData(initData);
+        
+        if (userData) {
+            return res.json({
+                success: true,
+                user: userData,
+                source: 'telegram'
+            });
+        } else {
+            const demoUser = generateDemoData();
+            return res.json({
+                success: true,
+                user: demoUser,
+                source: 'demo'
+            });
+        }
 
-  } catch (error) {
-    console.error('Auth error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Ошибка сервера',
-      user: generateDemoData()
-    });
-  }
+    } catch (error) {
+        console.error('Auth error:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Ошибка сервера',
+            user: generateDemoData()
+        });
+    }
 });
 
-// Информация о боте
-router.get('/api/bot-info', async (req, res) => {
-  try {
-    const botToken = process.env.BOT_TOKEN;
-    
-    if (!botToken) {
-      return res.json({
-        success: false,
-        error: 'Токен бота не настроен',
-        instructions: 'Добавьте BOT_TOKEN в настройках Vercel'
-      });
+// Игровые API
+router.get('/api/game/state', (req, res) => {
+    try {
+        const game = gameManager.getActiveGame();
+        res.json({
+            success: true,
+            game: game.getGameState()
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
     }
+});
 
-    // Получаем реальную информацию о боте
-    const response = await fetch(`https://api.telegram.org/bot${botToken}/getMe`);
-    const data = await response.json();
-    
-    res.json({
-      success: data.ok,
-      bot: data.ok ? data.result : null,
-      error: data.ok ? null : data.description
-    });
+router.post('/api/game/join', (req, res) => {
+    try {
+        const { userId } = req.body;
+        const game = gameManager.getActiveGame();
+        
+        // Здесь должна быть проверка пользователя из БД
+        const user = generateDemoData();
+        user.id = userId;
+        
+        if (game.addParticipant(user)) {
+            res.json({
+                success: true,
+                message: 'Вы присоединились к игре',
+                game: game.getGameState()
+            });
+        } else {
+            res.json({
+                success: false,
+                error: 'Не удалось присоединиться к игре'
+            });
+        }
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
 
-  } catch (error) {
-    res.json({
-      success: false,
-      error: error.message,
-      bot: null
-    });
-  }
+router.post('/api/game/spin', (req, res) => {
+    try {
+        const game = gameManager.getActiveGame();
+        const winner = game.spinWheel();
+        
+        if (winner) {
+            res.json({
+                success: true,
+                winner: winner,
+                game: game.getGameState()
+            });
+        } else {
+            res.json({
+                success: false,
+                error: 'Нельзя запустить колесо сейчас'
+            });
+        }
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
 });
 
 module.exports = router;
