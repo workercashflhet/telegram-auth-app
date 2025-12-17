@@ -46,3 +46,14 @@ if (require.main === module) {
     `);
   });
 }
+
+// В конце src/index.js добавьте:
+process.on('SIGTERM', () => {
+    console.log('SIGTERM received. Cleaning up...');
+    // Здесь можно добавить очистку ресурсов
+    process.exit(0);
+});
+
+process.on('uncaughtException', (error) => {
+    console.error('Uncaught Exception:', error);
+});
