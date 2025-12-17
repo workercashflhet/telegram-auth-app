@@ -68,7 +68,6 @@ class WheelGame {
         // Для демо просто сохраняем время старта
     }
     
-    // Обновить таймер
     updateCountdown() {
         if (this.status !== 'counting') return;
         
@@ -77,13 +76,16 @@ class WheelGame {
         this.countdown = Math.max(0, 30 - secondsPassed);
         
         if (this.countdown <= 0) {
-            this.spinWheel();
+            this.startGame(); // Автоматический запуск
         }
     }
     
-    // Запустить колесо
-    spinWheel() {
+    // Запустить игру (автоматически при завершении таймера)
+    startGame() {
         if (this.status !== 'counting' || this.participants.length < 2) {
+            // Если недостаточно игроков, сбрасываем состояние
+            this.status = 'waiting';
+            this.countdown = null;
             return { success: false, error: 'Недостаточно участников' };
         }
         
@@ -101,6 +103,14 @@ class WheelGame {
         
         return { success: true, winner: this.winner };
     }
+    
+    // Обработчик API для запуска игры (теперь не используется, но оставим для совместимости)
+    spinWheel() {
+        return this.startGame();
+    }
+    
+    // ... остальные методы без изменений ...
+
     
     // Завершить игру
     finishGame() {

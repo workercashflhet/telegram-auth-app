@@ -139,51 +139,51 @@ router.post('/api/game/join', (req, res) => {
     }
 });
 
-// Запустить колесо
-router.post('/api/game/spin', (req, res) => {
-    try {
-        const { gameId } = req.body;
+// // Запустить колесо
+// router.post('/api/game/spin', (req, res) => {
+//     try {
+//         const { gameId } = req.body;
         
-        if (!gameId) {
-            return res.status(400).json({
-                success: false,
-                error: 'Не указан ID игры'
-            });
-        }
+//         if (!gameId) {
+//             return res.status(400).json({
+//                 success: false,
+//                 error: 'Не указан ID игры'
+//             });
+//         }
         
-        const game = gameManager.getGame(gameId);
+//         const game = gameManager.getGame(gameId);
         
-        if (!game) {
-            return res.status(404).json({
-                success: false,
-                error: 'Игра не найдена'
-            });
-        }
+//         if (!game) {
+//             return res.status(404).json({
+//                 success: false,
+//                 error: 'Игра не найдена'
+//             });
+//         }
         
-        const result = game.spinWheel();
+//         const result = game.spinWheel();
         
-        if (result.success) {
-            res.json({
-                success: true,
-                winner: result.winner,
-                message: 'Колесо запущено!',
-                game: game.getGameState()
-            });
-        } else {
-            res.json({
-                success: false,
-                error: result.error
-            });
-        }
+//         if (result.success) {
+//             res.json({
+//                 success: true,
+//                 winner: result.winner,
+//                 message: 'Колесо запущено!',
+//                 game: game.getGameState()
+//             });
+//         } else {
+//             res.json({
+//                 success: false,
+//                 error: result.error
+//             });
+//         }
         
-    } catch (error) {
-        console.error('Spin wheel error:', error);
-        res.status(500).json({
-            success: false,
-            error: 'Ошибка сервера'
-        });
-    }
-});
+//     } catch (error) {
+//         console.error('Spin wheel error:', error);
+//         res.status(500).json({
+//             success: false,
+//             error: 'Ошибка сервера'
+//         });
+//     }
+// });
 
 // Получить информацию о пользователе
 router.get('/api/user/:userId', (req, res) => {

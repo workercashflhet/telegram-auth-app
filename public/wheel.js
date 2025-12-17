@@ -14,13 +14,10 @@ class FortuneWheel {
     }
     
     async init() {
-        // Инициализируем DOM элементы
         this.wheelElement = document.getElementById('fortuneWheel');
-        
         this.setupEventListeners();
         await this.loadGameState();
         
-        // Автоматически обновляем состояние каждые 3 секунды
         setInterval(() => this.loadGameState(), 3000);
     }
     
@@ -440,52 +437,35 @@ class FortuneWheel {
     }
     
     // Обновить кнопки
+      // Обновить кнопки (теперь только одна кнопка)
     updateButtons() {
         const joinButton = document.getElementById('joinButton');
-        const startButton = document.getElementById('startButton');
         
-        if (!joinButton || !startButton) return;
+        if (!joinButton) return;
         
-        // ДЕБАГ: проверяем состояние
-        console.log('updateButtons вызван. currentUser:', window.currentUser);
-        console.log('Участники:', this.participants.length);
-        
-        // Проверяем авторизацию через глобальную переменную
-        const isUserAuthenticated = !!window.currentUser && !!window.currentUser.id;
-        
-        // Проверяем, участвует ли уже пользователь
-        const isUserParticipating = isUserAuthenticated && 
+        const isUserParticipating = window.currentUser && 
             this.participants.some(p => p.id === window.currentUser.id);
         
         // Кнопка "Участвовать"
-        if (!isUserAuthenticated) {
+        if (!window.currentUser) {
             joinButton.disabled = true;
             joinButton.innerHTML = '<span class="icon">🔒</span> ВОЙДИТЕ ДЛЯ УЧАСТИЯ';
-            joinButton.style.opacity = '0.7';
         } else if (this.isSpinning) {
             joinButton.disabled = true;
             joinButton.innerHTML = '<span class="icon">⏳</span> ИДЁТ ИГРА';
-            joinButton.style.opacity = '0.7';
         } else if (isUserParticipating) {
             joinButton.disabled = true;
             joinButton.innerHTML = '<span class="icon">✅</span> ВЫ УЧАСТВУЕТЕ';
-            joinButton.style.opacity = '1';
         } else if (this.participants.length >= this.maxParticipants) {
             joinButton.disabled = true;
             joinButton.innerHTML = '<span class="icon">🚫</span> МЕСТ НЕТ';
-            joinButton.style.opacity = '0.7';
-        } else if (this.countdown !== null && this.countdown > 0) {
+        } else if (this.countdown !== null) {
             joinButton.disabled = true;
             joinButton.innerHTML = '<span class="icon">⏳</span> ОТСЧЁТ ИДЁТ';
-            joinButton.style.opacity = '0.7';
         } else {
             joinButton.disabled = false;
             joinButton.innerHTML = '<span class="icon">➕</span> УЧАСТВОВАТЬ';
-            joinButton.style.opacity = '1';
         }
-        
-        // Кнопка "Запустить" (остаётся без изменений)
-        // ...
     }
     
     // Получить инициалы
@@ -498,15 +478,11 @@ class FortuneWheel {
     // Настройка обработчиков
     setupEventListeners() {
         const joinButton = document.getElementById('joinButton');
-        const startButton = document.getElementById('startButton');
         
         if (joinButton) {
             joinButton.addEventListener('click', () => this.joinGame());
         }
         
-        if (startButton) {
-            startButton.addEventListener('click', () => this.startSpinning());
-        }
     }
 }
 
