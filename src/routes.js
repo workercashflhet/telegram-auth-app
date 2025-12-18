@@ -60,7 +60,6 @@ router.post('/api/auth', (req, res) => {
     }
 });
 
-// Получить состояние текущей игры
 router.get('/api/game/state', (req, res) => {
     try {
         const game = gameManager.getActiveGame();
@@ -71,25 +70,22 @@ router.get('/api/game/state', (req, res) => {
             });
         }
         
+        // Защита от сброса: если игра активна, не сбрасываем
         const gameState = game.getGameState();
         
-        // Добавляем отладочную информацию
-        const debugInfo = {
-            participantsCount: gameState.participants.length,
-            participantsNames: gameState.participants.map(p => p.first_name),
-            winnerName: gameState.winner ? gameState.winner.first_name : 'нет',
-            winnerIndex: gameState.winnerIndex,
-            finalAngle: gameState.finalAngle,
-            normalizedAngle: gameState.finalAngle ? gameState.finalAngle % 360 : null,
-            sectorAngle: gameState.participants.length > 0 ? 360 / gameState.participants.length : null
-        };
+        // Добавляем флаг, показывающий что игра независима
+        gameState.isIndependent = true;
+        gameState.canJoin = (game.status === 'waiting' || game.status === 'counting') && 
+                           game.participants.length < game.maxParticipants;
         
         res.json({
             success: true,
             game: gameState,
             serverTime: Date.now(),
-            debug: debugInfo, // Добавляем отладочную информацию
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
+            message: game.status === 'finished' ? 
+                `Следующий раунд через ${game.nextRoundTimer} сек` : 
+                undefined
         });
     } catch (error) {
         console.error('Game state error:', error);
@@ -97,6 +93,35 @@ router.get('/api/game/state', (req, res) => {
             success: false,
             error: error.message
         });
+    }
+});
+
+// Добавить новый эндпоинт для принудительного сохранения состояния
+router.post('/api/game/persist', (req, res) => {
+    try {
+        const game = gameManager.getActiveGame();
+        if (!game) {
+            return res.json({
+                success: false,
+                error: 'Игра не найдена'
+            });
+        }
+        
+        // Увеличиваем активность игры
+        game.lastActivity = new Date();
+        
+        // Защищаем от сброса
+        game.protection.lastActivity = Date.now();
+        
+        res.json({
+            success: true,
+            message: 'Состояние игры сохранено',
+            gameId: game.id,
+            participants: game.participants.length,
+            status: game.status
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
     }
 });
 

@@ -156,7 +156,6 @@ class FortuneWheel {
     // Обработка синхронизированного состояния
     processGameState(gameState, syncData) {
         const serverTime = syncData?.serverTime || this.getServerTime();
-        const clientTime = Date.now();
         
         // Сохраняем данные
         this.participants = gameState.participants || [];
@@ -167,6 +166,18 @@ class FortuneWheel {
         
         const wasSpinning = this.isSpinning;
         this.isSpinning = gameState.status === 'spinning';
+        
+        // ВАЖНО: Не сбрасываем состояние при переключении пользователя
+        // Просто обновляем данные
+        
+        // Если пользователь присоединился, показываем соответствующее сообщение
+        if (window.currentUser && 
+            !this.participants.some(p => p.id === window.currentUser.id) &&
+            gameState.status !== 'spinning' && 
+            gameState.status !== 'finished') {
+            // Пользователь не участвует, но может присоединиться
+            console.log('👤 Текущий пользователь не участвует в игре');
+        }
         
         // Синхронизация таймера
         if (gameState.status === 'counting' && syncData?.countdownStart) {
@@ -692,14 +703,14 @@ class FortuneWheel {
     
     // В методе resetForNextRound() добавьте скрытие push:
     resetForNextRound() {
-        console.log('🔄 Сброс для нового раунда');
+        console.log('🔄 Сброс клиентского состояния для нового раунда');
         
-        this.hideWinnerPush();
+        // ТОЛЬКО сброс клиентского состояния, без влияния на сервер
         this.winnerAnnounced = false;
         this.spinStartTime = null;
         this.isSpinning = false;
         
-        // Сбрасываем позицию колеса
+        // Мягкий сброс позиции колеса
         this.wheelElement.style.transition = 'transform 0.5s ease-out';
         this.wheelElement.style.transform = 'rotate(0deg)';
         
@@ -707,8 +718,7 @@ class FortuneWheel {
             this.wheelElement.style.transition = '';
         }, 500);
         
-        // Обновляем кнопки
-        this.updateButtons();
+        // НЕ обновляем кнопки здесь - они обновятся при следующем loadGameState
     }
         
     // В wheel.js полностью перепишите метод joinGame:
