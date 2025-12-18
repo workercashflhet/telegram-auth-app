@@ -829,6 +829,7 @@ body {
 .compact-info {
     flex: 1;
     min-width: 0;
+    color: white;
 }
 
 .compact-name {
@@ -842,7 +843,7 @@ body {
 
 .compact-status {
     font-size: 12px;
-    color: #666;
+    color: #fffbfb;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
