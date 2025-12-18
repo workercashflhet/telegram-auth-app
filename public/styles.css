@@ -416,8 +416,8 @@ body {
     text-align: center;
     font-size: 2.2rem; /* Немного меньше чем был */
     font-weight: bold;
-    color: #4ecdc4; /* Цвет из градиента победителя */
-    text-shadow: 0 0 10px rgba(78, 205, 196, 0.7);
+    color: #ffffff; /* Цвет из градиента победителя */
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.7);
     line-height: 1;
     margin-bottom: 5px;
     font-family: monospace; /* Для равномерных цифр */
@@ -425,7 +425,7 @@ body {
 
 .wheel-timer-label {
     font-size: 0.7rem;
-    color: #afafaf;
+    color: #ffffff;
     text-transform: uppercase;
     letter-spacing: 1px;
     text-align: center;
@@ -456,7 +456,7 @@ body {
     }
     50% {
         transform: scale(1.05);
-        text-shadow: 0 0 20px rgba(78, 205, 196, 1);
+        text-shadow: 0 0 20px rgb(255, 255, 255);
     }
 }
 
