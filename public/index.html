@@ -7,75 +7,8 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="stylesheet" href="/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Подключаем шрифт Lost Star и другие шрифты -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <!-- Lost Star с сайта 1001fonts.com (альтернатива через Google Fonts) -->
-    <link href="https://fonts.googleapis.com/css2?family=Sacramento&family=Bangers&family=Russo+One&family=Orbitron:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-     <style>
-        /* Временные стили для красивого заголовка */
-        .stacks-title {
-            font-family: 'Orbitron', sans-serif;
-            font-weight: 700;
-            font-size: 3.5rem;
-            background: linear-gradient(45deg, #4ecdc4, #ff6b6b, #45b7d1, #96ceb4);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            text-shadow: 0 0 30px rgba(78, 205, 196, 0.3);
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            margin: 10px 0 30px 0;
-            position: relative;
-            display: inline-block;
-        }
-        
-        .stacks-title::after {
-            content: '';
-            position: absolute;
-            bottom: -10px;
-            left: 10%;
-            width: 80%;
-            height: 3px;
-            background: linear-gradient(90deg, transparent, #4ecdc4, #ff6b6b, transparent);
-            border-radius: 2px;
-        }
-        
-        .stacks-subtitle {
-            font-family: 'Rajdhani', sans-serif;
-            font-size: 1.2rem;
-            color: #888;
-            letter-spacing: 3px;
-            text-transform: uppercase;
-            margin-bottom: 40px;
-            font-weight: 500;
-        }
-        
-        @media (max-width: 768px) {
-            .stacks-title {
-                font-size: 2.8rem;
-            }
-            
-            .stacks-subtitle {
-                font-size: 1rem;
-                letter-spacing: 2px;
-            }
-        }
-        
-        @media (max-width: 480px) {
-            .stacks-title {
-                font-size: 2.2rem;
-            }
-            
-            .stacks-subtitle {
-                font-size: 0.9rem;
-                letter-spacing: 1px;
-            }
-        }
-    </style>
 </head>
 <body>
-    <div id="starfield" class="starfield"></div>
     <!-- Компактный профиль в левом верхнем углу -->
     <div id="compactProfile" class="compact-profile" role="region" aria-label="Профиль пользователя">
         <div id="compactAvatar" class="compact-avatar" aria-hidden="true">
@@ -140,16 +73,28 @@
     <div class="app-container">
         <!-- Вкладка Главная -->
         <div id="homeTab" class="tab-content active">
-            <!-- КРАСИВЫЙ ЗАГОЛОВОК STACKS СО ШРИФТОМ LOST STAR -->
-            <div class="stacks-header">
-                
-                <!-- Основной заголовок STACKS (выберите один вариант) -->
-                <h1 class="stacks-logo white" id="stacksTitle">STACKS</h1>
+            <h1 class="page-title">🎰 КОЛЕСО ФОРТУНЫ</h1>
             
+            <!-- Статус -->
+            <div id="statusMessage" class="status-message">
+                <span id="statusText"></span>
+            </div>
+
+            <div class="game-info">
+                <div style="color: #666; font-size: 0.9rem; text-align: center; margin: 15px 0;">
+                    <p>🎮 <strong>Как играть:</strong></p>
+                    <p>1. Нажмите "Участвовать"</p>
+                    <p>2. Ждите других игроков</p>
+                    <p>3. Когда будет 2+ участника, запустится 30-секундный таймер</p>
+                    <p>4. По окончании таймера колесо запустится автоматически</p>
+                </div>
+            </div>
+
+            <!-- Индикатор авторизации на главной вкладке -->
+            <div id="authIndicator" style="display: none; text-align: center; margin: 10px 0; padding: 10px; background: rgba(0,255,0,0.1); border-radius: 10px;">
+                <span style="color: #4ecdc4;">✅ Авторизован как: <span id="currentUserName">Имя</span></span>
             </div>
             
-            
-
             <!-- Таймер игры -->
             <div class="game-timer-container">
                 <div id="gameTimer" class="game-timer">0</div>
@@ -160,15 +105,14 @@
             <div class="wheel-container">
                 <div class="wheel-wrapper">
                     <div id="fortuneWheel" class="wheel">
-                        <!-- Фон колеса -->
+                        <div id="wheelParticipants"></div>
                     </div>
-                    <div id="wheelParticipants" class="wheel-participants-container"></div>
                     <div class="wheel-center"></div>
                     <div class="wheel-pointer">▼</div>
                 </div>
-            
-                            
+                
                 <!-- Кнопки управления -->
+               <!-- index.html - исправить блок с кнопками -->
                 <div class="game-controls">
                     <button id="joinButton" class="game-button"
                             title="Присоединиться к игре"
@@ -181,9 +125,7 @@
                     </div>
                 </div>
             </div>
-
             
-                      
             <!-- Список участников -->
             <div class="participants-list">
                 <h3 class="participants-title">
@@ -192,13 +134,8 @@
                 </h3>
                 <div id="participantsList"></div>
             </div>
-
-            <!-- Статус -->
-            <div id="statusMessage" class="status-message" style="visibility: hidden; height: 0; overflow: hidden; padding: 0; margin: 0;">
-                <span id="statusText"></span>
-            </div>
             
-            <!-- Блок победителя -->
+            <!-- В index.html обновить блок победителя -->
             <div id="winnerSection" class="winner-section">
                 <h3 class="winner-title">🎉 ПОБЕДИТЕЛЬ РАУНДА! 🎉</h3>
                 <div id="winnerAvatar" class="winner-avatar">
@@ -212,96 +149,46 @@
                     </div>
                 </div>
             </div>
-
-            <!-- Индикатор авторизации на главной вкладке -->
-            <div id="authIndicator" style="visibility: hidden; text-align: center; margin: 10px 0; padding: 10px; background: rgba(0,255,0,0.1); border-radius: 10px;">
-                <span style="color: #4ecdc4;">✅ Авторизован как: <span id="currentUserName">Имя</span></span>
-            </div>
-        </div> <!-- Закрываем homeTab -->
         
         <!-- Вкладка Профиль -->
         <div id="profileTab" class="tab-content">
-            <h1 class="page-title">👤 ПРОФИЛЬ ПОЛЬЗОВАТЕЛЯ</h1>
-            
-            <div class="profile-tab">
-                <!-- Индикатор режима -->
-                <div id="dataBadge" class="status-badge" style="display: none;">
-                    <span id="badgeText"></span>
-                </div>
-                
-                <!-- Аватар и основная информация -->
-                <div class="profile-header">
-                    <div id="profileAvatar" class="profile-avatar">
-                        <img id="profilePhoto" class="profile-photo" style="display: none;" 
-                            alt="Фото профиля пользователя">
-                        <div id="profileInitials" class="profile-initials" 
-                            style="display: flex; align-items: center; justify-content: center; 
-                                    font-size: 3rem; font-weight: bold; color: #fff;">
-                            ?
-                        </div>
-                    </div>
-                    <h2 id="userFullName" class="profile-name">Не авторизован</h2>
-                    <div id="userUsername" class="profile-username">Войдите через Telegram</div>
-                    
-                    <!-- Статистика пользователя -->
-                    <div class="user-stats" style="margin-top: 20px; display: none;" id="userStats">
-                        <div style="display: flex; justify-content: center; gap: 20px;">
-                            <div class="stat-item">
-                                <div class="stat-value" id="statGamesPlayed">0</div>
-                                <div class="stat-label">Игр сыграно</div>
-                            </div>
-                            <div class="stat-item">
-                                <div class="stat-value" id="statGamesWon">0</div>
-                                <div class="stat-label">Побед</div>
-                            </div>
-                            <div class="stat-item">
-                                <div class="stat-value" id="statWinRate">0%</div>
-                                <div class="stat-label">Процент побед</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Детальная информация о профиле -->
-                <div id="profileInfo" class="profile-info-grid">
-                    <!-- Заполняется динамически -->
-                </div>
-                
-                <!-- Информация о Telegram -->
-                <div class="telegram-info-section" style="margin-top: 30px; display: none;" id="telegramInfo">
-                    <h3 style="color: #fff; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
-                        <i class="fab fa-telegram"></i> Информация Telegram
-                    </h3>
-                    <div class="telegram-info-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px;">
-                        <!-- Заполняется динамически -->
-                    </div>
-                </div>
-                
-                <!-- Кнопки действий -->
-                <div class="profile-actions" style="text-align: center; margin-top: 40px;">
-                    <div style="display: flex; gap: 15px; justify-content: center;">
-                        <button id="refreshProfileButton" class="game-button" 
-                                style="background: #4ecdc4;"
-                                title="Обновить данные профиля"
-                                aria-label="Обновить данные профиля">
-                            <span class="icon" aria-hidden="true">🔄</span>
-                            Обновить
-                        </button>
-                        <button id="logoutButton" class="game-button" 
-                                style="background: #ff6b6b;"
-                                title="Выйти из аккаунта"
-                                aria-label="Выйти из текущего аккаунта пользователя">
-                            <span class="icon" aria-hidden="true">🚪</span>
-                            Выйти
-                        </button>
-                    </div>
-                </div>
+        <h1 class="page-title">👤 ПРОФИЛЬ</h1>
+        
+        <div class="profile-tab">
+            <!-- Бейдж реальных/демо данных -->
+            <div id="dataBadge" class="status-badge badge-demo">
+                <span id="badgeText">ДЕМО РЕЖИМ</span>
             </div>
-        </div> <!-- Закрываем profileTab -->
-    </div> <!-- Закрываем app-container -->
+            
+            <!-- Аватар и имя -->
+            <div class="profile-header">
+                <div id="profileAvatar" class="profile-avatar">
+                    <img id="profilePhoto" class="profile-photo" style="display: none;">
+                    <div id="profileInitials" class="initials">T</div>
+                </div>
+                <h2 id="userName" class="profile-name">Telegram User</h2>
+                <div id="userUsername" class="profile-username">@username</div>
+            </div>
+            
+            <!-- Информация -->
+            <div id="profileInfo" class="profile-info-grid">
+                <!-- Заполняется динамически -->
+            </div>
+            
+            <!-- Кнопка выхода -->
+            <div style="text-align: center; margin-top: 30px;">
+                <button id="logoutButton" class="game-button" style="background: #ff6b6b;"
+                        title="Выйти из аккаунта"
+                        aria-label="Выйти из текущего аккаунта пользователя">
+                    <span class="icon" aria-hidden="true">🚪</span>
+                    ВЫЙТИ
+                </button>
+            </div>
+        </div>
+    </div>
     
     <!-- Навигация -->
-    <nav class="app-nav" role="navigation" aria-label="Основная навигация">
+    <nav class="app-nav" role="navigation" aria-label="Основная навигация" role="tablist">
         <button id="navHome" class="nav-button active" data-tab="homeTab"
                 title="Перейти на главную"
                 role="tab"
@@ -336,41 +223,47 @@
     
     // Инициализация Telegram
     function initTelegram() {
-        try {
-            if (typeof Telegram !== 'undefined' && Telegram.WebApp) {
-                tg = Telegram.WebApp;
-                
-                // Инициализируем Telegram WebApp
-                tg.ready();
-                tg.expand();
-                tg.setHeaderColor('#000000');
-                tg.setBackgroundColor('#000000');
-                tg.enableClosingConfirmation();
-                
-                isTelegramApp = true;
-                
-                console.log('✅ Telegram WebApp инициализирован');
-                console.log('📱 Платформа:', tg.platform);
-                console.log('👤 Инициализационные данные:', tg.initData ? 'Есть' : 'Нет');
-                
-                // Проверяем авторизацию
-                if (tg.initData && tg.initData.length > 0) {
-                    console.log('📱 Найдены данные Telegram, пытаемся авторизоваться...');
-                    autoLogin();
-                } else {
-                    console.log('⚠️ Нет данных Telegram');
-                    showStatus('Откройте приложение через Telegram бота для авторизации', 'info');
-                }
-                
-                return true;
+        if (window.Telegram && window.Telegram.WebApp) {
+            tg = window.Telegram.WebApp;
+            tg.expand();
+            tg.ready();
+            tg.setHeaderColor('#000000');
+            tg.setBackgroundColor('#000000');
+            isTelegramApp = true;
+            
+            console.log('✅ Telegram Web App инициализирован');
+            
+            // Проверяем авторизацию
+            if (tg.initData) {
+                console.log('📱 Найдены данные Telegram, пытаемся авторизоваться...');
+                autoLogin();
             } else {
-                console.log('⚠️ Telegram WebApp не доступен');
-                return false;
+                console.log('⚠️ Нет данных Telegram, требуется открыть через бота');
+                showStatus('⚠️ Откройте через Telegram бота для реальной авторизации', 'error');
             }
-        } catch (error) {
-            console.error('Ошибка инициализации Telegram:', error);
-            return false;
+
+            function setupJoinButton() {
+                const joinButton = document.getElementById('joinButton');
+                if (joinButton) {
+                    console.log('🔄 Настройка обработчика кнопки "Участвовать"...');
+                    joinButton.addEventListener('click', function() {
+                        console.log('🎮 Нажата кнопка "Участвовать"');
+                        if (window.fortuneWheel) {
+                            window.fortuneWheel.joinGame();
+                        } else {
+                            console.error('❌ Колесо не инициализировано');
+                            showStatus('❌ Ошибка: игра не загружена', 'error');
+                        }
+                    });
+                    console.log('✅ Обработчик кнопки установлен');
+                } else {
+                    console.error('❌ Кнопка "joinButton" не найдена');
+                }
+            }
+            
+            return true;
         }
+        return false;
     }
 
     console.log('🔧 Запуск диагностики...');
@@ -487,472 +380,112 @@
     
     // Обновить вкладку профиля
     // Обновить вкладку профиля
-    // Функция для обновления профиля пользователя
-    async function updateProfileTab() {
-        console.log('🔄 Обновление вкладки профиля...');
+    function updateProfileTab() {
+        const user = window.currentUser || currentUser;
         
-        const user = window.currentUser;
-        
-        // Обновляем компактный профиль
-        updateCompactProfile();
-        
-        // Если пользователь не авторизован
         if (!user) {
-            showGuestProfile();
+            console.log('❌ Не могу обновить профиль: пользователь не установлен');
             return;
         }
         
-        // Показываем профиль пользователя
-        await showUserProfile(user);
-    }
-
-    // Показать гостевой профиль
-    function showGuestProfile() {
-        console.log('👤 Показываем гостевой профиль');
+        console.log('🔄 Обновление вкладки профиля для пользователя:', user.first_name);
         
-        // Обновляем аватар
+        // Обновляем аватар профиля
+        const profileAvatar = document.getElementById('profileAvatar');
         const profileInitials = document.getElementById('profileInitials');
         const profilePhoto = document.getElementById('profilePhoto');
-        const userFullName = document.getElementById('userFullName');
+        const userName = document.getElementById('userName');
         const userUsername = document.getElementById('userUsername');
-        const dataBadge = document.getElementById('dataBadge');
-        const userStats = document.getElementById('userStats');
-        const telegramInfo = document.getElementById('telegramInfo');
-        const profileInfo = document.getElementById('profileInfo');
         
-        // Аватар
-        if (profileInitials) {
-            profileInitials.textContent = '?';
-            profileInitials.style.display = 'flex';
+        // Обновляем компактный профиль тоже
+        updateCompactProfile();
+        
+        if (!profileAvatar || !userName || !profileInfo) {
+            console.log('❌ Не найдены элементы профиля');
+            return;
         }
-        if (profilePhoto) {
-            profilePhoto.style.display = 'none';
+        
+        // Аватар - ОЧЕНЬ ВАЖНО: правильная обработка photo_url
+        if (user.photo_url && user.photo_url.trim() !== '') {
+            console.log('📸 У пользователя есть фото профиля:', user.photo_url);
+            
+            if (profilePhoto) {
+                // Устанавливаем src с колбэком на ошибку загрузки
+                profilePhoto.src = user.photo_url;
+                profilePhoto.style.display = 'block';
+                
+                profilePhoto.onload = function() {
+                    console.log('✅ Фото профиля загружено');
+                    if (profileInitials) profileInitials.style.display = 'none';
+                };
+                
+                profilePhoto.onerror = function() {
+                    console.log('❌ Ошибка загрузки фото, показываем инициалы');
+                    profilePhoto.style.display = 'none';
+                    if (profileInitials) {
+                        const initials = getInitials(user.first_name, user.last_name);
+                        profileInitials.textContent = initials;
+                        profileInitials.style.display = 'flex'; // Изменено с block на flex
+                    }
+                };
+            }
+        } else {
+            console.log('📸 У пользователя нет фото профиля, показываем инициалы');
+            if (profilePhoto) {
+                profilePhoto.style.display = 'none';
+            }
+            if (profileInitials) {
+                const initials = getInitials(user.first_name, user.last_name);
+                profileInitials.textContent = initials;
+                profileInitials.style.display = 'flex'; // Изменено с block на flex
+            }
         }
         
         // Имя и username
-        if (userFullName) userFullName.textContent = 'Не авторизован';
-        if (userUsername) userUsername.textContent = 'Войдите через Telegram';
-        
-        // Скрываем лишние элементы
-        if (dataBadge) dataBadge.style.display = 'none';
-        if (userStats) userStats.style.display = 'none';
-        if (telegramInfo) telegramInfo.style.display = 'none';
-        
-        // Показываем сообщение о необходимости авторизации
-        if (profileInfo) {
-            profileInfo.innerHTML = `
-                <div class="info-card" style="grid-column: 1 / -1; text-align: center; padding: 40px;">
-                    <div class="info-label" style="justify-content: center;">
-                        <span class="icon">🔒</span>
-                        Требуется авторизация
-                    </div>
-                    <div class="info-value" style="margin: 20px 0;">
-                        Для просмотра профиля необходимо войти через Telegram
-                    </div>
-                    <div style="color: #666; font-size: 0.9rem; margin-top: 15px;">
-                        Откройте приложение через Telegram бота для авторизации
-                    </div>
-                </div>
-            `;
-        }
-        
-        // Обновляем кнопки
-        setupProfileButtons();
-    }
-
-    // Показать профиль пользователя
-    async function showUserProfile(user) {
-        console.log(`👤 Показываем профиль пользователя: ${user.first_name}`);
-        
-        // Обновляем аватар
-        updateProfileAvatar(user);
-        
-        // Обновляем основную информацию
-        updateBasicInfo(user);
-        
-        // Обновляем информацию профиля с ID, Premium и языком
-        updateProfileInfo(user);
-        
-        // Настраиваем бейдж
-        updateProfileBadge(user);
-        
-        // Настраиваем кнопки
-        setupProfileButtons();
-        
-        // Показываем секции
-        document.getElementById('userStats').style.display = 'block';
-        document.getElementById('telegramInfo').style.display = 'block';
-    }
-
-    // Обновить аватар профиля
-    function updateProfileAvatar(user) {
-        const profileInitials = document.getElementById('profileInitials');
-        const profilePhoto = document.getElementById('profilePhoto');
-        
-        if (!profileInitials) return;
-        
-        // Устанавливаем инициалы
-        const initials = getInitials(user.first_name, user.last_name);
-        profileInitials.textContent = initials;
-        profileInitials.style.display = 'flex';
-        
-        // Пытаемся загрузить фото если есть
-        if (user.photo_url && user.photo_url.trim() !== '') {
-            console.log(`📸 Пытаемся загрузить фото: ${user.photo_url}`);
-            
-            // Создаем временное изображение для проверки
-            const testImage = new Image();
-            testImage.onload = function() {
-                console.log('✅ Фото доступно, показываем');
-                profilePhoto.src = user.photo_url;
-                profilePhoto.style.display = 'block';
-                profilePhoto.classList.add('loaded');
-                profileInitials.style.display = 'none';
-            };
-            
-            testImage.onerror = function() {
-                console.log('❌ Фото недоступно, используем инициалы');
-                profilePhoto.style.display = 'none';
-                profileInitials.style.display = 'flex';
-            };
-            
-            testImage.src = user.photo_url;
-        } else {
-            profilePhoto.style.display = 'none';
-            profileInitials.style.display = 'flex';
-        }
-    }
-
-    // Обновить основную информацию
-    function updateBasicInfo(user) {
-        const userFullName = document.getElementById('userFullName');
-        const userUsername = document.getElementById('userUsername');
-        
-        if (userFullName) {
-            userFullName.textContent = `${user.first_name || ''} ${user.last_name || ''}`.trim();
-        }
-        
+        userName.textContent = `${user.first_name || ''} ${user.last_name || ''}`.trim();
         if (userUsername) {
             userUsername.textContent = user.username ? `@${user.username}` : 'Без username';
         }
-    }
-
-    // Обновить информацию профиля (ID, Premium, язык и другие данные)
-    function updateProfileInfo(user) {
-        const profileInfo = document.getElementById('profileInfo');
-        if (!profileInfo) return;
         
+        // Информация
         profileInfo.innerHTML = '';
         
-        // Основная информация - ID, Premium, Язык всегда наверху
-        const primaryInfoCards = [
-            {
-                label: 'Telegram ID',
-                value: user.id,
-                icon: '🆔',
-                copyable: true,
-                description: 'Уникальный идентификатор'
-            },
-            {
-                label: 'Premium статус',
-                value: user.is_premium ? '✅ Активен' : '❌ Не активен',
-                icon: '⭐',
-                specialClass: user.is_premium ? 'premium' : 'regular',
-                description: user.is_premium ? 'Премиум подписка активна' : 'Бесплатная версия'
-            },
-            {
-                label: 'Язык интерфейса',
-                value: getLanguageName(user.language_code),
-                icon: '🌐',
-                description: user.language_code ? `Код: ${user.language_code.toUpperCase()}` : 'Не указан'
-            }
+        const infoCards = [
+            { label: 'ID пользователя', value: user.id, icon: '🆔' },
+            { label: 'Имя', value: user.first_name || '—', icon: '👤' },
+            { label: 'Фамилия', value: user.last_name || '—', icon: '👥' },
+            { label: 'Username', value: user.username ? '@' + user.username : '—', icon: '📛' },
+            { label: 'Язык', value: user.language_code?.toUpperCase() || 'RU', icon: '🌐' },
+            { label: 'Premium статус', value: user.is_premium ? '✅ Активен' : '❌ Не активен', icon: '⭐' },
+            { label: 'Доступ к ЛС', value: user.allows_write_to_pm ? '✅ Разрешен' : '❌ Запрещен', icon: '💬' },
+            { label: 'Дата авторизации', value: new Date().toLocaleDateString('ru-RU'), icon: '📅' },
+            { label: 'Тип данных', value: user.is_demo ? 'Демо режим' : 'Реальные данные', icon: '🔐' },
+            { label: 'Статус', value: 'Онлайн', icon: '💚' }
         ];
         
-        // Дополнительная информация
-        const secondaryInfoCards = [
-            {
-                label: 'Имя',
-                value: user.first_name || 'Не указано',
-                icon: '👤'
-            },
-            {
-                label: 'Фамилия',
-                value: user.last_name || 'Не указана',
-                icon: '👥'
-            },
-            {
-                label: 'Username',
-                value: user.username ? `@${user.username}` : 'Не установлен',
-                icon: '📛',
-                copyable: !!user.username
-            },
-            {
-                label: 'Дата регистрации',
-                value: user.firstSeen ? new Date(user.firstSeen).toLocaleDateString('ru-RU') : 'Сегодня',
-                icon: '📅'
-            },
-            {
-                label: 'Последний вход',
-                value: user.lastSeen ? new Date(user.lastSeen).toLocaleString('ru-RU') : 'Сейчас',
-                icon: '🕒'
-            },
-            {
-                label: 'Статус аккаунта',
-                value: user.is_demo ? 'Демо-режим' : 'Реальный аккаунт',
-                icon: '🔐',
-                specialClass: user.is_demo ? 'demo' : 'active'
-            }
-        ];
-        
-        // Создаем заголовок для основной информации
-        const primarySection = document.createElement('div');
-        primarySection.className = 'info-section';
-        primarySection.innerHTML = `
-            <h3 style="color: #fff; margin: 25px 0 15px 0; padding-bottom: 10px; border-bottom: 2px solid #4ecdc4;">
-                📊 Основная информация
-            </h3>
-            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px;">
-        `;
-        
-        // Добавляем карточки основной информации
-        primaryInfoCards.forEach(card => {
-            primarySection.innerHTML += createInfoCardHTML(card);
-        });
-        
-        primarySection.innerHTML += `</div>`;
-        profileInfo.appendChild(primarySection);
-        
-        // Создаем заголовок для дополнительной информации
-        const secondarySection = document.createElement('div');
-        secondarySection.className = 'info-section';
-        secondarySection.innerHTML = `
-            <h3 style="color: #fff; margin: 30px 0 15px 0; padding-bottom: 10px; border-bottom: 2px solid #4ecdc4;">
-                📝 Дополнительная информация
-            </h3>
-            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px;">
-        `;
-        
-        // Добавляем карточки дополнительной информации
-        secondaryInfoCards.forEach(card => {
-            secondarySection.innerHTML += createInfoCardHTML(card);
-        });
-        
-        secondarySection.innerHTML += `</div>`;
-        profileInfo.appendChild(secondarySection);
-    }
-
-    // Вспомогательная функция для создания HTML карточки
-    function createInfoCardHTML(card) {
-        let valueHtml = `
-            <div class="info-value ${card.specialClass || ''}">
-                ${card.value}
-            </div>
-        `;
-        
-        if (card.copyable) {
-            valueHtml = `
-                <div style="display: flex; align-items: center; justify-content: space-between;">
-                    <div class="info-value ${card.specialClass || ''}">${card.value}</div>
-                    <button class="copy-button" 
-                            onclick="copyToClipboard('${card.value.replace("'", "\\'").replace('@', '')}')"
-                            title="Копировать"
-                            style="background: none; border: none; color: #4ecdc4; cursor: pointer; padding: 5px; font-size: 1.2rem;">
-                        <i class="far fa-copy"></i>
-                    </button>
-                </div>
-            `;
+        if (user.photo_url) {
+            infoCards.unshift({ 
+                label: 'Фото профиля', 
+                value: user.photo_url ? '✅ Есть' : '❌ Нет', 
+                icon: '📸' 
+            });
         }
         
-        return `
-            <div class="info-card">
+        infoCards.forEach(card => {
+            const cardElement = document.createElement('div');
+            cardElement.className = 'info-card';
+            cardElement.innerHTML = `
                 <div class="info-label">
                     <span class="icon">${card.icon}</span>
                     ${card.label}
                 </div>
-                ${valueHtml}
-                ${card.description ? `<div style="font-size: 0.8rem; color: #666; margin-top: 5px;">${card.description}</div>` : ''}
-            </div>
-        `;
-    }
-
-    // Обновить информацию Telegram
-    function updateTelegramInfo(user) {
-        const telegramInfo = document.getElementById('telegramInfo');
-        if (!telegramInfo) return;
-        
-        const telegramGrid = telegramInfo.querySelector('.telegram-info-grid');
-        if (!telegramGrid) return;
-        
-        telegramGrid.innerHTML = '';
-        
-        const telegramCards = [
-            {
-                label: 'Telegram ID',
-                value: user.id,
-                icon: '🤖',
-                copyable: true,
-                description: 'Уникальный ID в Telegram'
-            },
-            {
-                label: 'Premium статус',
-                value: user.is_premium ? '✅ Активен' : '❌ Не активен',
-                icon: '⭐',
-                specialClass: user.is_premium ? 'premium' : 'regular',
-                description: user.is_premium ? 'Имеет премиум подписку' : 'Стандартный аккаунт'
-            },
-            {
-                label: 'Язык интерфейса',
-                value: getLanguageName(user.language_code),
-                icon: '🌐',
-                description: user.language_code ? `Код: ${user.language_code.toUpperCase()}` : 'Не указан'
-            },
-            {
-                label: 'Доступ к ЛС',
-                value: user.allows_write_to_pm ? '✅ Разрешён' : '❌ Запрещён',
-                icon: '💬',
-                specialClass: user.allows_write_to_pm ? 'online' : 'offline'
-            },
-            {
-                label: 'Тип чата',
-                value: user.chat_type ? formatChatType(user.chat_type) : 'Неизвестно',
-                icon: '💭'
-            },
-            {
-                label: 'Дата авторизации',
-                value: user.auth_date ? new Date(user.auth_date).toLocaleString('ru-RU') : 'Неизвестно',
-                icon: '📱'
-            }
-        ];
-        
-        telegramCards.forEach(card => {
-            telegramGrid.innerHTML += createInfoCardHTML(card);
-        });
-    }
-
-    // Обновить бейдж профиля
-    function updateProfileBadge(user) {
-        const dataBadge = document.getElementById('dataBadge');
-        const badgeText = document.getElementById('badgeText');
-        
-        if (dataBadge && badgeText) {
-            dataBadge.style.display = 'block';
-            
-            if (user.is_demo) {
-                dataBadge.className = 'status-badge badge-demo';
-                badgeText.textContent = 'ДЕМО РЕЖИМ';
-            } else {
-                dataBadge.className = 'status-badge badge-telegram';
-                badgeText.textContent = user.is_premium ? 'TELEGRAM PREMIUM' : 'TELEGRAM АККАУНТ';
-            }
-        }
-    }
-
-    // Настроить кнопки профиля
-    function setupProfileButtons() {
-        const refreshButton = document.getElementById('refreshProfileButton');
-        const logoutButton = document.getElementById('logoutButton');
-        
-        if (refreshButton) {
-            refreshButton.onclick = async function() {
-                showStatus('🔄 Обновление профиля...', 'info');
-                
-                // Переключаемся на главную вкладку и обратно для обновления
-                const profileTab = document.getElementById('profileTab');
-                const navProfile = document.getElementById('navProfile');
-                
-                if (profileTab.classList.contains('active')) {
-                    // Если уже на вкладке профиля, обновляем данные
-                    await updateProfileTab();
-                    showStatus('✅ Профиль обновлён', 'success');
-                } else {
-                    // Если не на вкладке профиля, переключаемся на неё
-                    if (navProfile) {
-                        navProfile.click();
-                        setTimeout(() => {
-                            showStatus('✅ Переключено на профиль', 'success');
-                        }, 300);
-                    }
-                }
-            };
-        }
-        
-        if (logoutButton) {
-            logoutButton.onclick = logout;
-        }
-    }
-
-    // ===================== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ =====================
-
-    // Функция для получения названия языка по коду
-    function getLanguageName(languageCode) {
-        if (!languageCode) return 'Не указан';
-        
-        const languages = {
-            'ru': 'Русский 🇷🇺',
-            'en': 'Английский 🇺🇸',
-            'es': 'Испанский 🇪🇸',
-            'fr': 'Французский 🇫🇷',
-            'de': 'Немецкий 🇩🇪',
-            'it': 'Итальянский 🇮🇹',
-            'pt': 'Португальский 🇵🇹',
-            'ar': 'Арабский 🇸🇦',
-            'zh': 'Китайский 🇨🇳',
-            'ja': 'Японский 🇯🇵',
-            'ko': 'Корейский 🇰🇷',
-            'tr': 'Турецкий 🇹🇷',
-            'uk': 'Украинский 🇺🇦',
-            'be': 'Белорусский 🇧🇾',
-            'kk': 'Казахский 🇰🇿'
-        };
-        
-        return languages[languageCode.toLowerCase()] || `${languageCode.toUpperCase()} (${languageCode})`;
-    }
-
-    function formatChatType(chatType) {
-        const types = {
-            'private': 'Личный чат',
-            'group': 'Группа',
-            'supergroup': 'Супергруппа',
-            'channel': 'Канал'
-        };
-        return types[chatType] || chatType;
-    }
-
-    function copyToClipboard(text) {
-        navigator.clipboard.writeText(text).then(() => {
-            showStatus('📋 Скопировано в буфер обмена', 'success');
-        }).catch(err => {
-            console.error('Ошибка копирования:', err);
-            showStatus('❌ Ошибка копирования', 'error');
-        });
-    }
-
-    function getInitials(firstName, lastName) {
-        if (!firstName && !lastName) return '??';
-        const first = firstName ? firstName.charAt(0).toUpperCase() : '';
-        const last = lastName ? lastName.charAt(0).toUpperCase() : '';
-        return (first + last) || 'U';
-    }
-
-    // Обновить инициализацию для автоматического обновления профиля при переключении вкладок
-    document.addEventListener('DOMContentLoaded', () => {
-        // Добавляем обработчик для переключения вкладок
-        document.querySelectorAll('.nav-button').forEach(button => {
-            button.addEventListener('click', function() {
-                const tabId = this.getAttribute('data-tab');
-                
-                // Если переключаемся на вкладку профиля
-                if (tabId === 'profileTab') {
-                    // Небольшая задержка для гарантии переключения
-                    setTimeout(() => {
-                        updateProfileTab();
-                    }, 100);
-                }
-            });
+                <div class="info-value">${card.value}</div>
+            `;
+            profileInfo.appendChild(cardElement);
         });
         
-        console.log('✅ Обработчики профиля настроены');
-    });
+        console.log('✅ Вкладка профиля обновлена');
+    }
     
     function getInitials(firstName, lastName) {
         if (!firstName && !lastName) return '??';
@@ -960,55 +493,15 @@
         const last = lastName ? lastName.charAt(0).toUpperCase() : '';
         return (first + last) || 'U';
     }
-
-    // Функция для принудительного показа активной вкладки
-    function forceShowActiveTab() {
-        const activeTab = document.querySelector('.tab-content.active');
-        const allTabs = document.querySelectorAll('.tab-content');
-        
-        console.log('🔍 Проверка видимости вкладок:');
-        
-        allTabs.forEach(tab => {
-            const tabId = tab.id;
-            const isActive = tab.classList.contains('active');
-            console.log(`  ${tabId}: ${isActive ? 'активна' : 'не активна'}, display: ${tab.style.display}`);
-            
-            if (isActive) {
-                tab.style.display = 'block';
-                tab.style.opacity = '1';
-                tab.style.visibility = 'visible';
-            } else {
-                tab.style.display = 'none';
-            }
-        });
-        
-        if (activeTab) {
-            console.log(`✅ Активная вкладка: ${activeTab.id}`);
-        }
-    }
     
-    // Переключение вкладок
     // Переключение вкладок
     function setupNavigation() {
         const navButtons = document.querySelectorAll('.nav-button');
         const tabContents = document.querySelectorAll('.tab-content');
         
-        console.log('🔧 Настройка навигации...');
-        console.log('  Кнопок навигации:', navButtons.length);
-        console.log('  Вкладок:', tabContents.length);
-        
         navButtons.forEach(button => {
             button.addEventListener('click', () => {
                 const tabId = button.getAttribute('data-tab');
-                const targetTab = document.getElementById(tabId);
-                
-                console.log(`📱 Клик по кнопке навигации: ${tabId}`);
-                console.log(`  Целевая вкладка:`, targetTab ? 'найдена' : 'не найдена');
-                
-                if (!targetTab) {
-                    console.error(`❌ Вкладка ${tabId} не найдена!`);
-                    return;
-                }
                 
                 // Обновляем активные элементы
                 navButtons.forEach(btn => {
@@ -1016,42 +509,20 @@
                     btn.setAttribute('aria-selected', 'false');
                 });
                 
-                tabContents.forEach(tab => {
-                    tab.classList.remove('active');
-                    tab.style.display = 'none';
-                });
+                tabContents.forEach(tab => tab.classList.remove('active'));
                 
                 button.classList.add('active');
                 button.setAttribute('aria-selected', 'true');
+                document.getElementById(tabId).classList.add('active');
                 
-                // Показываем выбранную вкладку
-                targetTab.classList.add('active');
-                targetTab.style.display = 'block';
-                
-                console.log(`✅ Переключено на вкладку: ${tabId}`);
+                console.log(`📱 Переключено на вкладку: ${tabId}`);
                 
                 // При переключении на профиль обновляем его
-                if (tabId === 'profileTab') {
-                    console.log('🔄 Запускаем обновление профиля...');
-                    setTimeout(() => {
-                        updateProfileTab();
-                    }, 100);
-                }
-                
-                // При переключении на главную обновляем колесо
-                if (tabId === 'homeTab' && window.fortuneWheel) {
-                    setTimeout(() => {
-                        window.fortuneWheel.loadGameState();
-                    }, 100);
+                if (tabId === 'profileTab' && currentUser) {
+                    setTimeout(updateProfileTab, 100);
                 }
             });
         });
-        
-        // Показываем активную вкладку при загрузке
-        const activeTab = document.querySelector('.tab-content.active');
-        if (activeTab) {
-            activeTab.style.display = 'block';
-        }
     }
     
     // Выйти
@@ -1085,60 +556,39 @@
         window.dispatchEvent(new CustomEvent('userChanged'));
     }
     
-    // Инициализация при загрузке
+    // Инициализация приложения
     document.addEventListener('DOMContentLoaded', () => {
         console.log('🚀 Инициализация приложения...');
-
-        // Инициализация Telegram
+        
         initTelegram();
-
-        // Настройка навигации
         setupNavigation();
-
-        // Принудительно показываем активную вкладку
-        setTimeout(() => {
-            forceShowActiveTab();
-        }, 500);
-
-        // Настройка кнопки участия
         setupJoinButton();
-
-        // Настройка компактного профиля
-        updateCompactProfile();
-        setupCompactProfileToggle();
-
-        // Инициализация профиля
-        updateProfileTab();
-
-        // Настройка кнопок профиля
-        setupProfileButtons();
-
-        // Отладочная информация
-        console.log('🔍 Проверка элементов DOM:');
-        console.log('  homeTab:', document.getElementById('homeTab') ? 'найдена' : 'не найдена');
-        console.log('  profileTab:', document.getElementById('profileTab') ? 'найдена' : 'не найдена');
-        console.log('  navHome:', document.getElementById('navHome') ? 'найдена' : 'не найдена');
-        console.log('  navProfile:', document.getElementById('navProfile') ? 'найдена' : 'не найдена');
-
-        // Автоматическое обновление игры
-        setTimeout(() => {
-            if (window.fortuneWheel) {
-                // Обновляем каждые 3 секунды
-                setInterval(() => {
-                    window.fortuneWheel.loadGameState();
-                }, 3000);
-            }
-        }, 2000);
-
-        console.log('✅ Приложение полностью инициализировано');
+        
+        if (!isTelegramApp) {
+            console.log('⚠️ Приложение запущено вне Telegram');
+            showStatus('⚠️ Откройте через Telegram бота для реальной авторизации', 'error');
+        }
+        
+        // Обработчик кнопки выхода
+        const logoutButton = document.getElementById('logoutButton');
+        if (logoutButton) {
+            logoutButton.addEventListener('click', logout);
+        }
+        
+        // Делаем глобально доступными
+        window.currentUser = currentUser;
+        window.showStatus = showStatus;
+        window.updateProfileTab = updateProfileTab;
+        window.getInitials = getInitials;
+        
+        console.log('✅ Приложение инициализировано');
     });
 
     // Добавьте эти функции в конец скрипта в index.html:
 
 // Обновить компактный профиль
-// Обновить компактный профиль
 function updateCompactProfile() {
-    const user = window.currentUser;
+    const user = window.currentUser || currentUser;
     const compactProfile = document.getElementById('compactProfile');
     const compactAvatar = document.getElementById('compactAvatar');
     const compactPhoto = document.getElementById('compactPhoto');
@@ -1163,24 +613,8 @@ function updateCompactProfile() {
         
         // Обновляем имя и статус
         compactName.textContent = `${user.first_name} ${user.last_name || ''}`.trim();
-        
-        // Статус с информацией о Premium
-        if (user.is_premium) {
-            compactStatus.innerHTML = `<span style="color: gold;">⭐ Premium</span> | @${user.username || 'без username'}`;
-            compactStatus.style.color = '#4ecdc4';
-        } else {
-            compactStatus.textContent = user.username ? `@${user.username}` : 'Без username';
-            compactStatus.style.color = '#666';
-        }
-        
-        // Добавляем индикатор Premium в аватар
-        if (user.is_premium) {
-            compactAvatar.style.borderColor = 'gold';
-            compactAvatar.style.boxShadow = '0 0 10px rgba(255, 215, 0, 0.5)';
-        } else {
-            compactAvatar.style.borderColor = '#4ecdc4';
-            compactAvatar.style.boxShadow = 'none';
-        }
+        compactStatus.textContent = user.username ? `@${user.username}` : 'В сети';
+        compactStatus.style.color = '#4ecdc4';
         
         // Показываем профиль
         compactProfile.style.display = 'flex';
@@ -1192,8 +626,6 @@ function updateCompactProfile() {
         compactName.textContent = 'Гость';
         compactStatus.textContent = 'Не авторизован';
         compactStatus.style.color = '#ff6b6b';
-        compactAvatar.style.borderColor = '#333';
-        compactAvatar.style.boxShadow = 'none';
     }
 }
 
@@ -1245,518 +677,8 @@ document.addEventListener('DOMContentLoaded', () => {
         showStatus('⚠️ Откройте через Telegram бота для реальной авторизации', 'error');
     }
     
-    window.addEventListener('userChanged', () => {
-        console.log('🔄 Событие userChanged, обновляем профиль...');
-        updateProfileTab();
-        updateCompactProfile();
-    });
-    
-    // Принудительно обновляем профиль при переключении на вкладку
-    document.addEventListener('visibilitychange', () => {
-        if (!document.hidden && document.getElementById('profileTab')?.classList.contains('active')) {
-            console.log('🔄 Видимость изменена, обновляем профиль...');
-            setTimeout(() => {
-                updateProfileTab();
-            }, 500);
-        }
-    });
+    // ... остальной код ...
 });
-
-// Автоматическое обновление состояния игры
-function startGameAutoRefresh() {
-    if (window.fortuneWheel) {
-        // Обновляем каждые 2 секунды
-        setInterval(() => {
-            window.fortuneWheel.loadGameState();
-        }, 2000);
-        
-        // Обновляем при возвращении на вкладку
-        document.addEventListener('visibilitychange', () => {
-            if (!document.hidden) {
-                window.fortuneWheel.loadGameState();
-            }
-        });
-    }
-}
-
-// Функция для создания звездного фона
-function createStarDecoration() {
-    const starsContainer = document.getElementById('starsContainer');
-    if (!starsContainer) return;
-    
-    starsContainer.innerHTML = '';
-    
-    // Создаем 15 звезд
-    for (let i = 0; i < 15; i++) {
-        const star = document.createElement('div');
-        star.className = 'star';
-        
-        // Случайная позиция
-        const left = Math.random() * 100;
-        const top = Math.random() * 100;
-        
-        // Случайная задержка анимации
-        const delay = Math.random() * 5;
-        const duration = 3 + Math.random() * 4;
-        
-        star.style.left = `${left}%`;
-        star.style.top = `${top}%`;
-        star.style.animationDelay = `${delay}s`;
-        star.style.animationDuration = `${duration}s`;
-        star.innerHTML = '★';
-        
-        starsContainer.appendChild(star);
-    }
-}
-
-// Функция для переключения стилей заголовка
-function setupTitleEffects() {
-    const title = document.getElementById('stacksTitle');
-    if (!title) return;
-    
-    // Варианты стилей
-    const styles = ['white', 'colorful', 'outlined', 'neon', 'gold'];
-    let currentStyle = 0;
-    
-    // Переключение стиля по клику (опционально)
-    title.addEventListener('click', function() {
-        // Удаляем все классы стилей
-        styles.forEach(style => {
-            title.classList.remove(style);
-        });
-        
-        // Добавляем следующий стиль
-        currentStyle = (currentStyle + 1) % styles.length;
-        title.classList.add(styles[currentStyle]);
-        
-        console.log(`🎨 Стиль заголовка изменен на: ${styles[currentStyle]}`);
-    });
-    
-    // Автоматическая смена стилей каждые 10 секунд
-    setInterval(() => {
-        // Удаляем все классы стилей
-        styles.forEach(style => {
-            title.classList.remove(style);
-        });
-        
-        // Выбираем случайный стиль (кроме текущего)
-        let newStyle;
-        do {
-            newStyle = Math.floor(Math.random() * styles.length);
-        } while (newStyle === currentStyle);
-        
-        currentStyle = newStyle;
-        title.classList.add(styles[currentStyle]);
-    }, 10000);
-}
-
-// Инициализация эффектов
-document.addEventListener('DOMContentLoaded', () => {
-    // Создаем звездный фон
-    createStarDecoration();
-    
-    // Настраиваем эффекты заголовка
-    setupTitleEffects();
-    
-    // Обновляем звезды каждые 30 секунд
-    setInterval(createStarDecoration, 30000);
-});
-
-// Инициализация при загрузке
-document.addEventListener('DOMContentLoaded', () => {
-    console.log('🚀 Инициализация приложения...');
-    
-    initTelegram();
-    setupNavigation();
-    setupJoinButton();
-    updateCompactProfile();
-    setupCompactProfileToggle();
-    
-    // Запускаем обновление игры после загрузки колеса
-    setTimeout(() => {
-        startGameAutoRefresh();
-    }, 3000);
-    
-    // Показываем статус
-    if (!isTelegramApp) {
-        showStatus('Для лучшего опыта откройте через Telegram бота', 'info');
-    } else {
-        showStatus('Добро пожаловать!', 'success');
-    }
-    
-    console.log('✅ Приложение полностью инициализировано');
-});
-
-// ===================== ЗВЕЗДНОЕ ПОЛЕ =====================
-
-class Starfield {
-    constructor() {
-        this.container = document.getElementById('starfield');
-        this.stars = [];
-        this.shootingStars = [];
-        this.nebulas = [];
-        this.galaxy = null;
-        this.animationId = null;
-        this.lastTime = 0;
-        
-        this.init();
-    }
-    
-    init() {
-        if (!this.container) {
-            console.error('Starfield container not found');
-            return;
-        }
-        
-        // Создаем слои для параллакса эффекта
-        this.createLayers();
-        
-        // Создаем звезды
-        this.createStars();
-        
-        // Создаем туманности
-        this.createNebulas();
-        
-        // Создаем галактическую спираль
-        this.createGalaxy();
-        
-        // Запускаем анимацию
-        this.startAnimation();
-        
-        // Запускаем создание падающих звезд
-        this.startShootingStars();
-        
-        // Обработчик изменения размера окна
-        window.addEventListener('resize', () => this.handleResize());
-        
-        console.log('⭐ Starfield initialized with', this.stars.length, 'stars');
-    }
-    
-    createLayers() {
-        // Создаем 3 слоя для параллакса эффекта
-        for (let i = 1; i <= 3; i++) {
-            const layer = document.createElement('div');
-            layer.className = `starfield-layer layer-${i}`;
-            layer.dataset.speed = i * 0.2; // Скорость движения слоя
-            this.container.appendChild(layer);
-        }
-    }
-    
-    createStars() {
-        const layers = this.container.querySelectorAll('.starfield-layer');
-        const starCount = window.innerWidth < 480 ? 200 : 400; // Меньше звезд на мобильных
-        
-        const starColors = ['', 'blue', 'pink', 'purple', 'gold', 'cyan'];
-        const starSizes = ['small', 'medium', 'large'];
-        
-        layers.forEach((layer, layerIndex) => {
-            const starsPerLayer = Math.floor(starCount / layers.length);
-            
-            for (let i = 0; i < starsPerLayer; i++) {
-                const star = document.createElement('div');
-                star.className = 'star';
-                
-                // Случайный размер
-                const size = starSizes[Math.floor(Math.random() * starSizes.length)];
-                star.classList.add(size);
-                
-                // Случайный цвет (30% цветных звезд)
-                if (Math.random() > 0.7) {
-                    const color = starColors[Math.floor(Math.random() * starColors.length)];
-                    if (color) star.classList.add(color);
-                }
-                
-                // Случайная позиция
-                const x = Math.random() * 100;
-                const y = Math.random() * 100;
-                
-                star.style.left = `${x}%`;
-                star.style.top = `${y}%`;
-                
-                // Случайная анимация мерцания
-                const delay = Math.random() * 5;
-                const duration = 2 + Math.random() * 3;
-                
-                star.style.animationDelay = `${delay}s`;
-                star.style.animationDuration = `${duration}s`;
-                
-                // Движение для параллакса
-                const moveX = (Math.random() - 0.5) * 200 * (layerIndex + 1);
-                const moveY = (Math.random() - 0.5) * 100 * (layerIndex + 1);
-                
-                star.style.setProperty('--move-x', `${moveX}px`);
-                star.style.setProperty('--move-y', `${moveY}px`);
-                star.style.animation = `moveStar ${20 + layerIndex * 10}s linear infinite alternate, twinkle${size.charAt(0).toUpperCase() + size.slice(1)} ${duration}s ease-in-out ${delay}s infinite`;
-                
-                layer.appendChild(star);
-                this.stars.push({
-                    element: star,
-                    layer: layerIndex,
-                    x, y,
-                    moveX, moveY
-                });
-            }
-        });
-    }
-    
-    createNebulas() {
-        // Создаем 3-5 туманностей
-        const nebulaCount = 3 + Math.floor(Math.random() * 3);
-        const nebulaColors = ['blue', 'purple', 'pink'];
-        
-        for (let i = 0; i < nebulaCount; i++) {
-            const nebula = document.createElement('div');
-            nebula.className = 'nebula';
-            
-            const color = nebulaColors[Math.floor(Math.random() * nebulaColors.length)];
-            nebula.classList.add(color);
-            
-            // Случайная позиция и размер
-            const x = Math.random() * 100;
-            const y = Math.random() * 100;
-            const size = 200 + Math.random() * 300;
-            
-            nebula.style.left = `${x}%`;
-            nebula.style.top = `${y}%`;
-            nebula.style.width = `${size}px`;
-            nebula.style.height = `${size}px`;
-            
-            // Анимация движения
-            const duration = 40 + Math.random() * 40;
-            nebula.style.animation = `moveStar ${duration}s linear infinite alternate`;
-            nebula.style.setProperty('--move-x', `${(Math.random() - 0.5) * 400}px`);
-            nebula.style.setProperty('--move-y', `${(Math.random() - 0.5) * 200}px`);
-            
-            this.container.appendChild(nebula);
-            this.nebulas.push(nebula);
-        }
-    }
-    
-    createGalaxy() {
-        const galaxy = document.createElement('div');
-        galaxy.className = 'galaxy-spiral';
-        
-        // Центр галактики
-        galaxy.style.left = '50%';
-        galaxy.style.top = '50%';
-        galaxy.style.transform = 'translate(-50%, -50%)';
-        
-        this.container.appendChild(galaxy);
-        this.galaxy = galaxy;
-    }
-    
-    startShootingStars() {
-        // Создаем падающие звезды каждые 3-8 секунд
-        setInterval(() => {
-            if (Math.random() > 0.3) { // 70% шанс создать падающую звезду
-                this.createShootingStar();
-            }
-        }, 3000);
-    }
-    
-    createShootingStar() {
-        const shootingStar = document.createElement('div');
-        shootingStar.className = 'shooting-star';
-        
-        // Начальная позиция (случайно с края экрана)
-        const startX = Math.random() * 100;
-        const startY = Math.random() * 30; // Только верхняя треть экрана
-        
-        shootingStar.style.left = `${startX}%`;
-        shootingStar.style.top = `${startY}%`;
-        
-        // Случайный угол
-        const angle = (Math.random() * 30 + 15) * (Math.PI / 180); // 15-45 градусов
-        const length = 100 + Math.random() * 200;
-        
-        // Цвет (чаще белый, иногда цветной)
-        if (Math.random() > 0.8) {
-            const colors = ['#4ecdc4', '#ff6b6b', '#a29bfe'];
-            shootingStar.style.background = `linear-gradient(90deg, transparent, ${colors[Math.floor(Math.random() * colors.length)]}, transparent)`;
-        }
-        
-        // Анимация полета
-        const animation = shootingStar.animate([
-            {
-                transform: `rotate(${angle}rad) scaleX(0)`,
-                opacity: 0
-            },
-            {
-                transform: `rotate(${angle}rad) scaleX(1)`,
-                opacity: 1,
-                offset: 0.1
-            },
-            {
-                transform: `rotate(${angle}rad) scaleX(1) translateX(${length}px)`,
-                opacity: 1,
-                offset: 0.8
-            },
-            {
-                transform: `rotate(${angle}rad) scaleX(0) translateX(${length}px)`,
-                opacity: 0
-            }
-        ], {
-            duration: 1500 + Math.random() * 1000,
-            easing: 'cubic-bezier(0.4, 0, 0.2, 1)'
-        });
-        
-        animation.onfinish = () => {
-            shootingStar.remove();
-            this.shootingStars = this.shootingStars.filter(s => s !== shootingStar);
-        };
-        
-        this.container.appendChild(shootingStar);
-        this.shootingStars.push(shootingStar);
-    }
-    
-    startAnimation() {
-        const animate = (time) => {
-            if (!this.lastTime) this.lastTime = time;
-            const delta = time - this.lastTime;
-            this.lastTime = time;
-            
-            // Параллакс движение звезд
-            this.stars.forEach(star => {
-                const speed = parseFloat(star.element.parentElement.dataset.speed) || 0.2;
-                const moveX = parseFloat(star.element.style.getPropertyValue('--move-x')) || 0;
-                const moveY = parseFloat(star.element.style.getPropertyValue('--move-y')) || 0;
-                
-                // Медленное дрейфующее движение
-                const driftX = Math.sin(time / 10000 + star.x) * 50 * speed;
-                const driftY = Math.cos(time / 8000 + star.y) * 30 * speed;
-                
-                star.element.style.transform = `translate(${driftX}px, ${driftY}px)`;
-            });
-            
-            // Движение туманностей
-            this.nebulas.forEach(nebula => {
-                const driftX = Math.sin(time / 20000) * 100;
-                const driftY = Math.cos(time / 25000) * 50;
-                nebula.style.transform = `translate(${driftX}px, ${driftY}px)`;
-            });
-            
-            this.animationId = requestAnimationFrame(animate);
-        };
-        
-        this.animationId = requestAnimationFrame(animate);
-    }
-    
-    handleResize() {
-        // При изменении размера окна можно пересчитать позиции
-        // или просто оставить как есть - звезды адаптируются
-        console.log('⭐ Starfield resized');
-    }
-    
-    destroy() {
-        if (this.animationId) {
-            cancelAnimationFrame(this.animationId);
-        }
-        if (this.container) {
-            this.container.innerHTML = '';
-        }
-        this.stars = [];
-        this.shootingStars = [];
-        this.nebulas = [];
-        console.log('⭐ Starfield destroyed');
-    }
-}
-
-// ===================== ИНИЦИАЛИЗАЦИЯ =====================
-
-let starfieldInstance = null;
-
-// Функция инициализации звездного поля
-function initStarfield() {
-    if (starfieldInstance) {
-        starfieldInstance.destroy();
-    }
-    
-    starfieldInstance = new Starfield();
-    return starfieldInstance;
-}
-
-// Функция для переключения интенсивности звезд
-function setStarfieldIntensity(intensity = 'medium') {
-    const intensities = {
-        low: 100,
-        medium: 400,
-        high: 800,
-        ultra: 1500
-    };
-    
-    if (starfieldInstance) {
-        starfieldInstance.destroy();
-        
-        // Пересоздаем с новой интенсивностью
-        setTimeout(() => {
-            starfieldInstance = new Starfield();
-            // Здесь можно добавить логику для изменения количества звезд
-            console.log(`⭐ Starfield intensity set to: ${intensity}`);
-        }, 100);
-    }
-}
-
-// Функция для создания праздничного режима
-function enableHolidayMode() {
-    if (!starfieldInstance) return;
-    
-    // Добавляем больше цветных звезд
-    const allStars = document.querySelectorAll('.star');
-    allStars.forEach(star => {
-        if (Math.random() > 0.5) {
-            const colors = ['blue', 'pink', 'purple', 'gold', 'cyan'];
-            const color = colors[Math.floor(Math.random() * colors.length)];
-            
-            // Удаляем старые цветные классы
-            colors.forEach(c => star.classList.remove(c));
-            
-            // Добавляем новый цвет
-            star.classList.add(color);
-            
-            // Увеличиваем свечение
-            star.style.boxShadow = `0 0 15px var(--${color}-rgb, currentColor), 0 0 30px var(--${color}-rgb, currentColor)`;
-        }
-    });
-    
-    // Увеличиваем частоту падающих звезд
-    clearInterval(starfieldInstance.shootingStarInterval);
-    starfieldInstance.shootingStarInterval = setInterval(() => {
-        if (Math.random() > 0.2) {
-            starfieldInstance.createShootingStar();
-        }
-    }, 1500);
-    
-    console.log('⭐ Holiday mode enabled!');
-}
-
-// Инициализация при загрузке
-document.addEventListener('DOMContentLoaded', () => {
-    // Инициализируем звездное поле
-    initStarfield();
-    
-    // Добавляем глобальные переменные для отладки
-    window.starfield = starfieldInstance;
-    window.setStarfieldIntensity = setStarfieldIntensity;
-    window.enableHolidayMode = enableHolidayMode;
-    
-    // Опционально: включить праздничный режим по определенному событию
-    // Например, при победе в игре
-    window.addEventListener('gameWon', () => {
-        enableHolidayMode();
-        setTimeout(() => {
-            // Возвращаем нормальный режим через 10 секунд
-            initStarfield();
-        }, 10000);
-    });
-    
-    console.log('⭐ Starfield ready!');
-});
-
-// Обработчик для режима экономии заряда батареи
-if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    console.log('⭐ Reduced motion detected, simplifying starfield...');
-    // Можно уменьшить количество звезд или отключить анимации
-}
 </script>
 </body>
 </html>

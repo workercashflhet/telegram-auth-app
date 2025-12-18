@@ -56,372 +56,411 @@ body {
     padding-bottom: 80px; /* Для навигации */
 }
 
-/* ========== ЗВЕЗДНОЕ ПОЛЕ ========== */
-.starfield {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: -1;
-    background: #000000;
-    overflow: hidden;
-    pointer-events: none;
-}
-
-.star {
-    position: absolute;
-    background-color: #fff;
-    border-radius: 50%;
-}
-
-.star.small {
-    width: 1px;
-    height: 1px;
-    opacity: 0.7;
-    animation: twinkleSmall 3s infinite ease-in-out;
-}
-
-.star.medium {
-    width: 2px;
-    height: 2px;
-    opacity: 0.9;
-    animation: twinkleMedium 4s infinite ease-in-out;
-}
-
-.star.large {
-    width: 3px;
-    height: 3px;
-    opacity: 1;
-    animation: twinkleLarge 5s infinite ease-in-out;
-}
-
-.star.blue {
-    background-color: #4ecdc4;
-    box-shadow: 0 0 10px #4ecdc4, 0 0 20px #4ecdc4;
-}
-
-.star.pink {
-    background-color: #ff6b6b;
-    box-shadow: 0 0 10px #ff6b6b, 0 0 20px #ff6b6b;
-}
-
-.star.purple {
-    background-color: #a29bfe;
-    box-shadow: 0 0 10px #a29bfe, 0 0 20px #a29bfe;
-}
-
-.star.gold {
-    background-color: #ffd700;
-    box-shadow: 0 0 10px #ffd700, 0 0 20px #ffd700;
-}
-
-.star.cyan {
-    background-color: #45b7d1;
-    box-shadow: 0 0 10px #45b7d1, 0 0 20px #45b7d1;
-}
-
-@keyframes twinkleSmall {
-    0%, 100% { opacity: 0.3; transform: scale(1); }
-    50% { opacity: 1; transform: scale(1.2); }
-}
-
-@keyframes twinkleMedium {
-    0%, 100% { opacity: 0.4; transform: scale(1); }
-    50% { opacity: 1; transform: scale(1.3); }
-}
-
-@keyframes twinkleLarge {
-    0%, 100% { opacity: 0.5; transform: scale(1); }
-    50% { opacity: 1; transform: scale(1.4); }
-}
-
-/* ========== ЗАГОЛОВОК STACKS ========== */
-.stacks-header {
+/* styles.css - добавить стили для победителя */
+.winner-section {
     text-align: center;
-    margin: 20px 0 40px 0;
-    padding: 30px 0;
-    position: relative;
-    overflow: hidden;
-}
-
-.stacks-logo {
-    font-family: 'Orbitron', sans-serif;
-    font-weight: 700;
-    font-size: 3.5rem;
-    background: linear-gradient(45deg, #4ecdc4, #ff6b6b, #45b7d1, #96ceb4);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    text-shadow: 0 0 30px rgba(78, 205, 196, 0.3);
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    margin: 10px 0 30px 0;
-    position: relative;
-    display: inline-block;
-}
-
-.stacks-logo::after {
-    content: '';
-    position: absolute;
-    bottom: -10px;
-    left: 10%;
-    width: 80%;
-    height: 3px;
-    background: linear-gradient(90deg, transparent, #4ecdc4, #ff6b6b, transparent);
-    border-radius: 2px;
-}
-
-
-/* ========== РУЛЕТКА (КОЛЕСО ФОРТУНЫ) ========== */
-
-/* Контейнер колеса */
-.wheel-container {
-    background-color: rgba(17, 17, 17, 0.7);
-    backdrop-filter: blur(10px);
+    padding: 30px;
+    background: linear-gradient(135deg, #4ecdc4, #44a08d);
     border-radius: 20px;
-    padding: 25px;
-    margin-bottom: 20px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-}
-
-/* Основное колесо */
-#fortuneWheel {
+    margin: 30px 0;
+    display: none;
+    transform: scale(0.8);
+    opacity: 0;
+    transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
     position: relative;
-    width: 300px;
-    height: 300px;
-    margin: 0 auto;
-    border-radius: 50%;
-    background: #111;
-    box-shadow: 
-        inset 0 0 40px rgba(0, 0, 0, 0.8),
-        0 0 30px rgba(78, 205, 196, 0.3);
-    overflow: hidden;
-    transition: transform 5s cubic-bezier(0.2, 0.8, 0.3, 1);
-    transform: rotate(0deg);
-}
-
-/* Контейнер для секторов */
-#wheelSectors {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
     overflow: hidden;
 }
 
-/* Отдельный сектор */
-.wheel-sector {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    transform-origin: center center;
-    clip-path: polygon(50% 50%, 50% 0%, 100% 0%);
-}
-
-/* Цвета секторов */
-.wheel-sector.color-1 { background: linear-gradient(to bottom right, #4ecdc4, #44a08d); }
-.wheel-sector.color-2 { background: linear-gradient(to bottom right, #ff6b6b, #c44569); }
-.wheel-sector.color-3 { background: linear-gradient(to bottom right, #45b7d1, #4488cc); }
-.wheel-sector.color-4 { background: linear-gradient(to bottom right, #96ceb4, #4ecdc4); }
-.wheel-sector.color-5 { background: linear-gradient(to bottom right, #a29bfe, #6c5ce7); }
-.wheel-sector.color-6 { background: linear-gradient(to bottom right, #ffd700, #ffaa00); }
-.wheel-sector.color-7 { background: linear-gradient(to bottom right, #ff8e53, #ff6b6b); }
-.wheel-sector.color-8 { background: linear-gradient(to bottom right, #00cec9, #0984e3); }
-
-/* Граница между секторами */
-.wheel-sector::after {
+.winner-section::before {
     content: '';
     position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 2px;
-    height: 100%;
-    background: rgba(255, 255, 255, 0.3);
-    transform: translate(-50%, -50%) rotate(var(--sector-angle, 0deg));
-    transform-origin: center top;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(
+        45deg,
+        transparent 30%,
+        rgba(255, 255, 255, 0.1) 50%,
+        transparent 70%
+    );
+    animation: shine 3s infinite linear;
 }
 
-/* Контейнер для участников */
-#wheelParticipants {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-    z-index: 3;
+.winner-section.visible {
+    display: block;
+    transform: scale(1);
+    opacity: 1;
+    animation: pulse 2s infinite;
 }
 
-/* Участник в секторе */
-.wheel-participant {
-    position: absolute;
-    width: 50px;
-    height: 50px;
+@keyframes shine {
+    0% {
+        transform: translateX(-100%) translateY(-100%) rotate(45deg);
+    }
+    100% {
+        transform: translateX(100%) translateY(100%) rotate(45deg);
+    }
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(78, 205, 196, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 20px rgba(78, 205, 196, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(78, 205, 196, 0);
+    }
+}
+
+.winner-title {
+    font-size: 2rem;
+    margin-bottom: 20px;
+    color: #000;
+    font-weight: bold;
+    text-shadow: 2px 2px 0 rgba(255, 255, 255, 0.5);
+}
+
+.winner-avatar {
+    width: 120px;
+    height: 120px;
     border-radius: 50%;
     overflow: hidden;
-    border: 3px solid rgba(255, 255, 255, 0.9);
-    box-shadow: 
-        0 0 15px rgba(0, 0, 0, 0.7),
-        inset 0 0 10px rgba(255, 255, 255, 0.2);
-    transform-origin: center center;
-    transform: translate(-50%, -50%);
-    z-index: 5;
+    margin: 0 auto 20px;
+    border: 5px solid #000;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+    animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+/* Добавьте эти стили в конец существующего styles.css */
+
+/* Улучшенные стили для колеса */
+.wheel-participant {
+    transition: transform 0.3s ease;
+}
+
+.wheel-participant:hover {
+    transform: scale(1.1) !important;
+    z-index: 10;
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+}
+
+/* Анимация вращения */
+@keyframes wheelSpin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(var(--final-angle, 3600deg));
+    }
+}
+
+.spinning {
+    animation: wheelSpin 5s cubic-bezier(0.2, 0.8, 0.3, 1) forwards;
+}
+
+/* Пульсация для таймера */
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.05);
+        opacity: 0.8;
+    }
+}
+
+.pulse {
+    animation: pulse 1s infinite;
+}
+
+/* Стили для участников */
+.participant-item.current-user {
+    border: 2px solid #4ecdc4;
+    border-radius: 10px;
+    padding: 5px;
+    background: rgba(78, 205, 196, 0.1);
+}
+
+.participant-item.winner {
+    border: 2px solid gold;
+    border-radius: 10px;
+    padding: 5px;
+    background: rgba(255, 215, 0, 0.1);
+    position: relative;
+}
+
+.winner-crown {
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    font-size: 1.5rem;
+    z-index: 20;
+}
+
+.participant-avatar {
+    position: relative;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    overflow: hidden;
+    margin-bottom: 8px;
+    border: 2px solid #333;
     transition: all 0.3s ease;
 }
 
-/* Фото участника */
-.wheel-participant-photo {
+.participant-item:hover .participant-avatar {
+    border-color: #4ecdc4;
+    transform: scale(1.05);
+}
+
+.participant-avatar img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    object-position: center;
-    border-radius: 50%;
+    transition: transform 0.3s ease;
 }
 
-/* Инициалы как fallback */
-.wheel-participant-initials {
+.participant-item:hover .participant-avatar img {
+    transform: scale(1.1);
+}
+
+.you-label {
+    color: #4ecdc4;
+    font-size: 0.8rem;
+    font-weight: bold;
+}
+
+/* Индикатор авторизации */
+#authIndicator {
+    animation: slideDown 0.5s ease;
+    margin: 10px auto;
+    max-width: 300px;
+}
+
+@keyframes slideDown {
+    from {
+        transform: translateY(-20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Кнопки */
+.game-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+.game-button:disabled:hover {
+    background-color: #fff !important;
+    color: #000 !important;
+    box-shadow: none !important;
+}
+
+/* Адаптивность для мобильных */
+@media (max-width: 480px) {
+    .wheel-wrapper {
+        width: 250px;
+        height: 250px;
+    }
+    
+    .wheel-participant {
+        width: 40px;
+        height: 40px;
+    }
+    
+    .participants-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .game-button {
+        min-width: 200px;
+        font-size: 1rem;
+        padding: 12px 20px;
+    }
+    
+    .winner-avatar {
+        width: 80px;
+        height: 80px;
+    }
+    
+    .winner-title {
+        font-size: 1.5rem;
+    }
+}
+
+.winner-name {
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: #000;
+    text-shadow: 1px 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+/* Общие стили для вкладок */
+.tab-content {
+    display: none;
+    animation: fadeIn 0.5s ease;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* Заголовки */
+.page-title {
+    text-align: center;
+    font-size: 2rem;
+    font-weight: 300;
+    margin-bottom: 30px;
+    color: #ffffff;
+    letter-spacing: 2px;
+}
+
+/* Вкладка Главная (Колесо фортуны) */
+.wheel-container {
+    background-color: #111;
+    border-radius: 20px;
+    padding: 30px;
+    margin-bottom: 20px;
+}
+
+.wheel-title {
+    text-align: center;
+    font-size: 1.5rem;
+    margin-bottom: 20px;
+    color: #ffffff;
+}
+
+/* Контейнер для колеса */
+.wheel-wrapper {
+    position: relative;
+    width: 300px;
+    height: 300px;
+    margin: 0 auto 30px;
+    overflow: visible; /* Важно: позволяем элементам выходить за пределы */
+}
+
+#fortuneWheel {
     width: 100%;
     height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 18px;
-    font-weight: bold;
-    color: white;
-    text-transform: uppercase;
     border-radius: 50%;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    position: relative;
+    transition: transform 5s cubic-bezier(0.17, 0.67, 0.83, 0.67);
+    transform: rotate(0deg);
+    box-shadow: 0 0 30px rgba(255, 255, 255, 0.1);
+    overflow: visible; /* Важно */
 }
 
-/* Центр колеса */
+.wheel-participant {
+    position: absolute;
+    width: 60px; /* Уменьшаем размер */
+    height: 60px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 3px solid #fff;
+    background: #222;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+}
+
+/* Добавим адаптивность для колеса */
+@media (max-width: 600px) {
+    .wheel-wrapper {
+        width: 280px;
+        height: 280px;
+    }
+    
+    .wheel-participant {
+        width: 50px;
+        height: 50px;
+    }
+}
+
 .wheel-center {
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 40px;
-    height: 40px;
-    background: #000;
-    border: 4px solid #fff;
+    width: 60px;
+    height: 60px;
+    background-color: #000;
     border-radius: 50%;
+    border: 4px solid #fff;
     z-index: 10;
-    box-shadow: 
-        0 0 20px rgba(0, 0, 0, 0.7),
-        inset 0 0 10px rgba(255, 255, 255, 0.1);
 }
 
-/* Указатель (стрелка) */
 .wheel-pointer {
     position: absolute;
     top: -20px;
     left: 50%;
     transform: translateX(-50%);
-    width: 0;
-    height: 0;
-    border-left: 15px solid transparent;
-    border-right: 15px solid transparent;
-    border-top: 30px solid #ff6b6b;
+    width: 40px;
+    height: 40px;
+    font-size: 2rem;
     z-index: 20;
-    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.7));
 }
 
-.wheel-pointer::after {
-    content: '';
+/* Участники на колесе */
+.wheel-participant {
     position: absolute;
-    top: -30px;
-    left: -10px;
-    width: 20px;
-    height: 20px;
-    background: #ff6b6b;
+    width: 80px;
+    height: 80px;
     border-radius: 50%;
-    box-shadow: 0 0 10px rgba(255, 107, 107, 0.8);
-}
-
-/* Обод колеса */
-.wheel-rim {
-    position: absolute;
-    top: 5px;
-    left: 5px;
-    width: calc(100% - 10px);
-    height: calc(100% - 10px);
-    border: 3px solid rgba(255, 255, 255, 0.15);
-    border-radius: 50%;
-    z-index: 1;
-}
-
-/* Подсветка сектора победителя */
-.wheel-sector.winner {
-    animation: winnerGlow 1.5s infinite alternate;
-    filter: brightness(1.3);
-}
-
-@keyframes winnerGlow {
-    from {
-        filter: brightness(1.2) drop-shadow(0 0 15px currentColor);
-    }
-    to {
-        filter: brightness(1.6) drop-shadow(0 0 25px currentColor);
-    }
-}
-
-/* Коронка победителя */
-.winner-crown {
-    position: absolute;
-    top: -8px;
-    right: -8px;
-    font-size: 16px;
-    z-index: 101;
-    filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.7));
-    background: rgba(0, 0, 0, 0.8);
-    border-radius: 50%;
-    width: 24px;
-    height: 24px;
+    overflow: hidden;
+    border: 3px solid #fff;
+    transform-origin: center;
     display: flex;
     align-items: center;
     justify-content: center;
-    animation: crownBounce 1s infinite alternate;
+    background: #222;
 }
 
-@keyframes crownBounce {
-    from {
-        transform: translateY(0);
-    }
-    to {
-        transform: translateY(-4px);
-    }
+.wheel-participant img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.wheel-participant .initials {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #fff;
 }
 
 /* Таймер игры */
-.game-timer-container {
-    text-align: center;
-    margin-bottom: 25px;
-}
-
 .game-timer {
     text-align: center;
-    font-size: 3.5rem;
+    font-size: 3rem;
     font-weight: bold;
-    margin: 10px 0;
+    margin: 20px 0;
     color: #4ecdc4;
-    text-shadow: 0 0 20px rgba(78, 205, 196, 0.5);
-    font-family: 'Orbitron', monospace;
+    text-shadow: 0 0 10px rgba(78, 205, 196, 0.5);
 }
 
 .timer-label {
     font-size: 1rem;
-    color: #888;
-    margin-top: 5px;
-    letter-spacing: 2px;
-    text-transform: uppercase;
+    color: #666;
+    margin-top: 10px;
 }
 
-/* Кнопки управления */
+/* Кнопки игры */
 .game-controls {
     display: flex;
     flex-direction: column;
@@ -435,50 +474,40 @@ body {
     background-color: #fff;
     color: #000;
     border: none;
-    padding: 16px 32px;
+    padding: 15px 30px;
     border-radius: 50px;
     font-size: 1.1rem;
-    font-weight: 600;
+    font-weight: 500;
     cursor: pointer;
     transition: all 0.3s;
     display: flex;
     align-items: center;
-    gap: 12px;
-    min-width: 280px;
+    gap: 10px;
+    min-width: 250px; /* Увеличим для одной кнопки */
     justify-content: center;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
 }
 
 .game-button:hover:not(:disabled) {
     background-color: #4ecdc4;
     color: #000;
-    transform: translateY(-3px);
-    box-shadow: 0 8px 20px rgba(78, 205, 196, 0.4);
-}
-
-.game-button:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-    transform: none !important;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(78, 205, 196, 0.3);
 }
 
 .game-info-text {
-    color: #888;
+    color: #666;
     font-size: 0.9rem;
     text-align: center;
     margin-top: 10px;
-    line-height: 1.5;
+    line-height: 1.4;
 }
 
 /* Список участников */
 .participants-list {
-    background-color: rgba(17, 17, 17, 0.7);
+    background-color: #111;
     border-radius: 15px;
     padding: 20px;
     margin-top: 20px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .participants-title {
@@ -501,15 +530,6 @@ body {
     flex-direction: column;
     align-items: center;
     text-align: center;
-    padding: 10px;
-    border-radius: 10px;
-    background: rgba(255, 255, 255, 0.05);
-    transition: all 0.3s ease;
-}
-
-.participant-item:hover {
-    background: rgba(255, 255, 255, 0.1);
-    transform: translateY(-2px);
 }
 
 .participant-avatar {
@@ -519,7 +539,6 @@ body {
     overflow: hidden;
     margin-bottom: 8px;
     border: 2px solid #333;
-    position: relative;
 }
 
 .participant-avatar img {
@@ -544,95 +563,7 @@ body {
     font-style: italic;
 }
 
-/* Статус сообщения */
-.status-message {
-    padding: 15px;
-    border-radius: 10px;
-    margin: 15px 0;
-    display: none;
-    text-align: center;
-    animation: fadeIn 0.3s;
-}
-
-.status-message.visible {
-    display: block;
-}
-
-.status-success {
-    background-color: rgba(0, 255, 0, 0.1);
-    color: #00cc00;
-    border: 1px solid rgba(0, 255, 0, 0.2);
-}
-
-.status-error {
-    background-color: rgba(255, 0, 0, 0.1);
-    color: #ff3333;
-    border: 1px solid rgba(255, 0, 0, 0.2);
-}
-
-.status-info {
-    background-color: rgba(255, 255, 255, 0.1);
-    color: #999;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-/* Блок победителя */
-.winner-section {
-    text-align: center;
-    padding: 20px;
-    background: linear-gradient(135deg, #4ecdc4, #44a08d);
-    border-radius: 15px;
-    margin-top: 20px;
-    display: none;
-    animation: fadeIn 0.5s;
-}
-
-.winner-section.visible {
-    display: block;
-}
-
-.winner-title {
-    font-size: 1.5rem;
-    margin-bottom: 15px;
-    color: #000;
-    font-weight: bold;
-}
-
-.winner-avatar {
-    width: 100px;
-    height: 100px;
-    border-radius: 50%;
-    overflow: hidden;
-    margin: 0 auto 15px;
-    border: 4px solid #000;
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
-}
-
-.winner-name {
-    font-size: 1.3rem;
-    font-weight: bold;
-    color: #000;
-}
-
-/* ========== ПРОФИЛЬ ПОЛЬЗОВАТЕЛЯ ========== */
-.tab-content {
-    display: none;
-    animation: fadeIn 0.3s ease;
-}
-
-.tab-content.active {
-    display: block;
-}
-
-.page-title {
-    text-align: center;
-    font-size: 2rem;
-    font-weight: 300;
-    margin-bottom: 30px;
-    color: #ffffff;
-    letter-spacing: 2px;
-}
-
+/* Вкладка Профиль */
 .profile-tab {
     background-color: #111;
     border-radius: 20px;
@@ -645,15 +576,16 @@ body {
 }
 
 .profile-avatar {
-    position: relative;
-    width: 140px;
-    height: 140px;
+    width: 120px;
+    height: 120px;
     border-radius: 50%;
     overflow: hidden;
     margin: 0 auto 20px;
-    border: 5px solid #fff;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    border: 4px solid #fff;
+    background-color: #222;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .profile-avatar img {
@@ -680,6 +612,7 @@ body {
     margin-bottom: 20px;
 }
 
+/* Информация профиля */
 .profile-info-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
@@ -711,88 +644,159 @@ body {
     font-weight: 500;
 }
 
-.user-stats {
-    background: rgba(255, 255, 255, 0.05);
-    padding: 20px;
-    border-radius: 15px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    margin-bottom: 30px;
-}
-
-.stat-item {
-    text-align: center;
-    padding: 10px;
-}
-
-.stat-value {
-    font-size: 2rem;
-    font-weight: bold;
-    color: #4ecdc4;
-    margin-bottom: 5px;
-}
-
-.stat-label {
-    font-size: 0.9rem;
-    color: #999;
-}
-
-/* Статус бейдж */
+/* Статусы */
 .status-badge {
     display: inline-block;
-    padding: 8px 20px;
-    border-radius: 25px;
-    font-size: 0.85rem;
-    font-weight: bold;
-    margin: 0 auto 20px;
-    text-align: center;
-    text-transform: uppercase;
-    letter-spacing: 1px;
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    margin-top: 10px;
 }
 
 .badge-real {
-    background: linear-gradient(135deg, #00cc00, #009900);
-    color: white;
-    box-shadow: 0 4px 15px rgba(0, 255, 0, 0.2);
+    background-color: #00cc00;
+    color: #000;
 }
 
 .badge-demo {
-    background: linear-gradient(135deg, #ff9900, #cc6600);
-    color: white;
-    box-shadow: 0 4px 15px rgba(255, 153, 0, 0.2);
+    background-color: #ff9900;
+    color: #000;
 }
 
-/* Telegram информация */
-.telegram-info-section {
-    background: rgba(0, 0, 0, 0.3);
-    padding: 25px;
+/* Статус сообщения */
+.status-message {
+    padding: 15px;
+    border-radius: 10px;
+    margin: 15px 0;
+    display: none;
+    text-align: center;
+}
+
+.status-message.visible {
+    display: block;
+    animation: fadeIn 0.3s;
+}
+
+.status-success {
+    background-color: rgba(0, 255, 0, 0.1);
+    color: #00cc00;
+    border: 1px solid rgba(0, 255, 0, 0.2);
+}
+
+.status-error {
+    background-color: rgba(255, 0, 0, 0.1);
+    color: #ff3333;
+    border: 1px solid rgba(255, 0, 0, 0.2);
+}
+
+.status-info {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #999;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Анимации */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+.pulse {
+    animation: pulse 2s infinite;
+}
+
+.spin {
+    animation: spin 5s linear infinite;
+}
+
+/* Победитель */
+.winner-section {
+    text-align: center;
+    padding: 20px;
+    background: linear-gradient(135deg, #4ecdc4, #44a08d);
     border-radius: 15px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    margin-top: 30px;
+    margin-top: 20px;
+    display: none;
 }
 
-.telegram-info-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 15px;
+.winner-section.visible {
+    display: block;
+    animation: fadeIn 0.5s;
 }
 
-/* Компактный профиль */
+.winner-title {
+    font-size: 1.5rem;
+    margin-bottom: 15px;
+    color: #000;
+}
+
+.winner-avatar {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    overflow: hidden;
+    margin: 0 auto 15px;
+    border: 4px solid #000;
+}
+
+.winner-name {
+    font-size: 1.3rem;
+    font-weight: bold;
+    color: #000;
+}
+
+/* Стили для фото профиля */
+.profile-photo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+.profile-avatar {
+    position: relative;
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    overflow: hidden;
+    margin: 0 auto 20px;
+    border: 4px solid #fff;
+    background-color: #222;
+}
+
+/* ========== КОМПАКТНЫЙ ПРОФИЛЬ ========== */
 .compact-profile {
     position: fixed;
     top: 15px;
     left: 15px;
-    z-index: 100;
+    z-index: 2000;
     display: flex;
     align-items: center;
-    background: rgba(0, 0, 0, 0.95);
+    background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(10px);
     border-radius: 50px;
     padding: 8px 15px 8px 8px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-    border: 2px solid #333;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    border: 2px solid #4ecdc4;
     transition: all 0.3s ease;
     max-width: 250px;
-    color: #fff;
+}
+
+.compact-profile:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 25px rgba(0, 0, 0, 0.2);
 }
 
 .compact-avatar {
@@ -830,7 +834,7 @@ body {
 
 .compact-name {
     font-weight: bold;
-    color: #fff;
+    color: #000;
     font-size: 14px;
     white-space: nowrap;
     overflow: hidden;
@@ -839,13 +843,50 @@ body {
 
 .compact-status {
     font-size: 12px;
-    color: #4ecdc4;
+    color: #666;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
-/* Push-уведомление победителя */
+.compact-toggle {
+    background: none;
+    border: none;
+    color: #4ecdc4;
+    cursor: pointer;
+    padding: 5px;
+    margin-left: 5px;
+    transition: transform 0.3s;
+}
+
+.compact-toggle:hover {
+    transform: rotate(180deg);
+}
+
+/* Адаптивность для мобильных */
+@media (max-width: 600px) {
+    .compact-profile {
+        top: 10px;
+        left: 10px;
+        padding: 6px 12px 6px 6px;
+        max-width: 200px;
+    }
+    
+    .compact-avatar {
+        width: 35px;
+        height: 35px;
+    }
+    
+    .compact-name {
+        font-size: 13px;
+    }
+    
+    .compact-status {
+        font-size: 11px;
+    }
+}
+
+/* ========== PUSH-УВЕДОМЛЕНИЕ ПОБЕДИТЕЛЯ ========== */
 .winner-push {
     position: fixed;
     top: 20px;
@@ -855,10 +896,12 @@ body {
     max-width: 90vw;
     display: none;
     animation: slideInRight 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    transform: translateX(0);
 }
 
 .winner-push.show {
     display: block;
+    animation: slideInRight 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }
 
 .winner-push.hide {
@@ -910,8 +953,12 @@ body {
 }
 
 @keyframes bounce {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-5px); }
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-5px);
+    }
 }
 
 .winner-push-title {
@@ -933,6 +980,11 @@ body {
     align-items: center;
     justify-content: center;
     transition: all 0.3s;
+}
+
+.winner-push-close:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: rotate(90deg);
 }
 
 .winner-push-body {
@@ -1032,198 +1084,176 @@ body {
     background: linear-gradient(to right, #ff8e8e, #ff6b6b);
 }
 
-/* Анимации */
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+/* Анимация для push-уведомления */
+@keyframes pulsePush {
+    0% {
+        box-shadow: 0 0 0 0 rgba(78, 205, 196, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 15px rgba(78, 205, 196, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(78, 205, 196, 0);
+    }
 }
 
-@keyframes spin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
+.winner-push.show {
+    animation: slideInRight 0.5s ease, pulsePush 2s infinite 0.5s;
 }
 
-@keyframes pulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.05); }
-    100% { transform: scale(1); }
-}
-
-.pulse {
-    animation: pulse 2s infinite;
-}
-
-.spin {
-    animation: spin 5s linear infinite;
-}
-
-/* Адаптивность */
-@media (max-width: 768px) {
-    .app-container {
-        padding: 15px;
-        padding-bottom: 70px;
-    }
-    
-    .stacks-logo {
-        font-size: 2.8rem;
-    }
-    
-    .stacks-subtitle {
-        font-size: 1rem;
-        letter-spacing: 2px;
-    }
-    
-    .wheel-container {
-        padding: 20px;
-    }
-    
-    #fortuneWheel {
-        width: 280px;
-        height: 280px;
-    }
-    
-    .wheel-participant {
-        width: 45px;
-        height: 45px;
-    }
-    
-    .game-timer {
-        font-size: 3rem;
-    }
-    
-    .game-button {
-        min-width: 250px;
-        padding: 14px 28px;
-    }
-    
-    .compact-profile {
-        top: 10px;
-        left: 10px;
-        padding: 6px 12px 6px 6px;
-        max-width: 200px;
-    }
-    
-    .compact-avatar {
-        width: 35px;
-        height: 35px;
-    }
-    
-    .compact-name {
-        font-size: 13px;
-    }
-    
-    .compact-status {
-        font-size: 11px;
-    }
-    
+/* Адаптивность для push-уведомления */
+@media (max-width: 600px) {
     .winner-push {
         top: 80px;
         right: 10px;
         width: calc(100vw - 20px);
     }
     
-    .profile-tab {
-        padding: 20px;
+    .winner-push-body {
+        padding: 20px 15px;
     }
     
-    .profile-info-grid,
-    .telegram-info-grid {
-        grid-template-columns: 1fr;
+    .winner-push-avatar {
+        width: 60px;
+        height: 60px;
+        margin-right: 15px;
+    }
+    
+    .winner-push-name {
+        font-size: 1.2rem;
     }
 }
 
-@media (max-width: 480px) {
-    .stacks-logo {
-        font-size: 2.2rem;
-        letter-spacing: 1px;
+/* Обновите стили существующего winner-section (делаем его менее заметным) */
+.winner-section {
+    display: none; /* Скрываем старую табличку */
+}
+
+/* Анимация для аватара в push */
+@keyframes avatarGlow {
+    0%, 100% {
+        box-shadow: 0 0 20px rgba(255, 215, 0, 0.7);
+    }
+    50% {
+        box-shadow: 0 0 40px rgba(255, 215, 0, 1);
+    }
+}
+
+.winner-push-avatar {
+    animation: avatarGlow 2s infinite;
+}
+
+/* Добавьте в styles.css */
+.winner-avatar {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    overflow: hidden;
+    margin: 0 auto 20px;
+    border: 5px solid #000;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.winner-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.winner-name {
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: #000;
+    text-shadow: 2px 2px 0 rgba(255, 255, 255, 0.5);
+    margin: 10px 0;
+    padding: 10px 20px;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 10px;
+    display: inline-block;
+}
+
+/* Анимация для победителя */
+@keyframes winnerGlow {
+    0%, 100% {
+        box-shadow: 0 0 20px rgba(78, 205, 196, 0.7);
+    }
+    50% {
+        box-shadow: 0 0 40px rgba(78, 205, 196, 1);
+    }
+}
+
+.winner-section.visible {
+    animation: winnerGlow 2s infinite;
+}
+
+.profile-avatar .initials {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    font-weight: bold;
+    color: #fff;
+    background-color: #222;
+}
+
+/* Анимация появления фото */
+@keyframes fadeIn {
+    from { opacity: 0; transform: scale(0.8); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+.profile-photo.loaded {
+    animation: fadeIn 0.5s ease-out;
+}
+
+/* Аватар участников на колесе */
+.wheel-participant .initials {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    background: rgba(0,0,0,0.7);
+    color: white;
+    border-radius: 50%;
+}
+
+/* Исправьте существующие стили для .initials в профиле */
+.initials {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Адаптивность */
+@media (max-width: 600px) {
+    .app-container {
+        padding: 15px;
+        padding-bottom: 70px;
     }
     
-    .stacks-subtitle {
-        font-size: 0.9rem;
-        letter-spacing: 1px;
-    }
-    
-    #fortuneWheel {
+    .wheel-wrapper {
         width: 250px;
         height: 250px;
     }
     
-    .wheel-participant {
-        width: 40px;
-        height: 40px;
+    .game-button {
+        min-width: 150px;
+        padding: 12px 20px;
     }
     
-    .wheel-participant-initials {
-        font-size: 16px;
+    .profile-info-grid {
+        grid-template-columns: 1fr;
     }
     
     .game-timer {
         font-size: 2.5rem;
     }
-    
-    .game-button {
-        min-width: 200px;
-        font-size: 1rem;
-        padding: 12px 20px;
-    }
-    
-    .participants-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-    
-    .profile-avatar {
-        width: 100px;
-        height: 100px;
-    }
-    
-    .profile-avatar .initials {
-        font-size: 2.5rem;
-    }
-}
-
-/* Темный режим оптимизация */
-@media (prefers-color-scheme: dark) {
-    .starfield {
-        background: #000011;
-    }
-}
-
-/* Режим экономии заряда батареи */
-@media (prefers-reduced-motion: reduce) {
-    .star,
-    .wheel-sector,
-    .winner-crown,
-    .winner-push-icon {
-        animation: none !important;
-    }
-}
-
-/* Дополнительные утилиты */
-.you-label {
-    color: #4ecdc4;
-    font-size: 0.8rem;
-    font-weight: bold;
-}
-
-.text-center {
-    text-align: center;
-}
-
-.mt-20 {
-    margin-top: 20px;
-}
-
-.mb-20 {
-    margin-bottom: 20px;
-}
-
-/* Иконки Font Awesome совместимость */
-.icon {
-    font-family: 'Font Awesome 6 Free', sans-serif;
-    font-weight: 900;
-}
-
-/* Пульсация для таймера */
-.game-timer.pulse {
-    animation: pulse 1s infinite;
 }
