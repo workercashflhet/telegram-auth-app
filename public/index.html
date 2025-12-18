@@ -76,14 +76,14 @@
             <h1 class="page-title">🎰 КОЛЕСО ФОРТУНЫ</h1>
             
             <!-- Статус -->
-            <!-- <div id="statusMessage" class="hidden-element">
+            <div id="statusMessage" class="status-message hidden-notification">
                 <span id="statusText"></span>
-            </div> -->
+            </div>
 
             <!-- Индикатор авторизации на главной вкладке -->
-            <!-- <div id="authIndicator" style="text-align: center; margin: 10px 0; padding: 10px; background: rgba(0,255,0,0.1); border-radius: 10px;">
+            <div id="authIndicator" class="hidden-notification" style="text-align: center; margin: 10px 0; padding: 10px; background: rgba(0,255,0,0.1); border-radius: 10px;">
                 <span style="color: #4ecdc4;">✅ Авторизован как: <span id="currentUserName">Имя</span></span>
-            </div> -->
+            </div>
             
             <!-- Таймер игры -->
             <div class="game-timer-container">
@@ -350,19 +350,28 @@
         }
     }
     
-    // Показать статус
+    // Замените существующую функцию showStatus
     function showStatus(message, type = 'info') {
         if (!statusText || !statusMessage) return;
         
         statusText.textContent = message;
-        statusMessage.className = `status-message status-${type} visible`;
+        statusMessage.className = `status-message status-${type} hidden-notification visible`;
         
-        console.log(`📢 Статус (${type}): ${message}`);
+        // Для отладки можно оставить console.log, но пользователь не увидит
+        if (type === 'error') {
+            console.error(`📢 Ошибка: ${message}`);
+        } else {
+            console.log(`📢 Статус (${type}): ${message}`);
+        }
         
-        // Автоскрытие
+        // Автоскрытие только для не-ошибок
         if (type !== 'error') {
             setTimeout(() => {
                 statusMessage.classList.remove('visible');
+                // Дополнительно через 0.5 секунд убираем класс статуса
+                setTimeout(() => {
+                    statusMessage.className = 'status-message hidden-notification';
+                }, 500);
             }, 3000);
         }
         

@@ -1248,6 +1248,56 @@ body {
     pointer-events: none !important; /* Отключает взаимодействие */
 }
 
+/* Добавьте в конец существующего styles.css */
+
+/* Стили для скрытых но функциональных уведомлений */
+.hidden-notification {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+/* Для скрытых но видимых в определенных состояниях */
+.hidden-notification.visible {
+    position: static !important;
+    width: auto !important;
+    height: auto !important;
+    margin: 15px 0 !important;
+    overflow: visible !important;
+    clip: auto !important;
+    white-space: normal !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+}
+
+/* Альтернативный вариант - прозрачное скрытие (сохраняет место) */
+.transparent-hidden {
+    opacity: 0 !important;
+    height: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: hidden !important;
+    transition: opacity 0.3s ease, height 0.3s ease;
+}
+
+.transparent-hidden.visible {
+    opacity: 1 !important;
+    height: auto !important;
+    padding: 15px !important;
+    margin: 15px 0 !important;
+    overflow: visible !important;
+}
+
 /* Адаптивность */
 @media (max-width: 600px) {
     .app-container {

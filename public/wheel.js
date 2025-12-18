@@ -749,6 +749,8 @@ class FortuneWheel {
         }
     }
 
+    
+
     // В класс FortuneWheel добавьте методы:
 
     showWinnerPush(winner) {
