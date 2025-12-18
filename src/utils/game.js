@@ -18,6 +18,20 @@ class WheelGame {
         this.winnerAnnounced = false;
         this.nextRoundTimer = null;
         this.maxParticipants = 20; // Больше участников
+
+         // Добавьте точное время начала событий
+        this.countdownStartServerTime = null;
+        this.spinStartServerTime = null;
+        this.nextRoundStartTime = null;
+        
+        // Добавьте синхронизационные метки
+        this.eventTimestamps = {
+            gameCreated: Date.now(),
+            lastSync: Date.now()
+        };
+        
+        // Индекс текущего состояния (для проверки рассинхронизации)
+        this.stateVersion = 0;
     }
     
     addParticipant(user) {
@@ -64,20 +78,22 @@ class WheelGame {
         if (this.status !== 'waiting') return;
         
         this.status = 'counting';
-        this.countdown = 30; // 30 секунд
+        this.countdown = 30;
         this.countdownStartTime = new Date();
+        this.countdownStartServerTime = Date.now(); // Точное серверное время
         this.lastActivity = new Date();
+        this.stateVersion++;
         
-        console.log(`⏳ Игра ${this.id}: запущен 30-секундный таймер`);
+        console.log(`⏳ Игра ${this.id}: запущен 30-секундный таймер, serverTime: ${this.countdownStartServerTime}`);
     }
     
-    updateGameState() {
-        const now = new Date();
-        this.lastActivity = now;
+    updateGameState(serverTime = Date.now()) {
+        const now = serverTime;
+        this.lastActivity = new Date(now);
         
         // Обновляем таймер если игра в режиме отсчета
-        if (this.status === 'counting' && this.countdownStartTime) {
-            const secondsPassed = Math.floor((now - this.countdownStartTime) / 1000);
+        if (this.status === 'counting' && this.countdownStartServerTime) {
+            const secondsPassed = Math.floor((now - this.countdownStartServerTime) / 1000);
             this.countdown = Math.max(0, 30 - secondsPassed);
             
             // Если таймер истек - запускаем вращение
@@ -87,31 +103,30 @@ class WheelGame {
             }
         }
         
-        // Если игра в состоянии вращения - проверяем не пора ли завершить
-        if (this.status === 'spinning' && this.spinStartedAt) {
-            const spinDuration = Math.floor((now - this.spinStartedAt) / 1000);
+        // Если игра в состоянии вращения
+        if (this.status === 'spinning' && this.spinStartServerTime) {
+            const spinProgress = Math.min((now - this.spinStartServerTime) / 5000, 1);
             
-            // Вращение длится 5 секунд, затем показываем победителя
-            if (spinDuration >= 5 && !this.winnerAnnounced) {
-                console.log(`🎰 Вращение завершено, определяем победителя...`);
-                this.determineWinner();
+            // Автоматически завершаем вращение через 5 секунд
+            if (now >= this.spinEndServerTime && !this.winnerAnnounced) {
+                console.log(`🏁 Вращение завершено, показываем победителя`);
                 this.winnerAnnounced = true;
             }
             
             // Через 8 секунд после начала вращения завершаем игру
-            if (spinDuration >= 8 && this.status === 'spinning') {
+            if (now >= this.spinStartServerTime + 8000 && this.status === 'spinning') {
                 this.finishGame();
             }
         }
         
         // Если игра завершена - обновляем таймер следующего раунда
-        if (this.status === 'finished') {
-            if (!this.nextRoundTimer) {
-                this.nextRoundTimer = 8; // 8 секунд показа победителя
-            } else {
-                const finishedAt = this.spinStartedAt ? new Date(this.spinStartedAt.getTime() + 8000) : new Date();
-                const secondsSinceFinish = Math.floor((now - finishedAt) / 1000);
-                this.nextRoundTimer = Math.max(0, 8 - secondsSinceFinish);
+        if (this.status === 'finished' && this.nextRoundStartTime) {
+            const timeUntilNextRound = Math.max(0, this.nextRoundStartTime - now);
+            this.nextRoundTimer = Math.ceil(timeUntilNextRound / 1000);
+            
+            // Если время пришло - сбрасываем игру
+            if (timeUntilNextRound <= 0) {
+                this.resetForNextRound();
             }
         }
     }
@@ -122,6 +137,7 @@ class WheelGame {
             this.status = 'waiting';
             this.countdown = null;
             this.countdownStartTime = null;
+            this.countdownStartServerTime = null;
             return;
         }
         
@@ -129,16 +145,23 @@ class WheelGame {
         
         this.status = 'spinning';
         this.spinStartedAt = new Date();
+        this.spinStartServerTime = Date.now(); // Точное серверное время
         this.lastActivity = new Date();
+        this.stateVersion++;
         
-        // 1. Сначала выбираем случайного победителя
+        // Выбираем победителя ДО рассчета угла
         this.winnerIndex = Math.floor(Math.random() * this.participants.length);
         this.winner = this.participants[this.winnerIndex];
         
         console.log(`🎲 Выбран победитель: ${this.winner.first_name} (индекс: ${this.winnerIndex})`);
         
-        // 2. Рассчитываем угол так, чтобы колесо остановилось на этом победителе
+        // Рассчитываем угол для этого победителя
         this.calculateFinalAngleForWinner();
+        
+        // Рассчитываем время окончания вращения
+        this.spinEndServerTime = this.spinStartServerTime + 5000; // 5 секунд вращения
+        this.winnerRevealTime = this.spinStartServerTime + 5000; // Через 5 сек показываем
+        this.nextRoundStartTime = this.spinStartServerTime + 13000; // Через 13 сек новый раунд
     }
     
     calculateFinalAngleForWinner() {
@@ -317,31 +340,63 @@ class WheelGame {
         this.lastActivity = new Date();
     }
     
-    getGameState() {
-        // Обновляем состояние игры
-        this.updateGameState();
+    getGameState(clientTime = null) {
+        const serverTime = Date.now();
         
-        // Рассчитываем прогресс вращения
+        // Обновляем состояние игры с учетом текущего серверного времени
+        this.updateGameState(serverTime);
+        
+        // Рассчитываем клиентские таймеры
+        let timeUntilCountdownEnd = null;
+        let timeUntilSpinEnd = null;
         let spinProgress = null;
-        if (this.status === 'spinning' && this.spinStartedAt) {
-            const now = new Date();
-            const spinDuration = Math.floor((now - this.spinStartedAt) / 1000);
-            spinProgress = Math.min(spinDuration / 5, 1);
+        
+        if (this.status === 'counting' && this.countdownStartServerTime) {
+            timeUntilCountdownEnd = Math.max(0, (this.countdownStartServerTime + 30000) - serverTime);
+        }
+        
+        if (this.status === 'spinning' && this.spinStartServerTime) {
+            const elapsed = serverTime - this.spinStartServerTime;
+            spinProgress = Math.min(elapsed / 5000, 1);
+            timeUntilSpinEnd = Math.max(0, 5000 - elapsed);
+        }
+        
+        // Рассчитываем время до событий для клиента
+        const now = clientTime || serverTime;
+        let clientCountdown = null;
+        if (this.countdownStartServerTime && this.status === 'counting') {
+            const serverElapsed = serverTime - this.countdownStartServerTime;
+            const clientElapsed = now - this.countdownStartServerTime;
+            
+            // Синхронизированный отсчет для клиента
+            clientCountdown = Math.max(0, 30 - Math.floor(serverElapsed / 1000));
         }
         
         return {
             id: this.id,
             participants: this.participants,
             status: this.status,
-            countdown: this.countdown,
+            countdown: clientCountdown,
             winner: this.winner,
             winnerIndex: this.winnerIndex,
             finalAngle: this.finalAngle,
-            spinStartedAt: this.spinStartedAt,
-            spinProgress: spinProgress,
-            nextRoundTimer: this.nextRoundTimer,
-            lastActivity: this.lastActivity,
-            canJoin: this.status === 'waiting' || this.status === 'counting'
+            
+            // Синхронизационные данные
+            syncData: {
+                serverTime: serverTime,
+                clientTime: now,
+                countdownStart: this.countdownStartServerTime,
+                spinStart: this.spinStartServerTime,
+                spinEnd: this.spinEndServerTime,
+                nextRoundStart: this.nextRoundStartTime,
+                timeUntilCountdownEnd: timeUntilCountdownEnd,
+                timeUntilSpinEnd: timeUntilSpinEnd,
+                spinProgress: spinProgress,
+                stateVersion: this.stateVersion
+            },
+            
+            canJoin: this.status === 'waiting' || this.status === 'counting',
+            lastActivity: this.lastActivity
         };
     }
 }

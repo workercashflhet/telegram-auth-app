@@ -12,6 +12,14 @@ class FortuneWheel {
         this.nextRoundTimer = null;
         this.lastGameState = null;
         
+         // Добавьте свойства синхронизации
+        this.serverTimeOffset = 0;
+        this.lastSyncTime = 0;
+        this.syncInterval = null;
+        this.isSyncing = false;
+        this.syncHistory = [];
+        this.networkLatency = 0;
+        
         this.init();
     }
     
@@ -33,7 +41,267 @@ class FortuneWheel {
         }, 50);
         
         console.log('✅ Колесо фортуны инициализировано');
+
+        // Начинаем синхронизацию времени
+        await this.syncTime();
+        
+        // Запускаем регулярную синхронизацию
+        this.startSyncLoop();
+        
+        // Загружаем состояние игры с синхронизацией
+        await this.loadGameStateSync();
+        
+        console.log('✅ Колесо фортуны инициализировано с синхронизацией');
     }
+
+    // Точная синхронизация времени
+    async syncTime() {
+        const syncAttempts = 3;
+        let bestOffset = 0;
+        let bestLatency = Infinity;
+        
+        for (let i = 0; i < syncAttempts; i++) {
+            try {
+                const clientStart = Date.now();
+                const response = await fetch('/api/sync/time');
+                const clientEnd = Date.now();
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    const roundTrip = clientEnd - clientStart;
+                    const oneWay = roundTrip / 2;
+                    const serverTime = data.serverTime;
+                    const estimatedServerAtMiddle = serverTime + oneWay;
+                    const clientTimeAtMiddle = clientStart + oneWay;
+                    const offset = estimatedServerAtMiddle - clientTimeAtMiddle;
+                    
+                    if (roundTrip < bestLatency) {
+                        bestLatency = roundTrip;
+                        bestOffset = offset;
+                    }
+                    
+                    console.log(`🕐 Синхронизация ${i+1}: offset=${Math.round(offset)}ms, latency=${roundTrip}ms`);
+                }
+                
+                // Небольшая задержка между попытками
+                await new Promise(resolve => setTimeout(resolve, 100));
+                
+            } catch (error) {
+                console.warn(`⚠️ Ошибка синхронизации ${i+1}:`, error);
+            }
+        }
+        
+        this.serverTimeOffset = bestOffset;
+        this.networkLatency = bestLatency;
+        this.lastSyncTime = Date.now();
+        
+        console.log(`✅ Финальная синхронизация: offset=${Math.round(this.serverTimeOffset)}ms, latency=${this.networkLatency}ms`);
+    }
+    
+    // Получение синхронизированного времени
+    getServerTime() {
+        const now = Date.now();
+        const timeSinceSync = now - this.lastSyncTime;
+        // Учитываем дрейф времени (примерно 1ms в секунду)
+        const timeDrift = timeSinceSync * 0.001;
+        return now + this.serverTimeOffset + timeDrift;
+    }
+    
+    // Запуск цикла синхронизации
+    startSyncLoop() {
+        // Синхронизация каждые 30 секунд
+        this.syncInterval = setInterval(async () => {
+            if (!this.isSyncing) {
+                this.isSyncing = true;
+                await this.syncTime();
+                this.isSyncing = false;
+            }
+        }, 30000);
+        
+        // Быстрая синхронизация во время критических событий
+        this.fastSyncInterval = setInterval(async () => {
+            if (this.isSpinning || (this.countdown !== null && this.countdown < 10)) {
+                await this.syncTime();
+            }
+        }, 5000);
+    }
+    
+    // Загрузка состояния с синхронизацией
+    async loadGameStateSync() {
+        try {
+            const clientTime = Date.now();
+            const response = await fetch(`/api/game/state-sync?clientTime=${clientTime}&clientId=${Math.random().toString(36).substr(2, 9)}`);
+            
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            
+            const data = await response.json();
+            
+            if (data.success && data.game) {
+                // Обновляем смещение времени на основе ответа сервера
+                if (data.sync && data.sync.recommendedOffset) {
+                    this.serverTimeOffset = data.sync.recommendedOffset;
+                    this.lastSyncTime = Date.now();
+                }
+                
+                // Обрабатываем состояние игры
+                this.processGameState(data.game, data.sync);
+            }
+        } catch (error) {
+            console.error('❌ Ошибка загрузки синхронизированного состояния:', error);
+            // Fallback на обычную загрузку
+            await this.loadGameState();
+        }
+    }
+    
+    // Обработка синхронизированного состояния
+    processGameState(gameState, syncData) {
+        const serverTime = syncData?.serverTime || this.getServerTime();
+        const clientTime = Date.now();
+        
+        // Сохраняем данные
+        this.participants = gameState.participants || [];
+        this.countdown = gameState.countdown;
+        this.winner = gameState.winner;
+        this.finalAngle = gameState.finalAngle;
+        this.nextRoundTimer = gameState.nextRoundTimer;
+        
+        const wasSpinning = this.isSpinning;
+        this.isSpinning = gameState.status === 'spinning';
+        
+        // Синхронизация таймера
+        if (gameState.status === 'counting' && syncData?.countdownStart) {
+            const timeSinceStart = serverTime - syncData.countdownStart;
+            this.countdown = Math.max(0, 30 - Math.floor(timeSinceStart / 1000));
+            
+            // Запускаем локальный таймер
+            if (!this.localCountdownInterval) {
+                this.startLocalCountdown(syncData.countdownStart);
+            }
+        }
+        
+        // Синхронизация вращения
+        if (this.isSpinning && !wasSpinning && syncData?.spinStart) {
+            console.log('🎰 Синхронизированное вращение!');
+            this.startSynchronizedSpin(syncData.spinStart, syncData.spinProgress);
+        }
+        
+        // Если вращение завершено на сервере
+        if (gameState.status === 'finished' && this.winner && !this.winnerAnnounced) {
+            console.log(`🏆 Синхронизированный победитель: ${this.winner.first_name}`);
+            this.showWinner(this.winner);
+            this.winnerAnnounced = true;
+        }
+        
+        // Обновляем UI
+        this.updateUI();
+    }
+    
+    // Запуск локального таймера синхронизированного с сервером
+    startLocalCountdown(countdownStartServerTime) {
+        if (this.localCountdownInterval) {
+            clearInterval(this.localCountdownInterval);
+        }
+        
+        this.localCountdownInterval = setInterval(() => {
+            const serverTime = this.getServerTime();
+            const timeSinceStart = serverTime - countdownStartServerTime;
+            this.countdown = Math.max(0, 30 - Math.floor(timeSinceStart / 1000));
+            
+            this.updateTimer();
+            
+            // Останавливаем когда таймер истек
+            if (this.countdown <= 0) {
+                clearInterval(this.localCountdownInterval);
+                this.localCountdownInterval = null;
+            }
+        }, 100);
+    }
+    
+    // Запуск синхронизированного вращения
+    startSynchronizedSpin(spinStartServerTime, initialProgress = 0) {
+        if (!this.finalAngle || this.participants.length < 2) return;
+        
+        this.isSpinning = true;
+        this.spinStartTime = spinStartServerTime;
+        this.winnerAnnounced = false;
+        this.hideWinner();
+        
+        console.log(`🌀 Синхронизированное вращение: start=${spinStartServerTime}, angle=${this.finalAngle}°`);
+        
+        // Сбрасываем позицию колеса
+        this.wheelElement.style.transition = 'none';
+        this.wheelElement.style.transform = 'rotate(0deg)';
+        
+        // Немедленное обновление позиции
+        this.updateSynchronizedSpin();
+        
+        // Запускаем анимацию
+        this.spinAnimationInterval = setInterval(() => {
+            this.updateSynchronizedSpin();
+        }, 16); // ~60 FPS
+    }
+    
+    // Обновление синхронизированного вращения
+    updateSynchronizedSpin() {
+        if (!this.isSpinning || !this.spinStartTime || !this.finalAngle) {
+            if (this.spinAnimationInterval) {
+                clearInterval(this.spinAnimationInterval);
+                this.spinAnimationInterval = null;
+            }
+            return;
+        }
+        
+        const serverTime = this.getServerTime();
+        const elapsed = Math.max(0, serverTime - this.spinStartTime);
+        const totalTime = 5000; // 5 секунд вращения
+        const progress = Math.min(elapsed / totalTime, 1);
+        
+        // Ease-out кривая
+        const easeProgress = 1 - Math.pow(1 - progress, 3);
+        
+        // Текущий угол
+        const currentAngle = easeProgress * this.finalAngle;
+        
+        // Обновляем позицию
+        this.wheelElement.style.transform = `rotate(${currentAngle}deg)`;
+        
+        // Если вращение завершено
+        if (progress >= 1 && !this.winnerAnnounced) {
+            if (this.spinAnimationInterval) {
+                clearInterval(this.spinAnimationInterval);
+                this.spinAnimationInterval = null;
+            }
+            
+            // Показываем победителя с небольшой задержкой для драматизма
+            setTimeout(() => {
+                if (this.winner) {
+                    this.showWinner(this.winner);
+                }
+                this.winnerAnnounced = true;
+            }, 300);
+        }
+    }
+    
+    // Автоматическая перезагрузка при рассинхронизации
+    async checkSyncStatus() {
+        try {
+            const response = await fetch('/api/game/state');
+            if (response.ok) {
+                const data = await response.json();
+                
+                // Проверяем версию состояния
+                if (data.game?.syncData?.stateVersion !== this.lastStateVersion) {
+                    console.log('🔄 Обнаружена рассинхронизация, перезагружаем состояние');
+                    await this.loadGameStateSync();
+                }
+                
+                this.lastStateVersion = data.game?.syncData?.stateVersion;
+            }
+        } catch (error) {
+            console.warn('⚠️ Ошибка проверки синхронизации:', error);
+        }
+    }
+
 
     // Синхронизация времени с сервером
     async syncTimeWithServer() {
@@ -54,7 +322,8 @@ class FortuneWheel {
                 
                 console.log(`🕐 Синхронизация времени: offset=${this.clientTimeOffset}ms, RTT=${roundTrip}ms`);
             }
-        } catch (error) {
+        } 
+        catch (error) {
             console.warn('⚠️ Не удалось синхронизировать время с сервером');
         }
     }

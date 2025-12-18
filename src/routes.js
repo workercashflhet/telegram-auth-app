@@ -448,6 +448,110 @@ router.get('/api/debug/game', (req, res) => {
     }
 });
 
+// Эндпоинт для точной синхронизации времени
+router.get('/api/sync/time', (req, res) => {
+    const serverTime = Date.now();
+    res.json({
+        success: true,
+        serverTime: serverTime,
+        serverTimeISO: new Date(serverTime).toISOString(),
+        timestamp: serverTime
+    });
+});
+
+// Улучшенный эндпоинт состояния игры
+router.get('/api/game/state-sync', (req, res) => {
+    try {
+        const clientTime = parseInt(req.query.clientTime) || Date.now();
+        const clientId = req.query.clientId || 'unknown';
+        
+        const game = gameManager.getActiveGame();
+        if (!game) {
+            return res.json({
+                success: false,
+                error: 'Игра не найдена',
+                serverTime: Date.now()
+            });
+        }
+        
+        const gameState = game.getGameState(clientTime);
+        const serverTime = Date.now();
+        
+        // Рассчитываем рассинхронизацию
+        const timeDiff = serverTime - clientTime;
+        
+        res.json({
+            success: true,
+            game: gameState,
+            sync: {
+                serverTime: serverTime,
+                clientTime: clientTime,
+                timeDiff: timeDiff,
+                recommendedOffset: -timeDiff, // Коррекция для клиента
+                roundTripTime: Date.now() - clientTime,
+                clientId: clientId
+            },
+            debug: {
+                participantsCount: gameState.participants.length,
+                gameStatus: gameState.status,
+                stateVersion: gameState.syncData?.stateVersion || 0
+            }
+        });
+        
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error.message,
+            serverTime: Date.now()
+        });
+    }
+});
+
+// Эндпоинт для синхронизации вращения
+router.get('/api/game/spin-sync', (req, res) => {
+    try {
+        const game = gameManager.getActiveGame();
+        if (!game) {
+            return res.json({
+                success: false,
+                error: 'Игра не найдена',
+                serverTime: Date.now()
+            });
+        }
+        
+        const serverTime = Date.now();
+        const spinData = {
+            isSpinning: game.status === 'spinning',
+            spinStartTime: game.spinStartServerTime,
+            finalAngle: game.finalAngle,
+            winnerIndex: game.winnerIndex,
+            spinDuration: 5000, // 5 секунд
+            winnerRevealDelay: 5000, // Через 5 сек показываем
+            nextRoundDelay: 13000, // Через 13 сек новый раунд
+            serverTime: serverTime,
+            timeUntilSpinEnd: game.spinStartServerTime ? 
+                Math.max(0, (game.spinStartServerTime + 5000) - serverTime) : null,
+            timeUntilWinner: game.spinStartServerTime ?
+                Math.max(0, (game.spinStartServerTime + 5000) - serverTime) : null
+        };
+        
+        res.json({
+            success: true,
+            spinData: spinData,
+            gameId: game.id,
+            gameStatus: game.status,
+            serverTime: serverTime
+        });
+        
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error.message,
+            serverTime: Date.now()
+        });
+    }
+});
+
 // Получить список активных игр
 router.get('/api/games/active', (req, res) => {
     try {
