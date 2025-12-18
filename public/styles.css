@@ -555,8 +555,8 @@ body {
 /* Участники на колесе */
 .wheel-participant {
     position: absolute;
-    width: 40px;
-    height: 40px;
+    width: 30px;
+    height: 30px;
     border-radius: 50%;
     overflow: hidden;
     transform-origin: center;
