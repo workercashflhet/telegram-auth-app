@@ -126,6 +126,8 @@ class FortuneWheel {
                 // Сохраняем предыдущее состояние для сравнения
                 const prevState = this.lastGameState;
                 this.lastGameState = data.game;
+
+                
                 
                 // Проверяем сброс участников (новый раунд)
                 const participantsReset = prevState && 
@@ -158,6 +160,14 @@ class FortuneWheel {
                     console.log(`🏆 Победитель: ${this.winner.first_name}`);
                     this.showWinner(this.winner);
                     this.winnerAnnounced = true;
+
+                    // Обновляем победителя и подсветку
+                    if (data.game.winner) {
+                        this.winner = data.game.winner;
+                        setTimeout(() => {
+                            this.updateWinnerHighlight();
+                        }, 100);
+                    }
                 }
                 
                 // Обновляем UI
@@ -573,6 +583,32 @@ class FortuneWheel {
         }
     }
 
+    updateWinnerHighlight() {
+        const participants = document.querySelectorAll('.wheel-participant');
+        
+        participants.forEach(el => {
+            const userId = el.dataset.userId;
+            el.classList.remove('winner');
+            
+            // Удаляем существующие короны
+            const existingCrown = el.querySelector('.winner-crown');
+            if (existingCrown) {
+                existingCrown.remove();
+            }
+            
+            // Если это победитель - добавляем подсветку
+            if (this.winner && userId && parseInt(userId) === this.winner.id) {
+                el.classList.add('winner');
+                
+                const crown = document.createElement('div');
+                crown.className = 'winner-crown';
+                crown.innerHTML = '👑';
+                crown.title = `Победитель: ${this.winner.first_name}`;
+                el.appendChild(crown);
+            }
+        });
+    }
+
     
     updateWheel() {
         const participantsContainer = document.getElementById('wheelParticipants');
@@ -582,7 +618,7 @@ class FortuneWheel {
             return;
         }
         
-        // ОЧЕНЬ ВАЖНО: полностью очищаем контейнер
+        // Полностью очищаем контейнер
         participantsContainer.innerHTML = '';
         
         if (this.participants.length === 0) {
@@ -592,11 +628,18 @@ class FortuneWheel {
         
         console.log(`🎨 Отрисовываем ${this.participants.length} участников на колесе`);
         
+        // Массив цветов для участников
+        const colorClasses = [
+            'color-1', 'color-2', 'color-3', 'color-4',
+            'color-5', 'color-6', 'color-7', 'color-8'
+        ];
+        
         // Создаем элементы для каждого участника
         this.participants.forEach((participant, index) => {
             const participantElement = document.createElement('div');
-            participantElement.className = 'wheel-participant';
+            participantElement.className = `wheel-participant ${colorClasses[index % colorClasses.length]}`;
             participantElement.dataset.index = index;
+            participantElement.dataset.userId = participant.id;
             
             // Позиционирование
             const totalParticipants = this.participants.length;
@@ -615,28 +658,50 @@ class FortuneWheel {
             participantElement.style.top = `${y}px`;
             
             // Добавляем фото или инициалы
+            const photoContainer = document.createElement('div');
+            photoContainer.className = 'wheel-participant-photo-container';
+            
             if (participant.photo_url && participant.photo_url.trim() !== '') {
                 const img = document.createElement('img');
+                img.className = 'wheel-participant-photo';
                 img.src = participant.photo_url;
                 img.alt = participant.first_name;
-                img.style.width = '100%';
-                img.style.height = '100%';
-                img.style.objectFit = 'cover';
-                img.style.borderRadius = '50%';
+                img.loading = 'lazy';
                 
                 // Обработчик ошибки загрузки фото
                 img.onerror = () => {
-                    participantElement.innerHTML = '';
+                    photoContainer.innerHTML = '';
                     const initials = this.getInitials(participant.first_name, participant.last_name);
-                    participantElement.innerHTML = `<div class="initials">${initials}</div>`;
+                    const initialsDiv = document.createElement('div');
+                    initialsDiv.className = 'wheel-participant-initials';
+                    initialsDiv.textContent = initials;
+                    photoContainer.appendChild(initialsDiv);
                     console.log(`❌ Не удалось загрузить фото для ${participant.first_name}, показываем инициалы`);
                 };
                 
-                participantElement.appendChild(img);
+                photoContainer.appendChild(img);
             } else {
                 const initials = this.getInitials(participant.first_name, participant.last_name);
-                participantElement.innerHTML = `<div class="initials">${initials}</div>`;
+                const initialsDiv = document.createElement('div');
+                initialsDiv.className = 'wheel-participant-initials';
+                initialsDiv.textContent = initials;
+                photoContainer.appendChild(initialsDiv);
             }
+            
+            participantElement.appendChild(photoContainer);
+            
+            // Добавляем коронку победителя если нужно
+            if (this.winner && participant.id === this.winner.id) {
+                const crown = document.createElement('div');
+                crown.className = 'winner-crown';
+                crown.innerHTML = '👑';
+                crown.title = `Победитель: ${participant.first_name}`;
+                participantElement.appendChild(crown);
+                participantElement.classList.add('winner');
+            }
+            
+            // Добавляем подсказку
+            participantElement.title = `${participant.first_name}${participant.last_name ? ' ' + participant.last_name : ''}${participant.username ? ' (@' + participant.username + ')' : ''}`;
             
             participantsContainer.appendChild(participantElement);
         });
@@ -710,12 +775,13 @@ class FortuneWheel {
         this.participants.forEach((participant, index) => {
             const isCurrentUser = window.currentUser && participant.id === window.currentUser.id;
             const isWinner = this.winner && this.winner.id === participant.id;
+            const colorClass = `color-${(index % 8) + 1}`;
             
             html += `
-                <div class="participant-item ${isCurrentUser ? 'current-user' : ''} ${isWinner ? 'winner' : ''}">
+                <div class="participant-item ${colorClass} ${isCurrentUser ? 'current-user' : ''} ${isWinner ? 'winner' : ''}">
                     <div class="participant-avatar">
                         ${participant.photo_url 
-                            ? `<img src="${participant.photo_url}" alt="${participant.first_name}">`
+                            ? `<img src="${participant.photo_url}" alt="${participant.first_name}" class="participant-photo" loading="lazy">`
                             : `<div class="initials">${this.getInitials(participant.first_name, participant.last_name)}</div>`
                         }
                         ${isWinner ? '<div class="winner-crown">👑</div>' : ''}

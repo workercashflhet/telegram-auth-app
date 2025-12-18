@@ -1053,15 +1053,114 @@ body {
     overflow: visible; /* Важно */
 }
 
+/* ========== ЦВЕТОВОЕ РЕШЕНИЕ ДЛЯ УЧАСТНИКОВ КОЛЕСА ========== */
+.wheel-participant.color-1 { border-color: #4ecdc4; background: rgba(78, 205, 196, 0.1); }
+.wheel-participant.color-2 { border-color: #ff6b6b; background: rgba(255, 107, 107, 0.1); }
+.wheel-participant.color-3 { border-color: #45b7d1; background: rgba(69, 183, 209, 0.1); }
+.wheel-participant.color-4 { border-color: #96ceb4; background: rgba(150, 206, 180, 0.1); }
+.wheel-participant.color-5 { border-color: #a29bfe; background: rgba(162, 155, 254, 0.1); }
+.wheel-participant.color-6 { border-color: #ffd700; background: rgba(255, 215, 0, 0.1); }
+.wheel-participant.color-7 { border-color: #ff8e53; background: rgba(255, 142, 83, 0.1); }
+.wheel-participant.color-8 { border-color: #00cec9; background: rgba(0, 206, 201, 0.1); }
+
+/* ========== ИСПРАВЛЕНИЕ ДЛЯ ФОТО УЧАСТНИКОВ ========== */
 .wheel-participant {
     position: absolute;
-    width: 60px; /* Уменьшаем размер */
+    width: 60px;
     height: 60px;
     border-radius: 50%;
-    overflow: hidden;
+    overflow: hidden; /* ВАЖНО: скрывает выходящие за пределы части */
     border: 3px solid #fff;
     background: #222;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    transform-origin: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+/* Контейнер для фото внутри участника */
+.wheel-participant-photo-container {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    overflow: hidden; /* Гарантирует, что фото не выйдет за границы */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Фото участника */
+.wheel-participant-photo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* ВАЖНО: обрезает фото для заполнения круга */
+    border-radius: 50%;
+    transition: transform 0.3s ease;
+}
+
+/* Инициалы как fallback */
+.wheel-participant-initials {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: bold;
+    color: white;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+/* Эффект при наведении */
+.wheel-participant:hover {
+    transform: scale(1.15);
+    z-index: 100;
+    box-shadow: 0 0 20px currentColor;
+}
+
+.wheel-participant:hover .wheel-participant-photo {
+    transform: scale(1.1);
+}
+
+/* Стили для победителя */
+.wheel-participant.winner {
+    border-color: gold !important;
+    box-shadow: 0 0 20px gold, 0 0 30px rgba(255, 215, 0, 0.5) !important;
+    animation: winnerGlow 1s infinite alternate;
+}
+
+@keyframes winnerGlow {
+    from {
+        box-shadow: 0 0 10px gold, 0 0 20px rgba(255, 215, 0, 0.3);
+    }
+    to {
+        box-shadow: 0 0 20px gold, 0 0 40px rgba(255, 215, 0, 0.7);
+    }
+}
+
+/* Коронка победителя */
+.winner-crown {
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    font-size: 20px;
+    z-index: 101;
+    filter: drop-shadow(0 2px 5px rgba(0,0,0,0.5));
+}
+
+/* ========== АДАПТИВНОСТЬ ========== */
+@media (max-width: 600px) {
+    .wheel-participant {
+        width: 50px;
+        height: 50px;
+    }
+    
+    .wheel-participant-initials {
+        font-size: 16px;
+    }
 }
 
 /* Добавим адаптивность для колеса */
