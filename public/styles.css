@@ -409,7 +409,7 @@ body {
 .wheel-pointer {
     position: absolute;
     top: -30px;
-    left: 50%;
+    left: 55%;
     transform: translateX(-50%);
     width: 30px;
     height: 30px;
@@ -420,8 +420,8 @@ body {
 /* Участники на колесе */
 .wheel-participant {
     position: absolute;
-    width: 80px;
-    height: 80px;
+    width: 60px;
+    height: 60px;
     border-radius: 50%;
     overflow: hidden;
     transform-origin: center;
