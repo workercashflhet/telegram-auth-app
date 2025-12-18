@@ -1232,7 +1232,11 @@ body {
 }
 
 .hidden-element {
-    display: none !important; /* Полностью скрывает элемент */
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    position: absolute !important;
 }
 
 .invisible-element {
