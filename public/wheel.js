@@ -629,9 +629,9 @@ class FortuneWheel {
             line.style.position = 'absolute';
             line.style.top = '0';
             line.style.left = '50%';
-            line.style.width = '2px';
+            line.style.width = '1px';
             line.style.height = '50%';
-            line.style.backgroundColor = 'rgba(255,255,255,0.5)';
+            line.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
             line.style.transform = `rotate(${angle}deg)`;
             line.style.transformOrigin = 'bottom center';
             participantsContainer.appendChild(line);
