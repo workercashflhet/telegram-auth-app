@@ -1066,8 +1066,8 @@ body {
 /* ========== ИСПРАВЛЕНИЕ ДЛЯ ФОТО УЧАСТНИКОВ ========== */
 .wheel-participant {
     position: absolute;
-    width: 60px;
-    height: 60px;
+    width: 20px;
+    height: 20px;
     border-radius: 50%;
     overflow: hidden; /* ВАЖНО: скрывает выходящие за пределы части */
     border: 3px solid #fff;
