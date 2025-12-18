@@ -777,7 +777,7 @@ body {
 
 /* ========== КОМПАКТНЫЙ ПРОФИЛЬ ========== */
 .compact-profile {
-    position: static;
+    position: static; /* Оставляем static */
     top: 25px;
     left: 15px;
     z-index: 2000;
@@ -791,6 +791,7 @@ body {
     border: 2px solid #ffffff;
     transition: all 0.3s ease;
     max-width: 250px;
+    margin: 20px auto; /* Добавляем отступы */
 }
 
 .compact-profile:hover {
@@ -888,9 +889,9 @@ body {
 
 /* ========== ВЫПАДАЮЩЕЕ МЕНЮ ПРОФИЛЯ ========== */
 .profile-menu {
-    position: absolute;
-    top: calc(100% + 10px);
-    right: 0;
+    position: fixed; /* Изменяем на fixed для точного позиционирования */
+    top: 80px; /* Позиционируем относительно верха страницы */
+    right: 20px;
     background: rgba(0, 0, 0, 0.95);
     backdrop-filter: blur(20px);
     border-radius: 15px;
@@ -914,6 +915,20 @@ body {
 
 .profile-menu.show {
     display: block;
+}
+
+/* Адаптивность для меню */
+@media (max-width: 600px) {
+    .profile-menu {
+        top: 70px;
+        right: 10px;
+        min-width: 200px;
+    }
+    
+    .compact-profile {
+        margin: 15px;
+        max-width: calc(100% - 30px);
+    }
 }
 
 .menu-item {
