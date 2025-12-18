@@ -252,18 +252,6 @@ class WheelGame {
             return;
         }
         
-        console.log('=== ОПРЕДЕЛЕНИЕ ПОБЕДИТЕЛЯ ===');
-        console.log(`Финальный угол: ${this.finalAngle}°`);
-        console.log(`Нормализованный: ${this.finalAngle % 360}°`);
-        console.log(`Участников: ${this.participants.length}`);
-        console.log(`Победитель выбран ранее: ${this.winner?.first_name || 'нет'}`);
-    }
-
-        if (!this.finalAngle || this.participants.length === 0) {
-            console.warn('Не могу определить победителя: нет угла или участников');
-            return;
-        }
-        
         console.log(`🎯 Определяем победителя по углу ${this.finalAngle}°`);
         console.log(`👥 Участников: ${this.participants.length}`);
         

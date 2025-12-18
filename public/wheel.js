@@ -188,7 +188,7 @@ class FortuneWheel {
         // Если вращение завершено на сервере
         if (gameState.status === 'finished' && this.winner && !this.winnerAnnounced) {
             console.log(`🏆 Синхронизированный победитель: ${this.winner.first_name}`);
-            this.showWinnerPush(this.winner);
+            this.showWinner(this.winner);
             this.winnerAnnounced = true;
         }
         
@@ -275,7 +275,7 @@ class FortuneWheel {
             // Показываем победителя с небольшой задержкой для драматизма
             setTimeout(() => {
                 if (this.winner) {
-                    this.showWinnerPush(this.winner);
+                    this.showWinner(this.winner);
                 }
                 this.winnerAnnounced = true;
             }, 300);
@@ -368,7 +368,7 @@ class FortuneWheel {
         
         // Если вращение завершено
         if (progress >= 1 && !this.winnerAnnounced && this.winner) {
-            this.showWinnerPush(this.winner);
+            this.showWinner(this.winner);
             this.winnerAnnounced = true;
         }
     }
@@ -425,7 +425,7 @@ class FortuneWheel {
                 // Обработка завершения игры
                 if (data.game.status === 'finished' && this.winner && !this.winnerAnnounced) {
                     console.log(`🏆 Победитель: ${this.winner.first_name}`);
-                    this.showWinnerPush(this.winner);
+                    this.showWinner(this.winner);
                     this.winnerAnnounced = true;
                 }
                 
@@ -480,7 +480,7 @@ class FortuneWheel {
         // Если вращение завершено и есть победитель - показываем его
         if (progress >= 1 && this.winner && !this.winnerAnnounced) {
             setTimeout(() => {
-                this.showWinnerPush(this.winner);
+                this.showWinner(this.winner);
                 this.winnerAnnounced = true;
             }, 500);
         }
@@ -615,7 +615,7 @@ class FortuneWheel {
         if (winner) {
             console.log(`🏆 Фронтенд: стрелка указывает на ${winner.first_name} (сектор: ${sector})`);
             this.winner = winner;
-            this.showWinnerPush(winner);
+            this.showWinner(winner);
             return winner;
         }
         
@@ -767,7 +767,7 @@ class FortuneWheel {
         
         if (!winnerPush) {
             console.error('❌ Не найден элемент winnerPush');
-            this.showWinnerPush(winner); // Fallback к старому методу
+            this.showWinner(winner); // Fallback к старому методу
             return;
         }
         
@@ -827,6 +827,18 @@ class FortuneWheel {
                 winnerPush.classList.remove('hide');
                 winnerPush.style.display = 'none';
             }, 500);
+        }
+    }
+
+    // Обновите метод showWinner():
+    showWinner(winner) {
+        // Используем push-уведомление вместо старой таблички
+        this.showWinnerPush(winner);
+        
+        // Также обновляем старую табличку (на всякий случай)
+        const winnerSection = document.getElementById('winnerSection');
+        if (winnerSection) {
+            winnerSection.style.display = 'none';
         }
     }
 
