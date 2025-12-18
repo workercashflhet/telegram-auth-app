@@ -32,42 +32,20 @@ class WheelGame {
         
         // Индекс текущего состояния (для проверки рассинхронизации)
         this.stateVersion = 0;
-
-        // Добавить независимость от пользователей
-        this.isIndependent = true; // Флаг независимости
-        this.requiredParticipants = 2; // Минимум участников для старта
-        this.autoStart = true; // Автозапуск при достижении минимума
-        
-        // Таймеры должны работать независимо от активности пользователей
-        this.gameLoopInterval = setInterval(() => {
-            this.updateGameState();
-        }, 1000);
-        
-        // Добавить защиту от сброса
-        this.protection = {
-            lastUserJoin: null,
-            minUsersForReset: 1, // Минимальное число пользователей для сброса
-            resetCooldown: 10000 // 10 секунд защиты после сброса
-        };
     }
     
     addParticipant(user) {
-        console.log(`👤 Пытаемся добавить пользователя ${user.first_name} в игру ${this.id}`);
+        console.log(`👤 Пытаемся добавить пользователя ${user.first_name} (ID: ${user.id}) в игру ${this.id}`);
         
-        // Защита от сброса: если игра уже началась, не сбрасывать
+        // Проверяем статус игры
         if (this.status === 'spinning' || this.status === 'finished') {
-            // Разрешаем присоединиться к следующему раунду
-            if (this.status === 'finished' && this.nextRoundTimer > 0) {
-                // Пользователь может присоединиться к следующему раунду
-                console.log(`✅ Пользователь ${user.first_name} присоединится к следующему раунду`);
-                return { success: true, willJoinNextRound: true };
-            }
+            console.log(`❌ Игра уже в статусе: ${this.status}`);
             return { success: false, error: 'Игра уже началась' };
         }
         
         // Проверяем, не участвует ли уже
         if (this.participants.some(p => p.id === user.id)) {
-            console.log(`⚠️ Пользователь уже участвует в игре`);
+            console.log(`❌ Пользователь уже участвует в игре`);
             return { success: false, error: 'Вы уже участвуете в игре' };
         }
         
@@ -75,20 +53,21 @@ class WheelGame {
         this.participants.push({
             id: user.id,
             first_name: user.first_name,
-            // ... остальные поля ...
+            last_name: user.last_name || '',
+            username: user.username || '',
+            photo_url: user.photo_url || null,
+            language_code: user.language_code || 'ru',
+            is_premium: user.is_premium || false,
             joinedAt: new Date()
         });
         
-        this.protection.lastUserJoin = Date.now();
         this.lastActivity = new Date();
         
         console.log(`✅ Пользователь добавлен. Теперь участников: ${this.participants.length}`);
         
-        // Независимый запуск таймера
-        if (this.participants.length >= this.requiredParticipants && 
-            this.status === 'waiting' && 
-            this.autoStart) {
-            console.log(`⏳ Запускаем независимый 30-секундный таймер`);
+        // Если стало 2+ участников и игра в режиме ожидания - запускаем таймер
+        if (this.participants.length >= 2 && this.status === 'waiting') {
+            console.log(`⏳ Запускаем 30-секундный таймер (участников: ${this.participants.length})`);
             this.startCountdown();
         }
         
@@ -345,7 +324,7 @@ class WheelGame {
         // ВАЖНО: Очищаем участников!
         this.participants = [];
         
-        // Просто сбрасываем состояние игры
+        // Полностью сбрасываем состояние игры
         this.status = 'waiting';
         this.countdown = null;
         this.countdownStartTime = null;
