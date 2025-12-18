@@ -778,7 +778,7 @@ body {
 /* ========== КОМПАКТНЫЙ ПРОФИЛЬ ========== */
 .compact-profile {
     position: static;
-    top: 15px;
+    top: 25px;
     left: 15px;
     z-index: 2000;
     display: flex;
