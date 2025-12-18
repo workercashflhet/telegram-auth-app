@@ -17,21 +17,24 @@ class WheelGame {
         this.spinStartedAt = null;
         this.winnerAnnounced = false;
         this.nextRoundTimer = null;
-        this.maxParticipants = 20; // Больше участников
+        this.maxParticipants = 12; // Больше участников
     }
     
     addParticipant(user) {
-        console.log(`👤 Пытаемся добавить пользователя ${user.first_name} (ID: ${user.id}) в игру ${this.id}`);
+        console.log(`👤 Пытаемся добавить пользователя ${user.first_name} в рулетку`);
         
         // Проверяем статус игры
         if (this.status === 'spinning' || this.status === 'finished') {
-            console.log(`❌ Игра уже в статусе: ${this.status}`);
             return { success: false, error: 'Игра уже началась' };
+        }
+        
+        // Проверяем лимит участников
+        if (this.participants.length >= this.maxParticipants) {
+            return { success: false, error: 'Достигнут лимит участников' };
         }
         
         // Проверяем, не участвует ли уже
         if (this.participants.some(p => p.id === user.id)) {
-            console.log(`❌ Пользователь уже участвует в игре`);
             return { success: false, error: 'Вы уже участвуете в игре' };
         }
         
@@ -53,7 +56,6 @@ class WheelGame {
         
         // Если стало 2+ участников и игра в режиме ожидания - запускаем таймер
         if (this.participants.length >= 2 && this.status === 'waiting') {
-            console.log(`⏳ Запускаем 30-секундный таймер (участников: ${this.participants.length})`);
             this.startCountdown();
         }
         
@@ -68,7 +70,7 @@ class WheelGame {
         this.countdownStartTime = new Date();
         this.lastActivity = new Date();
         
-        console.log(`⏳ Игра ${this.id}: запущен 30-секундный таймер`);
+        console.log(`⏳ Рулетка ${this.id}: запущен 30-секундный таймер`);
     }
     
     updateGameState() {
@@ -82,29 +84,26 @@ class WheelGame {
             
             // Если таймер истек - запускаем вращение
             if (this.countdown <= 0 && this.status === 'counting') {
-                console.log(`⏰ Таймер истек, запускаем вращение колеса!`);
                 this.startSpinning();
             }
         }
         
-        // Если игра в состоянии вращения - проверяем не пора ли завершить
+        // Если игра в состоянии вращения
         if (this.status === 'spinning' && this.spinStartedAt) {
             const spinDuration = Math.floor((now - this.spinStartedAt) / 1000);
             
-            // Вращение длится 5 секунд, затем показываем победителя
+            // Вращение длится 5 секунд
             if (spinDuration >= 5 && !this.winnerAnnounced) {
-                console.log(`🎰 Вращение завершено, определяем победителя...`);
-                this.determineWinner();
                 this.winnerAnnounced = true;
             }
             
             // Через 8 секунд после начала вращения завершаем игру
-            if (spinDuration >= 8 && this.status === 'spinning') {
+            if (spinDuration >= 8) {
                 this.finishGame();
             }
         }
         
-        // Если игра завершена - обновляем таймер следующего раунда
+        // Если игра завершена
         if (this.status === 'finished') {
             if (!this.nextRoundTimer) {
                 this.nextRoundTimer = 8; // 8 секунд показа победителя
@@ -118,27 +117,29 @@ class WheelGame {
     
     startSpinning() {
         if (this.participants.length < 2) {
-            console.log(`❌ Недостаточно участников для вращения: ${this.participants.length}`);
+            console.log(`❌ Недостаточно участников: ${this.participants.length}`);
             this.status = 'waiting';
             this.countdown = null;
             this.countdownStartTime = null;
             return;
         }
         
-        console.log(`🎰 Начинаем вращение колеса с ${this.participants.length} участниками`);
+        console.log(`🎰 Начинаем вращение рулетки с ${this.participants.length} участниками`);
         
         this.status = 'spinning';
         this.spinStartedAt = new Date();
         this.lastActivity = new Date();
+        this.winnerAnnounced = false;
         
-        // 1. Сначала выбираем случайного победителя
+        // Выбираем случайного победителя
         this.winnerIndex = Math.floor(Math.random() * this.participants.length);
         this.winner = this.participants[this.winnerIndex];
         
-        console.log(`🎲 Выбран победитель: ${this.winner.first_name} (индекс: ${this.winnerIndex})`);
-        
-        // 2. Рассчитываем угол так, чтобы колесо остановилось на этом победителе
+        // Рассчитываем угол так, чтобы стрелка указала на победителя
         this.calculateFinalAngleForWinner();
+        
+        console.log(`🎲 Выбран победитель: ${this.winner.first_name} (индекс: ${this.winnerIndex})`);
+        console.log(`🎯 Финальный угол: ${this.finalAngle}°`);
     }
     
     calculateFinalAngleForWinner() {
@@ -146,60 +147,28 @@ class WheelGame {
         const totalParticipants = this.participants.length;
         const sectorAngle = 360 / totalParticipants;
         
-        console.log(`📐 Расчет угла для ${totalParticipants} участников`);
-        console.log(`📏 Угол сектора: ${sectorAngle}°`);
-        console.log(`🏆 Победитель: ${this.winner.first_name} (индекс: ${this.winnerIndex})`);
+        // Центр сектора победителя (в градусах)
+        const winnerCenterAngle = this.winnerIndex * sectorAngle + (sectorAngle / 2);
         
-        // ВАЖНО: На фронтенде участники расположены ПО ЧАСОВОЙ СТРЕЛКЕ
-        // Указатель (стрелка) находится вверху (0°)
-        // Колесо вращается по часовой стрелке
+        // Чтобы стрелка (0°) остановилась на центре сектора победителя,
+        // нужно сделать так, чтобы этот сектор оказался вверху
+        const angleToTop = winnerCenterAngle;
         
-        // Участники нумеруются от 0 по часовой стрелке:
-        // - Участник 0: сектор 0°-sectorAngle°
-        // - Участник 1: сектор sectorAngle°-2*sectorAngle°
-        // - и т.д.
+        // Добавляем случайное смещение (±20% сектора)
+        const randomOffset = (Math.random() - 0.5) * sectorAngle * 0.4;
         
-        // Чтобы стрелка (0°) остановилась на участнике N,
-        // нужно чтобы финальный угол заканчивался так, чтобы
-        // участник N оказался вверху
-        
-        // Центр сектора победителя:
-        const winnerCenterAngle = this.winnerIndex * sectorAngle;
-        console.log(`📍 Центр сектора победителя: ${winnerCenterAngle}°`);
-        
-        // Позиция победителя относительно стрелки:
-        // Если победитель в секторе с центром winnerCenterAngle,
-        // то чтобы стрелка указывала на него, нужно чтобы
-        // он оказался в позиции 0° (вверху)
-        
-        // Угол, на который нужно повернуть колесо, чтобы
-        // победитель оказался вверху:
-        const angleToMoveWinnerToTop = winnerCenterAngle;
-        
-        // Но колесо вращается по часовой стрелке,
-        // поэтому фактически нам нужно противоположное направление
-        
-        // Добавляем случайность (±30% сектора)
-        const randomOffset = (Math.random() - 0.5) * sectorAngle * 0.6;
-        
-        // КОРРЕКТНАЯ ФОРМУЛА:
+        // Рассчитываем финальный угол
         // spins * 360 - полные обороты
-        // + (360 - angleToMoveWinnerToTop) - чтобы победитель оказался вверху
+        // + (360 - angleToTop) - чтобы сектор победителя оказался вверху
         // + randomOffset - случайное смещение
-        // + sectorAngle/2 - чтобы указывать на центр сектора
+        this.finalAngle = spins * 360 + (360 - angleToTop) + randomOffset;
         
-        this.finalAngle = spins * 360 + (360 - angleToMoveWinnerToTop) + randomOffset;
+        // Нормализуем угол
+        const normalizedAngle = this.finalAngle % 360;
         
-        // Альтернативный, более простой подход:
-        // Просто считаем от 0, и участник 0 будет вверху после вращения
-        // this.finalAngle = spins * 360 + randomOffset;
-        
-        console.log(`🎯 Финальный угол: ${this.finalAngle}°`);
-        console.log(`📊 Расчет: ${spins}×360 + (360 - ${angleToMoveWinnerToTop}) + ${randomOffset.toFixed(2)}`);
-        console.log(`🔄 Нормализованный: ${this.finalAngle % 360}°`);
-        
-        // ДОПОЛНИТЕЛЬНО: Проверяем расчет
-        this.verifyWinnerCalculation();
+        console.log(`📐 Угол сектора: ${sectorAngle}°`);
+        console.log(`📍 Центр сектора победителя: ${winnerCenterAngle}°`);
+        console.log(`🔄 Нормализованный угол: ${normalizedAngle}°`);
     }
 
     // Добавьте метод для проверки
@@ -284,7 +253,7 @@ class WheelGame {
     finishGame() {
         if (this.status !== 'spinning') return;
         
-        console.log(`🏁 Игра ${this.id}: завершена! Победитель: ${this.winner?.first_name || 'не определен'}`);
+        console.log(`🏁 Игра завершена! Победитель: ${this.winner?.first_name}`);
         
         this.status = 'finished';
         this.lastActivity = new Date();
@@ -296,12 +265,9 @@ class WheelGame {
     }
     
     resetForNextRound() {
-        console.log(`🔄 Сброс игры для нового раунда`);
+        console.log(`🔄 Начинаем новый раунд рулетки`);
         
-        // ВАЖНО: Очищаем участников!
-        this.participants = [];
-        
-        // Полностью сбрасываем состояние игры
+        // Сбрасываем состояние
         this.status = 'waiting';
         this.countdown = null;
         this.countdownStartTime = null;
@@ -312,7 +278,8 @@ class WheelGame {
         this.winnerAnnounced = false;
         this.nextRoundTimer = null;
         
-        console.log(`👥 Все участники удалены, начинаем новый раунд с чистого листа`);
+        // НЕ ОЧИЩАЕМ участников - они остаются для следующего раунда
+        // this.participants = [];
         
         this.lastActivity = new Date();
     }
@@ -320,14 +287,6 @@ class WheelGame {
     getGameState() {
         // Обновляем состояние игры
         this.updateGameState();
-        
-        // Рассчитываем прогресс вращения
-        let spinProgress = null;
-        if (this.status === 'spinning' && this.spinStartedAt) {
-            const now = new Date();
-            const spinDuration = Math.floor((now - this.spinStartedAt) / 1000);
-            spinProgress = Math.min(spinDuration / 5, 1);
-        }
         
         return {
             id: this.id,
@@ -338,10 +297,10 @@ class WheelGame {
             winnerIndex: this.winnerIndex,
             finalAngle: this.finalAngle,
             spinStartedAt: this.spinStartedAt,
-            spinProgress: spinProgress,
             nextRoundTimer: this.nextRoundTimer,
             lastActivity: this.lastActivity,
-            canJoin: this.status === 'waiting' || this.status === 'counting'
+            canJoin: (this.status === 'waiting' || this.status === 'counting') && 
+                     this.participants.length < this.maxParticipants
         };
     }
 }
