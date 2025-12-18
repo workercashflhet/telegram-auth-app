@@ -149,41 +149,43 @@
                     </div>
                 </div>
             </div>
+        </div> 
         
         <!-- Вкладка Профиль -->
         <div id="profileTab" class="tab-content">
-        <h1 class="page-title">👤 ПРОФИЛЬ</h1>
-        
-        <div class="profile-tab">
-            <!-- Бейдж реальных/демо данных -->
-            <div id="dataBadge" class="status-badge badge-demo">
-                <span id="badgeText">ДЕМО РЕЖИМ</span>
-            </div>
+            <h1 class="page-title">👤 ПРОФИЛЬ</h1>
             
-            <!-- Аватар и имя -->
-            <div class="profile-header">
-                <div id="profileAvatar" class="profile-avatar">
-                    <img id="profilePhoto" class="profile-photo" style="display: none;">
-                    <div id="profileInitials" class="initials">T</div>
+            <div class="profile-tab">
+                <!-- Бейдж реальных/демо данных -->
+                <div id="dataBadge" class="status-badge badge-demo">
+                    <span id="badgeText">ДЕМО РЕЖИМ</span>
                 </div>
-                <h2 id="userName" class="profile-name">Telegram User</h2>
-                <div id="userUsername" class="profile-username">@username</div>
-            </div>
+                
+                <!-- Аватар и имя -->
+                <div class="profile-header">
+                    <div id="profileAvatar" class="profile-avatar">
+                        <img id="profilePhoto" class="profile-photo" style="display: none;">
+                        <div id="profileInitials" class="initials">T</div>
+                    </div>
+                    <h2 id="userName" class="profile-name">Telegram User</h2>
+                    <div id="userUsername" class="profile-username">@username</div>
+                </div>
             
-            <!-- Информация -->
-            <div id="profileInfo" class="profile-info-grid">
-                <!-- Заполняется динамически -->
-            </div>
+                <!-- Информация -->
+                <div id="profileInfo" class="profile-info-grid">
+                    <!-- Заполняется динамически -->
+                </div>
             
-            <!-- Кнопка выхода -->
-            <div style="text-align: center; margin-top: 30px;">
-                <button id="logoutButton" class="game-button" style="background: #ff6b6b;"
-                        title="Выйти из аккаунта"
-                        aria-label="Выйти из текущего аккаунта пользователя">
-                    <span class="icon" aria-hidden="true">🚪</span>
-                    ВЫЙТИ
-                </button>
-            </div>
+                <!-- Кнопка выхода -->
+                <div style="text-align: center; margin-top: 30px;">
+                    <button id="logoutButton" class="game-button" style="background: #ff6b6b;"
+                            title="Выйти из аккаунта"
+                            aria-label="Выйти из текущего аккаунта пользователя">
+                        <span class="icon" aria-hidden="true">🚪</span>
+                        ВЫЙТИ
+                    </button>
+                </div>
+            </div>    
         </div>
     </div>
     
@@ -380,11 +382,29 @@
     
     // Обновить вкладку профиля
     // Обновить вкладку профиля
+    // Обновить вкладку профиля
     function updateProfileTab() {
         const user = window.currentUser || currentUser;
         
         if (!user) {
             console.log('❌ Не могу обновить профиль: пользователь не установлен');
+            
+            // Показываем демо профиль
+            const userName = document.getElementById('userName');
+            const userUsername = document.getElementById('userUsername');
+            const profileInitials = document.getElementById('profileInitials');
+            const profilePhoto = document.getElementById('profilePhoto');
+            
+            if (userName) userName.textContent = 'Гость';
+            if (userUsername) userUsername.textContent = 'Не авторизован';
+            if (profileInitials) {
+                profileInitials.textContent = '?';
+                profileInitials.style.display = 'flex';
+            }
+            if (profilePhoto) profilePhoto.style.display = 'none';
+            
+            // Обновляем компактный профиль
+            updateCompactProfile();
             return;
         }
         
@@ -396,36 +416,37 @@
         const profilePhoto = document.getElementById('profilePhoto');
         const userName = document.getElementById('userName');
         const userUsername = document.getElementById('userUsername');
-        
-        // Обновляем компактный профиль тоже
-        updateCompactProfile();
+        const profileInfo = document.getElementById('profileInfo');
         
         if (!profileAvatar || !userName || !profileInfo) {
             console.log('❌ Не найдены элементы профиля');
             return;
         }
         
-        // Аватар - ОЧЕНЬ ВАЖНО: правильная обработка photo_url
+        // Аватар
         if (user.photo_url && user.photo_url.trim() !== '') {
             console.log('📸 У пользователя есть фото профиля:', user.photo_url);
             
             if (profilePhoto) {
-                // Устанавливаем src с колбэком на ошибку загрузки
-                profilePhoto.src = user.photo_url;
-                profilePhoto.style.display = 'block';
+                // Создаем новое изображение для предотвращения кеширования
+                const img = new Image();
+                img.src = user.photo_url + '?t=' + Date.now(); // Добавляем timestamp
                 
-                profilePhoto.onload = function() {
+                img.onload = function() {
                     console.log('✅ Фото профиля загружено');
+                    profilePhoto.src = img.src;
+                    profilePhoto.style.display = 'block';
                     if (profileInitials) profileInitials.style.display = 'none';
+                    profilePhoto.classList.add('loaded');
                 };
                 
-                profilePhoto.onerror = function() {
+                img.onerror = function() {
                     console.log('❌ Ошибка загрузки фото, показываем инициалы');
                     profilePhoto.style.display = 'none';
                     if (profileInitials) {
                         const initials = getInitials(user.first_name, user.last_name);
                         profileInitials.textContent = initials;
-                        profileInitials.style.display = 'flex'; // Изменено с block на flex
+                        profileInitials.style.display = 'flex';
                     }
                 };
             }
@@ -437,52 +458,59 @@
             if (profileInitials) {
                 const initials = getInitials(user.first_name, user.last_name);
                 profileInitials.textContent = initials;
-                profileInitials.style.display = 'flex'; // Изменено с block на flex
+                profileInitials.style.display = 'flex';
             }
         }
         
         // Имя и username
-        userName.textContent = `${user.first_name || ''} ${user.last_name || ''}`.trim();
+        if (userName) {
+            userName.textContent = `${user.first_name || ''} ${user.last_name || ''}`.trim();
+            if (userName.textContent === '') userName.textContent = 'Пользователь';
+        }
+        
         if (userUsername) {
             userUsername.textContent = user.username ? `@${user.username}` : 'Без username';
         }
         
         // Информация
-        profileInfo.innerHTML = '';
-        
-        const infoCards = [
-            { label: 'ID пользователя', value: user.id, icon: '🆔' },
-            { label: 'Имя', value: user.first_name || '—', icon: '👤' },
-            { label: 'Фамилия', value: user.last_name || '—', icon: '👥' },
-            { label: 'Username', value: user.username ? '@' + user.username : '—', icon: '📛' },
-            { label: 'Язык', value: user.language_code?.toUpperCase() || 'RU', icon: '🌐' },
-            { label: 'Premium статус', value: user.is_premium ? '✅ Активен' : '❌ Не активен', icon: '⭐' },
-            { label: 'Доступ к ЛС', value: user.allows_write_to_pm ? '✅ Разрешен' : '❌ Запрещен', icon: '💬' },
-            { label: 'Дата авторизации', value: new Date().toLocaleDateString('ru-RU'), icon: '📅' },
-            { label: 'Тип данных', value: user.is_demo ? 'Демо режим' : 'Реальные данные', icon: '🔐' },
-            { label: 'Статус', value: 'Онлайн', icon: '💚' }
-        ];
-        
-        if (user.photo_url) {
-            infoCards.unshift({ 
-                label: 'Фото профиля', 
-                value: user.photo_url ? '✅ Есть' : '❌ Нет', 
-                icon: '📸' 
+        if (profileInfo) {
+            profileInfo.innerHTML = '';
+            
+            const infoCards = [
+                { label: 'ID пользователя', value: user.id, icon: '🆔' },
+                { label: 'Имя', value: user.first_name || '—', icon: '👤' },
+                { label: 'Фамилия', value: user.last_name || '—', icon: '👥' },
+                { label: 'Username', value: user.username ? '@' + user.username : '—', icon: '📛' },
+                { label: 'Язык', value: user.language_code?.toUpperCase() || 'RU', icon: '🌐' },
+                { label: 'Premium статус', value: user.is_premium ? '✅ Активен' : '❌ Не активен', icon: '⭐' },
+                { label: 'Дата авторизации', value: user.auth_date ? new Date(user.auth_date).toLocaleDateString('ru-RU') : new Date().toLocaleDateString('ru-RU'), icon: '📅' },
+                { label: 'Статус', value: 'Онлайн', icon: '💚' }
+            ];
+            
+            // Добавляем статистику игр если есть
+            if (user.gamesPlayed || user.gamesWon) {
+                infoCards.push(
+                    { label: 'Сыграно игр', value: user.gamesPlayed || 0, icon: '🎮' },
+                    { label: 'Побед', value: user.gamesWon || 0, icon: '🏆' }
+                );
+            }
+            
+            infoCards.forEach(card => {
+                const cardElement = document.createElement('div');
+                cardElement.className = 'info-card';
+                cardElement.innerHTML = `
+                    <div class="info-label">
+                        <span class="icon">${card.icon}</span>
+                        ${card.label}
+                    </div>
+                    <div class="info-value">${card.value}</div>
+                `;
+                profileInfo.appendChild(cardElement);
             });
         }
         
-        infoCards.forEach(card => {
-            const cardElement = document.createElement('div');
-            cardElement.className = 'info-card';
-            cardElement.innerHTML = `
-                <div class="info-label">
-                    <span class="icon">${card.icon}</span>
-                    ${card.label}
-                </div>
-                <div class="info-value">${card.value}</div>
-            `;
-            profileInfo.appendChild(cardElement);
-        });
+        // Обновляем компактный профиль
+        updateCompactProfile();
         
         console.log('✅ Вкладка профиля обновлена');
     }
@@ -494,6 +522,7 @@
         return (first + last) || 'U';
     }
     
+    // Переключение вкладок
     // Переключение вкладок
     function setupNavigation() {
         const navButtons = document.querySelectorAll('.nav-button');
@@ -518,8 +547,11 @@
                 console.log(`📱 Переключено на вкладку: ${tabId}`);
                 
                 // При переключении на профиль обновляем его
-                if (tabId === 'profileTab' && currentUser) {
-                    setTimeout(updateProfileTab, 100);
+                if (tabId === 'profileTab') {
+                    setTimeout(() => {
+                        updateProfileTab();
+                        console.log('🔄 Профиль обновлен после переключения вкладки');
+                    }, 100);
                 }
             });
         });
@@ -587,6 +619,7 @@
     // Добавьте эти функции в конец скрипта в index.html:
 
 // Обновить компактный профиль
+// Обновить компактный профиль
 function updateCompactProfile() {
     const user = window.currentUser || currentUser;
     const compactProfile = document.getElementById('compactProfile');
@@ -600,10 +633,22 @@ function updateCompactProfile() {
     
     if (user) {
         // Обновляем аватар
-        if (user.photo_url) {
-            compactPhoto.src = user.photo_url;
-            compactPhoto.style.display = 'block';
-            compactInitials.style.display = 'none';
+        if (user.photo_url && user.photo_url.trim() !== '') {
+            const img = new Image();
+            img.src = user.photo_url + '?t=' + Date.now();
+            
+            img.onload = function() {
+                compactPhoto.src = img.src;
+                compactPhoto.style.display = 'block';
+                compactInitials.style.display = 'none';
+            };
+            
+            img.onerror = function() {
+                const initials = getInitials(user.first_name, user.last_name);
+                compactInitials.textContent = initials;
+                compactInitials.style.display = 'flex';
+                compactPhoto.style.display = 'none';
+            };
         } else {
             const initials = getInitials(user.first_name, user.last_name);
             compactInitials.textContent = initials;
@@ -612,7 +657,8 @@ function updateCompactProfile() {
         }
         
         // Обновляем имя и статус
-        compactName.textContent = `${user.first_name} ${user.last_name || ''}`.trim();
+        const fullName = `${user.first_name} ${user.last_name || ''}`.trim();
+        compactName.textContent = fullName || 'Пользователь';
         compactStatus.textContent = user.username ? `@${user.username}` : 'В сети';
         compactStatus.style.color = '#4ecdc4';
         
