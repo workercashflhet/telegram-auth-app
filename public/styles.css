@@ -409,11 +409,11 @@ body {
 .wheel-pointer {
     position: absolute;
     top: -30px;
-    left: 55%;
+    left: 50%;
     transform: translateX(-50%);
     width: 30px;
     height: 30px;
-    font-size: 3rem;
+    font-size: 2rem;
     z-index: 20;
 }
 
