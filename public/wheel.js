@@ -749,7 +749,45 @@ class FortuneWheel {
         }
     }
 
-    
+    updateTimer(gameState) {
+        if (!gameState) return;
+        
+        const timeRemaining = Math.max(0, Math.floor((gameState.gameEndsAt - Date.now()) / 1000));
+        const participantsCount = gameState.participants ? gameState.participants.length : 0;
+        
+        // Обновляем таймер в центре колеса
+        const centerTimer = document.getElementById('centerTimer');
+        const timerLabel = document.querySelector('.wheel-timer-label');
+        
+        if (centerTimer) {
+            centerTimer.textContent = timeRemaining;
+            
+            // Анимация
+            centerTimer.classList.remove('pulse');
+            setTimeout(() => {
+                centerTimer.classList.add('pulse');
+            }, 10);
+            
+            // Цвет в зависимости от времени
+            if (timeRemaining <= 5) {
+                centerTimer.style.color = '#ff6b6b';
+            } else if (timeRemaining <= 10) {
+                centerTimer.style.color = '#ffa726';
+            } else {
+                centerTimer.style.color = '#4ecdc4';
+            }
+        }
+        
+        if (timerLabel) {
+            timerLabel.textContent = `УЧАСТНИКОВ: ${participantsCount}`;
+        }
+        
+        // Также обновляем старый таймер если он еще существует
+        const gameTimer = document.getElementById('gameTimer');
+        if (gameTimer) {
+            gameTimer.textContent = timeRemaining;
+        }
+    }
 
     // В класс FortuneWheel добавьте методы:
 

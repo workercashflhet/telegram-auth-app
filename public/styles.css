@@ -355,7 +355,7 @@ body {
     width: 300px;
     height: 300px;
     margin: 0 auto 30px;
-    overflow: visible; /* Важно: позволяем элементам выходить за пределы */
+    overflow: visible;
 }
 
 #fortuneWheel {
@@ -398,23 +398,157 @@ body {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 60px;
-    height: 60px;
-    background-color: #000;
+    width: 120px; /* Увеличиваем для таймера */
+    height: 120px;
+    background-color: rgba(0, 0, 0, 0.9);
     border-radius: 50%;
     border: 4px solid #fff;
     z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
 }
 
+/* Стили для центрального таймера */
+.wheel-timer {
+    text-align: center;
+    font-size: 2.2rem; /* Немного меньше чем был */
+    font-weight: bold;
+    color: #4ecdc4; /* Цвет из градиента победителя */
+    text-shadow: 0 0 10px rgba(78, 205, 196, 0.7);
+    line-height: 1;
+    margin-bottom: 5px;
+    font-family: monospace; /* Для равномерных цифр */
+}
+
+.wheel-timer-label {
+    font-size: 0.7rem;
+    color: #b9b9b9;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    text-align: center;
+    margin-top: 2px;
+}
+
+/* Обновите указатель */
 .wheel-pointer {
     position: absolute;
-    top: -30px;
-    left: 51%;
+    top: -20px;
+    left: 50%;
     transform: translateX(-50%);
     width: 30px;
     height: 30px;
-    font-size: 2rem;
+    font-size: 2.5rem;
+    color: #fff;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
     z-index: 20;
+    filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.5));
+}
+
+/* Анимация для таймера в центре */
+@keyframes timerPulse {
+    0%, 100% {
+        transform: scale(1);
+        text-shadow: 0 0 10px rgba(78, 205, 196, 0.7);
+    }
+    50% {
+        transform: scale(1.05);
+        text-shadow: 0 0 20px rgba(78, 205, 196, 1);
+    }
+}
+
+.wheel-timer.pulse {
+    animation: timerPulse 1s ease-in-out infinite;
+}
+
+/* Адаптивность */
+@media (max-width: 600px) {
+    .wheel-wrapper {
+        width: 280px;
+        height: 280px;
+    }
+    
+    .wheel-center {
+        width: 100px;
+        height: 100px;
+    }
+    
+    .wheel-timer {
+        font-size: 1.8rem;
+    }
+    
+    .wheel-timer-label {
+        font-size: 0.6rem;
+    }
+}
+
+@media (max-width: 400px) {
+    .wheel-wrapper {
+        width: 250px;
+        height: 250px;
+    }
+    
+    .wheel-center {
+        width: 90px;
+        height: 90px;
+    }
+    
+    .wheel-timer {
+        font-size: 1.6rem;
+    }
+}
+
+/* Добавьте градиентную рамку для центра колеса */
+.wheel-center::before {
+    content: '';
+    position: absolute;
+    top: -3px;
+    left: -3px;
+    right: -3px;
+    bottom: -3px;
+    background: linear-gradient(45deg, 
+        #4ecdc4, 
+        #44a08d, 
+        #667eea, 
+        #764ba2);
+    border-radius: 50%;
+    z-index: -1;
+    animation: rotateBorder 3s linear infinite;
+}
+
+@keyframes rotateBorder {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* Эффект свечения при активной игре */
+.wheel-center.active {
+    box-shadow: 
+        0 0 30px rgba(78, 205, 196, 0.5),
+        inset 0 0 20px rgba(255, 255, 255, 0.1);
+}
+
+/* Эффект при запуске игры */
+.wheel-center.starting {
+    animation: centerPulse 0.5s ease-out;
+}
+
+@keyframes centerPulse {
+    0% {
+        transform: translate(-50%, -50%) scale(1);
+    }
+    50% {
+        transform: translate(-50%, -50%) scale(1.1);
+    }
+    100% {
+        transform: translate(-50%, -50%) scale(1);
+    }
 }
 
 /* Участники на колесе */
@@ -441,22 +575,6 @@ body {
     font-size: 1.5rem;
     font-weight: bold;
     color: #fff;
-}
-
-/* Таймер игры */
-.game-timer {
-    text-align: center;
-    font-size: 3rem;
-    font-weight: bold;
-    margin: 20px 0;
-    color: #b9b9b9;
-    text-shadow: 0 0 10px rgba(78, 205, 196, 0.5);
-}
-
-.timer-label {
-    font-size: 1rem;
-    color: #666;
-    margin-top: 10px;
 }
 
 /* Кнопки игры */
