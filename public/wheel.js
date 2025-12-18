@@ -764,7 +764,7 @@ class FortuneWheel {
         if (this.participants.length === 0) {
             participantsList.innerHTML = `
                 <div class="no-participants">
-                    <p>👤 Пока никто не участвует</p>
+                    <p> Пока никто не участвует</p>
                 </div>
             `;
             return;
