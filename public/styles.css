@@ -1506,7 +1506,7 @@ body {
     clip: auto !important;
     white-space: normal !important;
     visibility: visible !important;
-    opacity: 1 !important;
+    opacity: 0 !important;
     pointer-events: auto !important;
 }
 
