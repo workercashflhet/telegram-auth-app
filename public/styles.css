@@ -1231,6 +1231,19 @@ body {
     justify-content: center;
 }
 
+.hidden-element {
+    display: none !important; /* Полностью скрывает элемент */
+}
+
+.invisible-element {
+    visibility: hidden !important; /* Скрывает, но сохраняет место в верстке */
+}
+
+.transparent-element {
+    opacity: 0 !important; /* Делает прозрачным, сохраняя место */
+    pointer-events: none !important; /* Отключает взаимодействие */
+}
+
 /* Адаптивность */
 @media (max-width: 600px) {
     .app-container {
