@@ -301,22 +301,24 @@
             flake.style.top = `${startY}px`;
             
             // Случайная задержка начала анимации
-            const delay = Math.random() * 10;
+            const delay = Math.random() * 5;
             
-            // Разные типы анимаций для разнообразия
-            const animationTypes = [
-                'snowFall, snowSway, snowTwinkle',
-                'snowFall2, snowSway2, snowTwinkle',
-                'snowFall3, snowSway, snowTwinkle'
-            ];
+            // Выбираем случайную анимацию падения
+            const fallAnimations = ['snowFall', 'snowFall2', 'snowFall3'];
+            const swayAnimations = ['snowSway', 'snowSway2'];
+            const twinkleAnimation = 'snowTwinkle';
             
-            const randomAnimation = animationTypes[Math.floor(Math.random() * animationTypes.length)];
+            const randomFall = fallAnimations[Math.floor(Math.random() * fallAnimations.length)];
+            const randomSway = swayAnimations[Math.floor(Math.random() * swayAnimations.length)];
             
             // Длительность анимации
             const duration = 8 + Math.random() * 12; // 8-20 секунд
             
+            // Применяем анимации правильно
             flake.style.animation = `
-                ${randomAnimation} ${duration}s linear ${delay}s infinite
+                ${randomFall} ${duration}s linear ${delay}s infinite,
+                ${randomSway} ${duration / 2}s ease-in-out ${delay}s infinite alternate,
+                ${twinkleAnimation} ${duration / 3}s ease-in-out ${delay}s infinite alternate
             `;
             
             snowContainer.appendChild(flake);
@@ -332,10 +334,10 @@
         
         // Создаем начальные снежинки (больше для лучшего эффекта)
         function generateSnow() {
-            const count = Math.floor(window.innerWidth / 15); // Больше снежинок на широких экранах
+            const count = Math.floor(window.innerWidth / 20); // Больше снежинок на широких экранах
             
             for (let i = 0; i < count; i++) {
-                setTimeout(() => createSnowflake(), i * 200);
+                setTimeout(() => createSnowflake(), i * 100);
             }
             
             console.log(`❄️ Создано ${count} снежинок`);
@@ -343,7 +345,7 @@
         
         // Периодическое обновление
         generateSnow();
-        setInterval(generateSnow, 15000); // Каждые 15 секунд добавляем новые снежинки
+        setInterval(generateSnow, 20000); // Каждые 20 секунд добавляем новые снежинки
         
         // Респавн при изменении размера
         let resizeTimeout;

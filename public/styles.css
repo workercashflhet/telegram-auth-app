@@ -21,9 +21,9 @@ body {
     top: 0;
     left: 0;
     width: 100%;
-    height: 100vh; /* Важно: 100vh вместо 100% */
+    height: 100vh;
     pointer-events: none;
-    z-index: -1; /* Под всем контентом, но над фоном */
+    z-index: 9999; /* Увеличиваем z-index */
     overflow: hidden;
 }
 
@@ -36,7 +36,7 @@ body {
     animation-iteration-count: infinite;
     filter: blur(0.5px);
     box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
-    z-index: -1;
+    z-index: 9999; /* Увеличиваем z-index для снежинок */
 }
 
 /* Разные размеры снежинок */
