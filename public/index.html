@@ -1,19 +1,15 @@
 
+<!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="theme-color" content="#000000">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Wheel of Fortune</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="stylesheet" href="/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body class="fullscreen-app">
-    <!-- Остальной код остается без изменений -->
+<body>
     <!-- Анимация снега -->
     <div id="snowContainer" class="snow-container"></div>
     <!-- Компактный профиль в левом верхнем углу -->
@@ -266,96 +262,6 @@
 
     console.log('🔧 Запуск диагностики...');
 
-    // Функция для перехода в полноэкранный режим
-    function enterFullscreen() {
-        const elem = document.documentElement;
-        
-        if (elem.requestFullscreen) {
-            elem.requestFullscreen();
-        } else if (elem.mozRequestFullScreen) { // Firefox
-            elem.mozRequestFullScreen();
-        } else if (elem.webkitRequestFullscreen) { // Chrome, Safari, Opera
-            elem.webkitRequestFullscreen();
-        } else if (elem.msRequestFullscreen) { // IE/Edge
-            elem.msRequestFullscreen();
-        }
-        
-        // Добавляем класс для полноэкранного режима
-        document.body.classList.add('fullscreen-active');
-        
-        console.log('📱 Переход в полноэкранный режим');
-    }
-
-    // Функция для выхода из полноэкранного режима
-    function exitFullscreen() {
-        if (document.exitFullscreen) {
-            document.exitFullscreen();
-        } else if (document.mozCancelFullScreen) {
-            document.mozCancelFullScreen();
-        } else if (document.webkitExitFullscreen) {
-            document.webkitExitFullscreen();
-        } else if (document.msExitFullscreen) {
-            document.msExitFullscreen();
-        }
-        
-        document.body.classList.remove('fullscreen-active');
-    }
-
-    // Проверяем, находимся ли мы в полноэкранном режиме
-    function isFullscreen() {
-        return !!(document.fullscreenElement || 
-                document.mozFullScreenElement || 
-                document.webkitFullscreenElement || 
-                document.msFullscreenElement);
-    }
-
-    // Автоматически переходим в полноэкранный режим при загрузке
-    document.addEventListener('DOMContentLoaded', function() {
-        // Небольшая задержка для инициализации
-        setTimeout(() => {
-            // Проверяем, поддерживается ли полноэкранный режим
-            if (document.documentElement.requestFullscreen) {
-                // Автоматически переходим в полноэкранный режим
-                enterFullscreen();
-                
-                // Добавляем кнопку для выхода (опционально)
-                const fullscreenToggle = document.createElement('button');
-                fullscreenToggle.id = 'fullscreenToggle';
-                fullscreenToggle.className = 'fullscreen-toggle';
-                fullscreenToggle.innerHTML = '<i class="fas fa-expand"></i>';
-                fullscreenToggle.title = 'Полноэкранный режим';
-                fullscreenToggle.onclick = function() {
-                    if (isFullscreen()) {
-                        exitFullscreen();
-                        this.innerHTML = '<i class="fas fa-expand"></i>';
-                    } else {
-                        enterFullscreen();
-                        this.innerHTML = '<i class="fas fa-compress"></i>';
-                    }
-                };
-                
-                document.body.appendChild(fullscreenToggle);
-            }
-        }, 1000);
-    });
-
-    // Слушаем изменения полноэкранного режима
-    document.addEventListener('fullscreenchange', handleFullscreenChange);
-    document.addEventListener('mozfullscreenchange', handleFullscreenChange);
-    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
-    document.addEventListener('msfullscreenchange', handleFullscreenChange);
-
-    function handleFullscreenChange() {
-        const fullscreenToggle = document.getElementById('fullscreenToggle');
-        if (fullscreenToggle) {
-            if (isFullscreen()) {
-                fullscreenToggle.innerHTML = '<i class="fas fa-compress"></i>';
-            } else {
-                fullscreenToggle.innerHTML = '<i class="fas fa-expand"></i>';
-            }
-        }
-    }
-
     // Проверяем наличие элементов
     document.addEventListener('DOMContentLoaded', () => {
         console.log('🔍 Проверка элементов DOM:');
@@ -373,73 +279,58 @@
         }, 1000);
     });
 
+    // Анимация снега - простой вариант
     document.addEventListener('DOMContentLoaded', function() {
         const snowContainer = document.getElementById('snowContainer');
         
         if (!snowContainer) return;
         
-        // Очищаем контейнер
-        snowContainer.innerHTML = '';
-        
         function createSnowflake() {
             const flake = document.createElement('div');
             flake.className = 'snowflake';
             
-            // Случайный размер (уже задан в CSS)
-            // Случайная начальная позиция по всей ширине экрана
-            const startX = Math.random() * 100;
-            flake.style.left = `${startX}%`;
+            // Случайный размер
+            const size = Math.random() * 5 + 2;
+            flake.style.width = `${size}px`;
+            flake.style.height = `${size}px`;
             
-            // Случайная начальная позиция по высоте (начинают выше видимой области)
-            const startY = -20 - Math.random() * 20;
-            flake.style.top = `${startY}px`;
+            // Случайная позиция
+            flake.style.left = `${Math.random() * 100}%`;
             
-            // Случайная задержка начала анимации
+            // Случайная прозрачность
+            flake.style.opacity = Math.random() * 0.7 + 0.3;
+            
+            // Случайная скорость
+            const duration = Math.random() * 5 + 5;
             const delay = Math.random() * 5;
             
-            // Выбираем случайную анимацию падения
-            const fallAnimations = ['snowFall', 'snowFall2', 'snowFall3'];
-            const swayAnimations = ['snowSway', 'snowSway2'];
-            const twinkleAnimation = 'snowTwinkle';
-            
-            const randomFall = fallAnimations[Math.floor(Math.random() * fallAnimations.length)];
-            const randomSway = swayAnimations[Math.floor(Math.random() * swayAnimations.length)];
-            
-            // Длительность анимации
-            const duration = 8 + Math.random() * 12; // 8-20 секунд
-            
-            // Применяем анимации правильно
             flake.style.animation = `
-                ${randomFall} ${duration}s linear ${delay}s infinite,
-                ${randomSway} ${duration / 2}s ease-in-out ${delay}s infinite alternate,
-                ${twinkleAnimation} ${duration / 3}s ease-in-out ${delay}s infinite alternate
+                fall ${duration}s linear ${delay}s infinite,
+                sway ${duration/2}s ease-in-out ${delay}s infinite alternate,
+                twinkle ${Math.random() * 2 + 1}s ease-in-out ${delay}s infinite alternate
             `;
             
             snowContainer.appendChild(flake);
             
-            // Удаление через случайное время для обновления
+            // Удаление после завершения анимации
             setTimeout(() => {
                 if (flake.parentNode) {
                     flake.remove();
-                    createSnowflake(); // Создаем новую снежинку
                 }
             }, (duration + delay) * 1000);
         }
         
-        // Создаем начальные снежинки (больше для лучшего эффекта)
+        // Создаем снежинки с интервалом
         function generateSnow() {
-            const count = Math.floor(window.innerWidth / 20); // Больше снежинок на широких экранах
-            
+            const count = Math.floor(window.innerWidth / 20); // Адаптивное количество
             for (let i = 0; i < count; i++) {
-                setTimeout(() => createSnowflake(), i * 100);
+                setTimeout(() => createSnowflake(), i * 300);
             }
-            
-            console.log(`❄️ Создано ${count} снежинок`);
         }
         
         // Периодическое обновление
         generateSnow();
-        setInterval(generateSnow, 20000); // Каждые 20 секунд добавляем новые снежинки
+        setInterval(generateSnow, 10000); // Каждые 10 секунд
         
         // Респавн при изменении размера
         let resizeTimeout;
@@ -448,7 +339,7 @@
             resizeTimeout = setTimeout(() => {
                 snowContainer.innerHTML = '';
                 generateSnow();
-            }, 500);
+            }, 250);
         });
     });
     

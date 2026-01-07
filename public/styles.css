@@ -206,31 +206,33 @@ body::before {
     pointer-events: none;
 }
 
-/* Навигация - фиксированная внизу */
+/* Навигация */
 .app-nav {
     position: fixed;
     bottom: 0;
     left: 0;
     right: 0;
-    height: 70px;
     background-color: rgba(17, 17, 17, 0.95);
     backdrop-filter: blur(10px);
     display: flex;
     justify-content: space-around;
-    align-items: center;
+    padding: 15px 0;
     border-top: 1px solid #333;
     z-index: 1000;
-    padding: 0;
 }
 
 .nav-button {
-    height: 100%;
-    flex: 1;
+    background: none;
+    border: none;
+    color: #666;
+    font-size: 0.9rem;
+    cursor: pointer;
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
     gap: 5px;
+    transition: color 0.3s;
+    padding: 10px;
 }
 
 .nav-button.active {
@@ -241,138 +243,14 @@ body::before {
     font-size: 1.5rem;
 }
 
-/* ========== ПОЛНОЭКРАННЫЙ РЕЖИМ ========== */
-.fullscreen-app {
-    width: 100vw;
-    height: 100vh;
-    overflow: hidden;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-}
-
-html, body {
-    margin: 0;
-    padding: 0;
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-    position: fixed;
-}
-
-/* Адаптация контейнера приложения */
+/* Основной контейнер */
 .app-container {
-    max-width: 100%;
-    margin: 0;
-    padding: 15px;
-    padding-bottom: 80px;
-    height: calc(100vh - 80px); /* Минус высота навигации */
-    overflow-y: auto;
-    overflow-x: hidden;
-    -webkit-overflow-scrolling: touch;
-}
-
-/* Улучшение скролла на iOS */
-.app-container {
-    -webkit-overflow-scrolling: touch;
-}
-
-/* Скрываем адресную строку на мобильных */
-@media (display-mode: fullscreen) {
-    .app-container {
-        height: 100vh;
-    }
-}
-
-@media (display-mode: standalone) {
-    .app-container {
-        height: 100vh;
-        padding-top: env(safe-area-inset-top, 0);
-    }
-    
-    .compact-profile {
-        top: calc(env(safe-area-inset-top, 20px) + 10px);
-    }
-}
-
-/* Портретная ориентация */
-@media (orientation: portrait) {
-    .app-container {
-        padding: 10px;
-        padding-bottom: 70px;
-    }
-    
-    .wheel-wrapper {
-        width: min(85vw, 320px);
-        height: min(85vw, 320px);
-    }
-}
-
-/* Альбомная ориентация */
-@media (orientation: landscape) {
-    .app-container {
-        display: flex;
-        flex-direction: row;
-        flex-wrap: wrap;
-        justify-content: space-around;
-        padding: 10px 10px 70px 10px;
-    }
-    
-    .wheel-container {
-        flex: 1;
-        min-width: 300px;
-        max-width: 400px;
-        margin-right: 10px;
-    }
-    
-    .participants-list {
-        flex: 1;
-        min-width: 250px;
-        max-width: 350px;
-        margin-top: 0;
-    }
-    
-    .winner-section {
-        flex-basis: 100%;
-        margin-top: 20px;
-    }
-}
-
-/* Кнопка переключения полноэкранного режима */
-.fullscreen-toggle {
-    position: fixed;
-    bottom: 80px;
-    right: 20px;
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    background: rgba(0, 0, 0, 0.7);
-    backdrop-filter: blur(10px);
-    border: 2px solid #ffffff;
-    color: white;
-    cursor: pointer;
-    z-index: 1001;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.2rem;
-    transition: all 0.3s;
-    opacity: 0.7;
-}
-
-.fullscreen-toggle:hover {
-    opacity: 1;
-    transform: scale(1.1);
-    background: rgba(0, 0, 0, 0.9);
-}
-
-/* Скрываем на очень маленьких экранах */
-@media (max-width: 350px) {
-    .fullscreen-toggle {
-        display: none;
-    }
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    padding-bottom: 80px; /* Для навигации */
+    position: relative;
+    z-index: 1;
 }
 
 /* Заголовки */
@@ -398,12 +276,23 @@ html, body {
 }
 
 /* ========== КОМПАКТНЫЙ ПРОФИЛЬ ========== */
-/* Компактный профиль */
 .compact-profile {
-    position: fixed;
-    top: env(safe-area-inset-top, 20px); /* Учет выемок на iPhone */
+    position: fixed; /* Фиксированная позиция */
+    top: 20px;
     left: 20px;
     z-index: 2000;
+    display: flex;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 50px;
+    padding: 8px 15px 8px 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    border: 2px solid #ffffff;
+    transition: all 0.3s ease;
+    width: auto;
+    min-width: 200px;
+    max-width: 300px;
 }
 
 .compact-profile:hover {
@@ -798,17 +687,23 @@ html, body {
     }
 }
 
-/* Колесо фортуны - адаптация под экран */
+/* Вкладка Главная (Колесо фортуны) */
 .wheel-container {
-    width: 100%;
-    max-width: 500px;
-    margin: 0 auto 20px;
+    background-color: rgba(17, 17, 17, 0.9);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 30px;
+    margin-bottom: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
+/* Контейнер для колеса */
 .wheel-wrapper {
-    width: min(90vw, 350px);
-    height: min(90vw, 350px);
-    margin: 0 auto 20px;
+    position: relative;
+    width: 300px;
+    height: 300px;
+    margin: 0 auto 30px;
+    overflow: visible;
 }
 
 #fortuneWheel {
