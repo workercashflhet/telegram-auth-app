@@ -151,7 +151,6 @@ class WheelGame {
         this.spinStartServerTime = Date.now(); // Точное серверное время
         this.lastActivity = new Date();
         this.stateVersion++;
-        
         // Выбираем победителя ДО рассчета угла
         this.winnerIndex = Math.floor(Math.random() * this.participants.length);
         this.winner = this.participants[this.winnerIndex];
@@ -166,48 +165,79 @@ class WheelGame {
         this.winnerRevealTime = this.spinStartServerTime + 5000; // Через 5 сек показываем
         this.nextRoundStartTime = this.spinStartServerTime + 13000; // Через 13 сек новый раунд
     }
-    
-    // ИСПРАВЛЕННЫЙ метод расчета угла
-    calculateFinalAngleForWinner() {
-        const spins = 5; // 5 полных оборотов для эффекта
-        const totalParticipants = this.participants.length;
-        const sectorAngle = 360 / totalParticipants;
+
+    // Обновите метод spinWheel:
+    spinWheel() {
+        if (this.participants.length < 2) {
+            return { success: false, error: 'Недостаточно участников' };
+        }
         
-        console.log(`📐 Расчет угла для ${totalParticipants} участников`);
-        console.log(`📏 Угол сектора: ${sectorAngle}°`);
-        console.log(`🏆 Победитель: ${this.winner.first_name} (индекс: ${this.winnerIndex})`);
+        // Выбираем случайного победителя
+        const winnerIndex = Math.floor(Math.random() * this.participants.length);
+        this.winner = this.participants[winnerIndex];
+        this.winnerIndex = winnerIndex;
         
-        // ВАЖНО: Фронтенд размещает участников по часовой стрелке, начиная с 0° вверху
-        // Участник 0 находится в секторе 0°-sectorAngle°
-        // Участник 1 находится в секторе sectorAngle°-2*sectorAngle°
-        // и т.д.
+        // Рассчитываем угол для этого победителя
+        this.finalAngle = this.calculateWheelAngle(winnerIndex);
         
-        // Стрелка находится вверху (0°)
-        // После вращения на угол X, стрелка укажет на участника,
-        // чей сектор начинается с угла (360 - X) % 360
+        this.status = 'spinning';
+        this.spinStartTime = Date.now();
         
-        // Мы хотим, чтобы стрелка указывала на победителя this.winnerIndex
-        // Центр сектора победителя: (this.winnerIndex + 0.5) * sectorAngle
+        // Логирование для отладки
+        console.log('🎰 ЗАПУСК КОЛЕСА:');
+        console.log(`  Участников: ${this.participants.length}`);
+        console.log(`  Победитель: ${this.winner.first_name} (индекс: ${winnerIndex})`);
+        console.log(`  Финальный угол: ${this.finalAngle}°`);
         
-        // Но стрелка должна указывать на начало сектора + небольшой отступ
-        const targetAngle = this.winnerIndex * sectorAngle + (sectorAngle * 0.1); // 10% от сектора
+        // Автоматический переход к завершению через 5 секунд
+        setTimeout(() => {
+            this.status = 'finished';
+            console.log(`🏆 Игра завершена. Победитель: ${this.winner.first_name}`);
+        }, 5000);
         
-        // Угол, который должен оказаться вверху после вращения
-        const angleForPointer = targetAngle;
-        
-        // Чтобы получить этот угол вверху, нужно повернуть колесо на:
-        // (360 - angleForPointer) + полные обороты
-        const randomOffset = (Math.random() - 0.3) * sectorAngle * 0.4; // ±20% сектора
-        
-        this.finalAngle = spins * 360 + (360 - angleForPointer) + randomOffset;
-        
-        console.log(`🎯 Финальный угол: ${this.finalAngle}°`);
-        console.log(`📊 Расчет: ${spins}×360 + (360 - ${angleForPointer}) + ${randomOffset.toFixed(2)}`);
-        console.log(`🔄 Нормализованный: ${this.finalAngle % 360}°`);
-        
-        // ДОПОЛНИТЕЛЬНО: Проверяем расчет
-        this.verifyWinnerCalculation();
+        return {
+            success: true,
+            winner: this.winner,
+            winnerIndex: winnerIndex,
+            finalAngle: this.finalAngle
+        };
     }
+    
+    calculateWheelAngle(winnerIndex) {
+        if (this.participants.length < 2 || winnerIndex < 0 || winnerIndex >= this.participants.length) {
+            return null;
+        }
+        
+        const sectors = this.participants.length;
+        const sectorAngle = 360 / sectors;
+        
+        // Центр сектора победителя (в градусах от 0)
+        const winnerCenterAngle = (winnerIndex * sectorAngle) + (sectorAngle / 2);
+        
+        // Чтобы стрелка указывала на этот сектор после вращения:
+        // 1. Стрелка находится вверху (0°)
+        // 2. После вращения на угол X, вверху окажется сектор с индексом:
+        //    Math.floor((360 - X + sectorAngle/2) / sectorAngle) % sectors
+        // 3. Решаем уравнение: хотим, чтобы вверху был сектор winnerIndex
+        
+        // Угол вращения для того чтобы winnerCenterAngle оказался под стрелкой
+        let finalAngle = 360 - winnerCenterAngle + sectorAngle/2;
+        
+        // Добавляем несколько полных оборотов для эффектности
+        finalAngle += 360 * 5; // 5 полных оборотов
+        
+        // Нормализуем
+        finalAngle = finalAngle % 360;
+        if (finalAngle < 0) finalAngle += 360;
+        
+        console.log(`🔄 Расчет угла для победителя ${this.participants[winnerIndex].first_name}:`);
+        console.log(`  Сектор победителя: ${winnerIndex}`);
+        console.log(`  Центр сектора: ${winnerCenterAngle}°`);
+        console.log(`  Финальный угол вращения: ${finalAngle}°`);
+        
+        return finalAngle;
+    }
+
 
     // Метод для проверки расчета
     verifyWinnerCalculation() {

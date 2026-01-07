@@ -584,41 +584,59 @@ class FortuneWheel {
         }
     }
 
+    // ЗАМЕНИТЕ метод determineWinnerFromAngle в wheel.js:
     determineWinnerFromAngle(finalAngle) {
         if (!finalAngle || this.participants.length === 0) {
             console.warn('Недостаточно данных для определения победителя');
             return null;
         }
         
-        const normalizedAngle = finalAngle % 360;
+        // Нормализуем угол от 0 до 360
+        const normalizedAngle = ((finalAngle % 360) + 360) % 360;
         const sectorAngle = 360 / this.participants.length;
         
-        console.log(`🎯 Фронтенд: определяем победителя по углу ${finalAngle}°`);
+        console.log(`🎯 Определяем победителя по углу ${finalAngle}°`);
         console.log(`📐 Нормализованный: ${normalizedAngle}°`);
-        console.log(`📏 Сектор: ${sectorAngle}°`);
+        console.log(`📏 Сектор: ${sectorAngle}°, Участников: ${this.participants.length}`);
         
-        // КЛЮЧЕВОЕ: Стрелка вверху (0°)
-        // После вращения на угол X, вверху окажется участник,
-        // чей сектор начинается с угла (360 - X) % 360
+        // КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ:
+        // 1. Стрелка находится вверху (0°)
+        // 2. После вращения на угол X, сектор под стрелкой будет иметь индекс:
+        //    Math.floor((360 - normalizedAngle + sectorAngle/2) / sectorAngle) % participants.length
         
-        const pointerAngle = (360 - normalizedAngle) % 360;
-        console.log(`📍 Угол под стрелкой: ${pointerAngle}°`);
+        // Добавляем смещение sectorAngle/2 чтобы стрелка указывала на центр сектора
+        const pointerAngle = (360 - normalizedAngle + sectorAngle/2) % 360;
         
+        // Рассчитываем сектор
         let sector = Math.floor(pointerAngle / sectorAngle);
         
-        // Корректировка
-        if (sector >= this.participants.length) sector = this.participants.length - 1;
-        if (sector < 0) sector = 0;
+        // Обеспечиваем корректный диапазон
+        sector = sector % this.participants.length;
+        
+        // Для отладки выводим все сектора
+        console.log('=== ОТЛАДКА СЕКТОРОВ ===');
+        for (let i = 0; i < this.participants.length; i++) {
+            const startAngle = (i * sectorAngle + sectorAngle/2) % 360;
+            const endAngle = ((i + 1) * sectorAngle + sectorAngle/2) % 360;
+            const containsPointer = (pointerAngle >= startAngle && pointerAngle < endAngle) ||
+                                (startAngle > endAngle && (pointerAngle >= startAngle || pointerAngle < endAngle));
+            console.log(`Сектор ${i} (${this.participants[i].first_name}): ${startAngle.toFixed(1)}°-${endAngle.toFixed(1)}° ${containsPointer ? '← СТРЕЛКА ЗДЕСЬ!' : ''}`);
+        }
         
         const winner = this.participants[sector];
         
         if (winner) {
-            console.log(`🏆 Фронтенд: стрелка указывает на ${winner.first_name} (сектор: ${sector})`);
+            console.log(`🏆 Определен победитель: ${winner.first_name} (сектор: ${sector})`);
+            console.log(`📍 Угол стрелки: ${pointerAngle.toFixed(1)}°`);
+            console.log(`🎯 Сектор победителя: ${sector * sectorAngle}°-${(sector + 1) * sectorAngle}°`);
+            console.log('=====================');
+            
             this.winner = winner;
-            this.showWinner(winner);
+            this.winnerIndex = sector;
             return winner;
         }
         
+        console.error('❌ Победитель не найден!');
         return null;
     }
     
@@ -751,40 +769,56 @@ class FortuneWheel {
     updateTimer(gameState) {
         if (!gameState) return;
         
-        const timeRemaining = Math.max(0, Math.floor((gameState.gameEndsAt - Date.now()) / 1000));
-        const participantsCount = gameState.participants ? gameState.participants.length : 0;
-        
-        // Обновляем таймер в центре колеса
         const centerTimer = document.getElementById('centerTimer');
         const timerLabel = document.querySelector('.wheel-timer-label');
         
-        if (centerTimer) {
-            centerTimer.textContent = timeRemaining;
+        if (!centerTimer || !timerLabel) return;
+        
+        // Определяем что показывать
+        if (gameState.status === 'counting' && gameState.countdown !== null && gameState.countdown > 0) {
+            // Показываем обратный отсчет до старта игры
+            centerTimer.textContent = gameState.countdown;
+            timerLabel.textContent = 'ДО СТАРТА';
             
-            // Анимация
-            centerTimer.classList.remove('pulse');
-            setTimeout(() => {
+            // Анимация пульсации для последних 10 секунд
+            if (gameState.countdown <= 10) {
                 centerTimer.classList.add('pulse');
-            }, 10);
-            
-            // Цвет в зависимости от времени
-            if (timeRemaining <= 5) {
                 centerTimer.style.color = '#ff6b6b';
-            } else if (timeRemaining <= 10) {
+            } else if (gameState.countdown <= 20) {
+                centerTimer.classList.remove('pulse');
                 centerTimer.style.color = '#ffa726';
             } else {
+                centerTimer.classList.remove('pulse');
                 centerTimer.style.color = '#4ecdc4';
             }
+            
+        } else if (gameState.status === 'waiting') {
+            // Показываем количество участников в ожидании
+            centerTimer.textContent = gameState.participants.length;
+            timerLabel.textContent = 'УЧАСТНИКОВ';
+            centerTimer.classList.remove('pulse');
+            centerTimer.style.color = gameState.participants.length > 0 ? '#4ecdc4' : '#666';
+            
+        } else if (gameState.status === 'spinning') {
+            // Показываем вращение
+            centerTimer.textContent = '🎰';
+            timerLabel.textContent = 'ВРАЩЕНИЕ';
+            centerTimer.classList.add('pulse');
+            centerTimer.style.color = '#ff6b6b';
+            
+        } else if (gameState.status === 'finished' && gameState.winner) {
+            // Показываем победителя
+            centerTimer.textContent = '🏆';
+            timerLabel.textContent = 'ПОБЕДИТЕЛЬ';
+            centerTimer.style.color = '#ffd700';
         }
         
-        if (timerLabel) {
-            timerLabel.textContent = `УЧАСТНИКОВ: ${participantsCount}`;
-        }
-        
-        // Также обновляем старый таймер если он еще существует
+        // Для совместимости с другими элементами
         const gameTimer = document.getElementById('gameTimer');
         if (gameTimer) {
-            gameTimer.textContent = timeRemaining;
+            if (gameState.status === 'counting' && gameState.countdown !== null) {
+                gameTimer.textContent = gameState.countdown;
+            }
         }
     }
 
