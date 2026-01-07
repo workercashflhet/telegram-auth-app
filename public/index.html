@@ -297,6 +297,70 @@
             }
         }, 1000);
     });
+
+    // Анимация снега - простой вариант
+    document.addEventListener('DOMContentLoaded', function() {
+        const snowContainer = document.getElementById('snowContainer');
+        
+        if (!snowContainer) return;
+        
+        function createSnowflake() {
+            const flake = document.createElement('div');
+            flake.className = 'snowflake';
+            
+            // Случайный размер
+            const size = Math.random() * 5 + 2;
+            flake.style.width = `${size}px`;
+            flake.style.height = `${size}px`;
+            
+            // Случайная позиция
+            flake.style.left = `${Math.random() * 100}%`;
+            
+            // Случайная прозрачность
+            flake.style.opacity = Math.random() * 0.7 + 0.3;
+            
+            // Случайная скорость
+            const duration = Math.random() * 5 + 5;
+            const delay = Math.random() * 5;
+            
+            flake.style.animation = `
+                fall ${duration}s linear ${delay}s infinite,
+                sway ${duration/2}s ease-in-out ${delay}s infinite alternate,
+                twinkle ${Math.random() * 2 + 1}s ease-in-out ${delay}s infinite alternate
+            `;
+            
+            snowContainer.appendChild(flake);
+            
+            // Удаление после завершения анимации
+            setTimeout(() => {
+                if (flake.parentNode) {
+                    flake.remove();
+                }
+            }, (duration + delay) * 1000);
+        }
+        
+        // Создаем снежинки с интервалом
+        function generateSnow() {
+            const count = Math.floor(window.innerWidth / 20); // Адаптивное количество
+            for (let i = 0; i < count; i++) {
+                setTimeout(() => createSnowflake(), i * 300);
+            }
+        }
+        
+        // Периодическое обновление
+        generateSnow();
+        setInterval(generateSnow, 10000); // Каждые 10 секунд
+        
+        // Респавн при изменении размера
+        let resizeTimeout;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+                snowContainer.innerHTML = '';
+                generateSnow();
+            }, 250);
+        });
+    });
     
     // Функция для обновления индикатора авторизации
     function updateAuthIndicator() {
