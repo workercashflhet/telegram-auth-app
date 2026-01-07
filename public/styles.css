@@ -910,7 +910,7 @@ body {
     border: 2px solid #ffffff;
     transition: all 0.3s ease;
     width: 30px;
-    /* max-width: 20px; */
+    max-width: 20px;
     /* margin: 20px; Добавляем отступы */
 }
 
