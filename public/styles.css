@@ -277,7 +277,7 @@ body::before {
 
 /* ========== КОМПАКТНЫЙ ПРОФИЛЬ ========== */
 .compact-profile {
-    position: fixed; /* Фиксированная позиция */
+    position: static; /* Фиксированная позиция */
     top: 20px;
     left: 20px;
     z-index: 2000;
