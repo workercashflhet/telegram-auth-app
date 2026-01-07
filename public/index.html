@@ -280,81 +280,81 @@
     });
 
     document.addEventListener('DOMContentLoaded', function() {
-    const snowContainer = document.getElementById('snowContainer');
-    
-    if (!snowContainer) return;
-    
-    // Очищаем контейнер
-    snowContainer.innerHTML = '';
-    
-    function createSnowflake() {
-        const flake = document.createElement('div');
-        flake.className = 'snowflake';
+        const snowContainer = document.getElementById('snowContainer');
         
-        // Случайный размер (уже задан в CSS)
-        // Случайная начальная позиция по всей ширине экрана
-        const startX = Math.random() * 100;
-        flake.style.left = `${startX}%`;
+        if (!snowContainer) return;
         
-        // Случайная начальная позиция по высоте (начинают выше видимой области)
-        const startY = -20 - Math.random() * 20;
-        flake.style.top = `${startY}px`;
+        // Очищаем контейнер
+        snowContainer.innerHTML = '';
         
-        // Случайная задержка начала анимации
-        const delay = Math.random() * 10;
-        
-        // Разные типы анимаций для разнообразия
-        const animationTypes = [
-            'snowFall, snowSway, snowTwinkle',
-            'snowFall2, snowSway2, snowTwinkle',
-            'snowFall3, snowSway, snowTwinkle'
-        ];
-        
-        const randomAnimation = animationTypes[Math.floor(Math.random() * animationTypes.length)];
-        
-        // Длительность анимации
-        const duration = 8 + Math.random() * 12; // 8-20 секунд
-        
-        flake.style.animation = `
-            ${randomAnimation} ${duration}s linear ${delay}s infinite
-        `;
-        
-        snowContainer.appendChild(flake);
-        
-        // Удаление через случайное время для обновления
-        setTimeout(() => {
-            if (flake.parentNode) {
-                flake.remove();
-                createSnowflake(); // Создаем новую снежинку
-            }
-        }, (duration + delay) * 1000);
-    }
-    
-    // Создаем начальные снежинки (больше для лучшего эффекта)
-    function generateSnow() {
-        const count = Math.floor(window.innerWidth / 15); // Больше снежинок на широких экранах
-        
-        for (let i = 0; i < count; i++) {
-            setTimeout(() => createSnowflake(), i * 200);
+        function createSnowflake() {
+            const flake = document.createElement('div');
+            flake.className = 'snowflake';
+            
+            // Случайный размер (уже задан в CSS)
+            // Случайная начальная позиция по всей ширине экрана
+            const startX = Math.random() * 100;
+            flake.style.left = `${startX}%`;
+            
+            // Случайная начальная позиция по высоте (начинают выше видимой области)
+            const startY = -20 - Math.random() * 20;
+            flake.style.top = `${startY}px`;
+            
+            // Случайная задержка начала анимации
+            const delay = Math.random() * 10;
+            
+            // Разные типы анимаций для разнообразия
+            const animationTypes = [
+                'snowFall, snowSway, snowTwinkle',
+                'snowFall2, snowSway2, snowTwinkle',
+                'snowFall3, snowSway, snowTwinkle'
+            ];
+            
+            const randomAnimation = animationTypes[Math.floor(Math.random() * animationTypes.length)];
+            
+            // Длительность анимации
+            const duration = 8 + Math.random() * 12; // 8-20 секунд
+            
+            flake.style.animation = `
+                ${randomAnimation} ${duration}s linear ${delay}s infinite
+            `;
+            
+            snowContainer.appendChild(flake);
+            
+            // Удаление через случайное время для обновления
+            setTimeout(() => {
+                if (flake.parentNode) {
+                    flake.remove();
+                    createSnowflake(); // Создаем новую снежинку
+                }
+            }, (duration + delay) * 1000);
         }
         
-        console.log(`❄️ Создано ${count} снежинок`);
-    }
-    
-    // Периодическое обновление
-    generateSnow();
-    setInterval(generateSnow, 15000); // Каждые 15 секунд добавляем новые снежинки
-    
-    // Респавн при изменении размера
-    let resizeTimeout;
-    window.addEventListener('resize', () => {
-        clearTimeout(resizeTimeout);
-        resizeTimeout = setTimeout(() => {
-            snowContainer.innerHTML = '';
-            generateSnow();
-        }, 500);
+        // Создаем начальные снежинки (больше для лучшего эффекта)
+        function generateSnow() {
+            const count = Math.floor(window.innerWidth / 15); // Больше снежинок на широких экранах
+            
+            for (let i = 0; i < count; i++) {
+                setTimeout(() => createSnowflake(), i * 200);
+            }
+            
+            console.log(`❄️ Создано ${count} снежинок`);
+        }
+        
+        // Периодическое обновление
+        generateSnow();
+        setInterval(generateSnow, 15000); // Каждые 15 секунд добавляем новые снежинки
+        
+        // Респавн при изменении размера
+        let resizeTimeout;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+                snowContainer.innerHTML = '';
+                generateSnow();
+            }, 500);
+        });
     });
-});
     
     // Функция для обновления индикатора авторизации
     function updateAuthIndicator() {
