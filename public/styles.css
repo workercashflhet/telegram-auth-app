@@ -910,7 +910,7 @@ body {
     border: 2px solid #ffffff;
     transition: all 0.3s ease;
     max-width: 20px;
-    margin: 20px; /* Добавляем отступы */
+    /* margin: 20px; Добавляем отступы */
 }
 
 .compact-profile:hover {
