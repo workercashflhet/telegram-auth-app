@@ -894,6 +894,128 @@ body {
     background-color: #222;
 }
 
+/* ========== АНИМАЦИЯ СНЕГА ========== */
+.snow-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: -1; /* Под всем контентом */
+    overflow: hidden;
+}
+
+.snowflake {
+    position: absolute;
+    background-color: rgba(255, 255, 255, 0.7);
+    border-radius: 50%;
+    pointer-events: none;
+    animation-name: fall, sway;
+    animation-timing-function: linear, ease-in-out;
+    animation-iteration-count: infinite;
+    animation-play-state: running;
+    filter: blur(0.5px);
+    box-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+}
+
+/* Разные размеры снежинок */
+.snowflake.small {
+    width: 3px;
+    height: 3px;
+}
+
+.snowflake.medium {
+    width: 5px;
+    height: 5px;
+}
+
+.snowflake.large {
+    width: 7px;
+    height: 7px;
+}
+
+/* Анимация падения */
+@keyframes fall {
+    0% {
+        transform: translateY(-10px) translateX(0);
+        opacity: 0;
+    }
+    10% {
+        opacity: 1;
+    }
+    90% {
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(100vh) translateX(20px);
+        opacity: 0;
+    }
+}
+
+/* Анимация качания из стороны в сторону */
+@keyframes sway {
+    0%, 100% {
+        transform: translateX(0);
+    }
+    50% {
+        transform: translateX(15px);
+    }
+}
+
+/* Разная скорость падения */
+.snowflake.slow {
+    animation-duration: 10s, 3s;
+}
+
+.snowflake.normal {
+    animation-duration: 7s, 2s;
+}
+
+.snowflake.fast {
+    animation-duration: 5s, 1.5s;
+}
+
+/* Для мобильных - меньше снежинок */
+@media (max-width: 768px) {
+    .snowflake {
+        width: 2px !important;
+        height: 2px !important;
+    }
+}
+
+/* Эффект мерцания снежинок */
+@keyframes twinkle {
+    0%, 100% {
+        opacity: 0.7;
+    }
+    50% {
+        opacity: 1;
+    }
+}
+
+.snowflake {
+    animation-name: fall, sway, twinkle;
+    animation-duration: 7s, 3s, 2s;
+    animation-iteration-count: infinite;
+}
+
+/* Градиентный фон с темным верхом */
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(to bottom, 
+        rgba(0, 0, 0, 0.9) 0%,
+        rgba(0, 0, 0, 0.7) 30%,
+        rgba(0, 0, 0, 0.5) 100%);
+    z-index: -2;
+    pointer-events: none;
+}
+
 /* ========== КОМПАКТНЫЙ ПРОФИЛЬ ========== */
 .compact-profile {
     position: static; /* Оставляем static */

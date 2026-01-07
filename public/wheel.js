@@ -1178,8 +1178,78 @@ class FortuneWheel {
     }
 }
 
-// Инициализация
+class SnowAnimation {
+    constructor() {
+        this.container = document.getElementById('snowContainer');
+        this.flakesCount = 100; // Количество снежинок
+        this.init();
+    }
+    
+    init() {
+        if (!this.container) return;
+        
+        this.createSnowflakes();
+        this.startAnimation();
+        
+        // Респавн снежинок при изменении размера окна
+        window.addEventListener('resize', () => {
+            this.removeSnowflakes();
+            this.createSnowflakes();
+        });
+    }
+    
+    createSnowflakes() {
+        if (!this.container) return;
+        
+        for (let i = 0; i < this.flakesCount; i++) {
+            const flake = document.createElement('div');
+            flake.className = 'snowflake';
+            
+            // Случайный размер
+            const sizes = ['small', 'medium', 'large'];
+            const size = sizes[Math.floor(Math.random() * sizes.length)];
+            flake.classList.add(size);
+            
+            // Случайная скорость
+            const speeds = ['slow', 'normal', 'fast'];
+            const speed = speeds[Math.floor(Math.random() * speeds.length)];
+            flake.classList.add(speed);
+            
+            // Случайная позиция
+            const left = Math.random() * 100;
+            const startDelay = Math.random() * 15; // Разное время начала
+            
+            // Случайная прозрачность
+            const opacity = 0.3 + Math.random() * 0.7;
+            
+            flake.style.left = `${left}%`;
+            flake.style.opacity = opacity.toString();
+            flake.style.animationDelay = `${startDelay}s`;
+            
+            this.container.appendChild(flake);
+        }
+    }
+    
+    removeSnowflakes() {
+        if (!this.container) return;
+        this.container.innerHTML = '';
+    }
+    
+    startAnimation() {
+        console.log('❄️ Анимация снега запущена');
+    }
+    
+    stopAnimation() {
+        this.removeSnowflakes();
+    }
+}
+
+
+// Инициализация снега в конце wheel.js, после класса FortuneWheel
 document.addEventListener('DOMContentLoaded', () => {
     console.log('🎡 Инициализация колеса фортуны...');
     window.fortuneWheel = new FortuneWheel();
+    
+    // Инициализация снега
+    window.snowAnimation = new SnowAnimation();
 });
