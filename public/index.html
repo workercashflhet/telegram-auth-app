@@ -1,15 +1,19 @@
 
-<!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#000000">
     <title>Wheel of Fortune</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="stylesheet" href="/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body>
+<body class="fullscreen-app">
+    <!-- Остальной код остается без изменений -->
     <!-- Анимация снега -->
     <div id="snowContainer" class="snow-container"></div>
     <!-- Компактный профиль в левом верхнем углу -->
@@ -261,6 +265,96 @@
     }
 
     console.log('🔧 Запуск диагностики...');
+
+    // Функция для перехода в полноэкранный режим
+    function enterFullscreen() {
+        const elem = document.documentElement;
+        
+        if (elem.requestFullscreen) {
+            elem.requestFullscreen();
+        } else if (elem.mozRequestFullScreen) { // Firefox
+            elem.mozRequestFullScreen();
+        } else if (elem.webkitRequestFullscreen) { // Chrome, Safari, Opera
+            elem.webkitRequestFullscreen();
+        } else if (elem.msRequestFullscreen) { // IE/Edge
+            elem.msRequestFullscreen();
+        }
+        
+        // Добавляем класс для полноэкранного режима
+        document.body.classList.add('fullscreen-active');
+        
+        console.log('📱 Переход в полноэкранный режим');
+    }
+
+    // Функция для выхода из полноэкранного режима
+    function exitFullscreen() {
+        if (document.exitFullscreen) {
+            document.exitFullscreen();
+        } else if (document.mozCancelFullScreen) {
+            document.mozCancelFullScreen();
+        } else if (document.webkitExitFullscreen) {
+            document.webkitExitFullscreen();
+        } else if (document.msExitFullscreen) {
+            document.msExitFullscreen();
+        }
+        
+        document.body.classList.remove('fullscreen-active');
+    }
+
+    // Проверяем, находимся ли мы в полноэкранном режиме
+    function isFullscreen() {
+        return !!(document.fullscreenElement || 
+                document.mozFullScreenElement || 
+                document.webkitFullscreenElement || 
+                document.msFullscreenElement);
+    }
+
+    // Автоматически переходим в полноэкранный режим при загрузке
+    document.addEventListener('DOMContentLoaded', function() {
+        // Небольшая задержка для инициализации
+        setTimeout(() => {
+            // Проверяем, поддерживается ли полноэкранный режим
+            if (document.documentElement.requestFullscreen) {
+                // Автоматически переходим в полноэкранный режим
+                enterFullscreen();
+                
+                // Добавляем кнопку для выхода (опционально)
+                const fullscreenToggle = document.createElement('button');
+                fullscreenToggle.id = 'fullscreenToggle';
+                fullscreenToggle.className = 'fullscreen-toggle';
+                fullscreenToggle.innerHTML = '<i class="fas fa-expand"></i>';
+                fullscreenToggle.title = 'Полноэкранный режим';
+                fullscreenToggle.onclick = function() {
+                    if (isFullscreen()) {
+                        exitFullscreen();
+                        this.innerHTML = '<i class="fas fa-expand"></i>';
+                    } else {
+                        enterFullscreen();
+                        this.innerHTML = '<i class="fas fa-compress"></i>';
+                    }
+                };
+                
+                document.body.appendChild(fullscreenToggle);
+            }
+        }, 1000);
+    });
+
+    // Слушаем изменения полноэкранного режима
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    document.addEventListener('mozfullscreenchange', handleFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+    document.addEventListener('msfullscreenchange', handleFullscreenChange);
+
+    function handleFullscreenChange() {
+        const fullscreenToggle = document.getElementById('fullscreenToggle');
+        if (fullscreenToggle) {
+            if (isFullscreen()) {
+                fullscreenToggle.innerHTML = '<i class="fas fa-compress"></i>';
+            } else {
+                fullscreenToggle.innerHTML = '<i class="fas fa-expand"></i>';
+            }
+        }
+    }
 
     // Проверяем наличие элементов
     document.addEventListener('DOMContentLoaded', () => {
