@@ -909,7 +909,7 @@ body {
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
     border: 2px solid #ffffff;
     transition: all 0.3s ease;
-    width: 100px;
+    width: 300px;
     /* max-width: 20px; */
     /* margin: 20px; Добавляем отступы */
 }
