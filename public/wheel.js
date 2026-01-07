@@ -1,3 +1,4 @@
+
 // public/wheel.js - Исправленная версия
 class FortuneWheel {
     constructor() {
@@ -12,7 +13,7 @@ class FortuneWheel {
         this.nextRoundTimer = null;
         this.lastGameState = null;
         
-         // Добавьте свойства синхронизации
+        // Добавьте свойства синхронизации
         this.serverTimeOffset = 0;
         this.lastSyncTime = 0;
         this.syncInterval = null;
@@ -302,7 +303,6 @@ class FortuneWheel {
         }
     }
 
-
     // Синхронизация времени с сервером
     async syncTimeWithServer() {
         try {
@@ -577,7 +577,7 @@ class FortuneWheel {
         this.finalAngle = syncData.finalAngle;
         this.spinStartTime = syncData.startTime + (this.clientTimeOffset || 0);
         
-        // Если вращение должно быть активно
+        // Если вращение должно быть активным
         if (syncData.shouldBeSpinning) {
             this.isSpinning = true;
             this.updateWheelPosition();
@@ -711,7 +711,6 @@ class FortuneWheel {
         this.updateButtons();
     }
         
-    // В wheel.js полностью перепишите метод joinGame:
     // В wheel.js упростите метод joinGame:
     async joinGame() {
         console.log('🎮 joinGame вызван');
@@ -789,8 +788,7 @@ class FortuneWheel {
         }
     }
 
-    // В класс FortuneWheel добавьте методы:
-
+    // Добавьте этот недостающий метод в класс FortuneWheel:
     showWinnerPush(winner) {
         if (!winner) {
             console.error('❌ showWinnerPush вызван без победителя');
@@ -1139,28 +1137,6 @@ class FortuneWheel {
             joinButton.disabled = false;
             joinButton.innerHTML = '<span class="icon">➕</span> УЧАСТВОВАТЬ';
         }
-    }
-    
-    showWinner(winner) {
-        // Используем push-уведомление вместо старой таблички
-        this.showWinnerPush(winner);
-        
-        // Также обновляем старую табличку (на всякий случай)
-        const winnerSection = document.getElementById('winnerSection');
-        if (winnerSection) {
-            winnerSection.style.display = 'none';
-        }
-    }
-    
-    hideWinner() {
-        const winnerSection = document.getElementById('winnerSection');
-        winnerSection.classList.remove('visible');
-        
-        setTimeout(() => {
-            if (!winnerSection.classList.contains('visible')) {
-                winnerSection.style.display = 'none';
-            }
-        }, 500);
     }
     
     getInitials(firstName, lastName) {
