@@ -13,6 +13,23 @@ body {
     min-height: 100vh;
     overflow-x: hidden;
     position: relative;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+}
+
+/* ========== ПОЛНОЭКРАННЫЙ РЕЖИМ ДЛЯ TELEGRAM MINI APP ========== */
+html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100vh;
+    overflow: hidden;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #000000;
 }
 
 /* ========== АНИМАЦИЯ СНЕГА (ИСПРАВЛЕНА) ========== */
@@ -251,6 +268,143 @@ body::before {
     padding-bottom: 80px; /* Для навигации */
     position: relative;
     z-index: 1;
+}
+
+/* Основной контейнер приложения */
+.app-container {
+    width: 100%;
+    height: calc(100vh - 70px); /* Минус высота навигации */
+    min-height: calc(100vh - 70px);
+    max-height: calc(100vh - 70px);
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    padding: 15px 15px 0 15px;
+    margin: 0 auto;
+    position: relative;
+}
+
+/* Убираем полосы прокрутки для лучшего вида */
+.app-container::-webkit-scrollbar {
+    display: none;
+    width: 0;
+}
+
+.app-container {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+/* Навигация всегда внизу */
+.app-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 70px;
+    background-color: rgba(17, 17, 17, 0.95);
+    backdrop-filter: blur(10px);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    border-top: 1px solid #333;
+    z-index: 1000;
+    padding: 0;
+}
+
+/* Компактный профиль с учетом Safe Area (для iPhone X и новее) */
+.compact-profile {
+    position: fixed;
+    top: env(safe-area-inset-top, 20px);
+    left: 20px;
+    z-index: 2000;
+}
+
+/* Адаптация под разные устройства */
+@media (max-height: 700px) {
+    .app-container {
+        padding: 10px 10px 0 10px;
+    }
+    
+    .wheel-wrapper {
+        width: min(85vw, 280px);
+        height: min(85vw, 280px);
+    }
+}
+
+@media (max-height: 600px) {
+    .app-nav {
+        height: 60px;
+    }
+    
+    .app-container {
+        height: calc(100vh - 60px);
+        min-height: calc(100vh - 60px);
+        max-height: calc(100vh - 60px);
+    }
+    
+    .nav-button {
+        font-size: 0.8rem;
+    }
+    
+    .nav-button .icon {
+        font-size: 1.2rem;
+    }
+}
+
+/* Портретная ориентация */
+@media (orientation: portrait) {
+    .app-container {
+        padding: 15px 15px 0 15px;
+    }
+}
+
+/* Альбомная ориентация */
+@media (orientation: landscape) {
+    .app-container {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        align-content: flex-start;
+        padding: 10px 10px 0 10px;
+        gap: 15px;
+    }
+    
+    .wheel-container {
+        flex: 0 0 auto;
+        width: 45%;
+        min-width: 300px;
+        margin: 0;
+    }
+    
+    .participants-list {
+        flex: 0 0 auto;
+        width: 45%;
+        min-width: 300px;
+        margin: 0;
+    }
+    
+    .winner-section {
+        flex-basis: 100%;
+        margin-top: 15px;
+    }
+}
+
+/* Для очень узких экранов в альбомной ориентации */
+@media (orientation: landscape) and (max-height: 400px) {
+    .app-container {
+        flex-direction: row;
+        overflow-y: hidden;
+        overflow-x: auto;
+        padding: 5px;
+    }
+    
+    .wheel-container,
+    .participants-list {
+        min-width: 250px;
+        height: 100%;
+        overflow-y: auto;
+    }
 }
 
 /* Заголовки */
